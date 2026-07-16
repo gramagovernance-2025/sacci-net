@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cancer Care Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal-deep:#0f4c3a;--teal:#1a6b5a;--teal-light:#2d8a73;--teal-pale:#e8f4f0;--teal-mist:#f2f9f7;
+    --ink:#1a1a1a;--ink-light:#4a4a4a;--ink-muted:#7a7a7a;--cream:#FDFCFA;--sand:#e8e4df;
+    --green:#166534;--green-bg:#f0fdf4;--green-b:#bbf7d0;
+    --yellow:#854d0e;--yellow-bg:#fefce8;--yellow-b:#fef08a;
+    --red:#991b1b;--red-bg:#fef2f2;--red-b:#fecaca;
+    --blue:#1e40af;--blue-bg:#eff6ff;--blue-b:#bfdbfe;
+    --purple:#5a5a8a;--purple-bg:#f0f0f8;
+    --font:'DM Sans',sans-serif;--sidebar-w:220px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font);background:#f5f3f0;color:var(--ink);font-size:14px;}
+  .app{display:flex;min-height:100vh;}
+
+  /* SIDEBAR */
+  .sidebar{width:var(--sidebar-w);background:#0a2e22;color:#fff;padding:20px 0;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;}
+  .sidebar-logo{padding:0 16px 20px;border-bottom:1px solid rgba(255,255,255,0.08);}
+  .sidebar-logo img{height:28px;filter:brightness(0) invert(1);}
+  .sidebar-label{padding:16px 16px 6px;font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.25);}
+  .sidebar-nav{list-style:none;}
+  .sidebar-nav li a{display:flex;align-items:center;gap:8px;padding:9px 16px;color:rgba(255,255,255,0.55);text-decoration:none;font-size:0.84rem;font-weight:500;border-left:3px solid transparent;transition:all 0.2s;}
+  .sidebar-nav li a:hover{color:#fff;background:rgba(255,255,255,0.05);}
+  .sidebar-nav li a.active{color:#fff;background:rgba(255,255,255,0.08);border-left-color:var(--teal-light);}
+  .sidebar-nav li a.hidden{display:none;}
+  .sidebar-bottom{margin-top:auto;padding:14px 16px;border-top:1px solid rgba(255,255,255,0.08);}
+  .sidebar-user{font-size:0.78rem;color:rgba(255,255,255,0.45);margin-bottom:4px;}
+  .sidebar-role{font-size:0.7rem;color:rgba(255,255,255,0.3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em;}
+  .logout-btn{background:none;border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.5);padding:7px 14px;border-radius:4px;font-family:var(--font);font-size:0.78rem;cursor:pointer;width:100%;}
+  .logout-btn:hover{background:rgba(255,255,255,0.06);color:#fff;}
+
+  .main{margin-left:var(--sidebar-w);flex:1;padding:28px clamp(20px,3vw,36px);}
+
+  /* COMMON */
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:12px;}
+  .topbar h1{font-size:1.4rem;font-weight:700;}
+  .topbar-actions{display:flex;gap:10px;}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:6px;font-family:var(--font);font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.2s;text-decoration:none;border:none;}
+  .btn-primary{background:var(--teal-deep);color:#fff;}
+  .btn-primary:hover{background:var(--teal);}
+  .btn-secondary{background:#fff;color:var(--ink);border:1px solid var(--sand);}
+  .btn-secondary:hover{border-color:var(--teal);color:var(--teal);}
+  .btn-sm{padding:5px 10px;font-size:0.76rem;}
+  .btn-warn{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-b);}
+
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+  .stat-box{background:#fff;border-radius:8px;padding:18px;border:1px solid var(--sand);}
+  .stat-box-number{font-size:1.7rem;font-weight:700;color:var(--ink);}
+  .stat-box-label{font-size:0.78rem;color:var(--ink-muted);margin-top:2px;}
+
+  .card{background:#fff;border-radius:8px;border:1px solid var(--sand);overflow:hidden;margin-bottom:20px;}
+  .card-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--sand);}
+  .card-header h2{font-size:0.95rem;font-weight:600;}
+  .search-input{padding:7px 12px;border:1px solid var(--sand);border-radius:6px;font-family:var(--font);font-size:0.82rem;width:240px;outline:none;}
+  .search-input:focus{border-color:var(--teal);}
+
+  table{width:100%;border-collapse:collapse;}
+  thead{background:#fafaf8;}
+  th{text-align:left;padding:10px 14px;font-size:0.72rem;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;border-bottom:1px solid var(--sand);}
+  td{padding:12px 14px;font-size:0.84rem;color:var(--ink-light);border-bottom:1px solid #f5f3f0;vertical-align:top;}
+  tr:hover td{background:#fdfcfb;}
+
+  .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:0.72rem;font-weight:600;}
+  .b-active{background:var(--green-bg);color:var(--green);border:1px solid var(--green-b);}
+  .b-screening{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-b);}
+  .b-treatment{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-b);}
+  .b-followup{background:var(--teal-pale);color:var(--teal-deep);border:1px solid #b2ddd0;}
+  .b-completed{background:var(--green-bg);color:var(--green);border:1px solid var(--green-b);}
+
+  .due{display:inline-block;padding:2px 7px;border-radius:4px;font-size:0.7rem;font-weight:600;}
+  .due-over{background:var(--red-bg);color:var(--red);}
+  .due-soon{background:var(--yellow-bg);color:var(--yellow);}
+  .due-ok{background:var(--green-bg);color:var(--green);}
+
+  .link{color:var(--teal);text-decoration:none;font-weight:500;font-size:0.8rem;cursor:pointer;}
+  .link:hover{text-decoration:underline;}
+
+  /* MODAL */
+  .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:100;justify-content:center;align-items:flex-start;padding:40px 20px;overflow-y:auto;}
+  .modal-overlay.show{display:flex;}
+  .modal{background:#fff;border-radius:12px;width:100%;max-width:700px;max-height:calc(100vh - 80px);overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,0.12);}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;border-bottom:1px solid var(--sand);position:sticky;top:0;background:#fff;z-index:2;}
+  .modal-head h2{font-size:1.1rem;font-weight:700;}
+  .modal-close{background:none;border:none;cursor:pointer;font-size:1.2rem;color:var(--ink-muted);}
+  .modal-body{padding:24px;}
+  .modal-foot{padding:14px 24px;border-top:1px solid var(--sand);display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:#fff;}
+
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+  .fg{margin-bottom:14px;}
+  .fg label{display:block;font-size:0.78rem;font-weight:600;color:var(--ink-light);margin-bottom:3px;}
+  .fg input,.fg select,.fg textarea{width:100%;padding:9px 12px;border:1.5px solid var(--sand);border-radius:6px;font-family:var(--font);font-size:0.86rem;outline:none;background:#fff;}
+  .fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--teal);}
+  .fg textarea{resize:vertical;min-height:70px;}
+  .form-title{font-size:0.72rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:0.1em;margin:20px 0 10px;padding-top:14px;border-top:1px solid var(--sand);}
+  .form-title:first-child{margin-top:0;padding-top:0;border-top:none;}
+
+  .file-area{border:2px dashed var(--sand);border-radius:8px;padding:20px;text-align:center;cursor:pointer;background:#fdfcfb;}
+  .file-area:hover{border-color:var(--teal);background:var(--teal-pale);}
+  .file-area input{display:none;}
+  .file-area p{font-size:0.85rem;color:var(--ink-muted);}
+  .file-area strong{color:var(--teal);}
+  .file-list{margin-top:8px;}
+  .file-item{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--teal-pale);border-radius:4px;margin-bottom:4px;font-size:0.8rem;}
+  .file-item .file-cat{font-size:0.7rem;color:var(--teal-deep);font-weight:600;text-transform:uppercase;}
+  .file-item button{margin-left:auto;background:none;border:none;color:var(--red);cursor:pointer;font-size:1rem;}
+
+  /* DETAIL VIEW */
+  .detail-section{margin-bottom:20px;}
+  .detail-section h3{font-size:0.78rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;}
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+  .detail-item label{font-size:0.72rem;color:var(--ink-muted);display:block;}
+  .detail-item span{font-size:0.88rem;color:var(--ink);font-weight:500;}
+  .visit-entry{padding:10px 14px;border-left:3px solid var(--teal-pale);margin-left:6px;margin-bottom:10px;background:#fdfcfb;border-radius:0 6px 6px 0;}
+  .visit-entry-date{font-size:0.75rem;color:var(--ink-muted);font-weight:600;}
+  .visit-entry-notes{font-size:0.86rem;color:var(--ink-light);margin-top:3px;}
+  .thumb-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .thumb{width:90px;height:90px;border-radius:6px;overflow:hidden;border:1px solid var(--sand);cursor:pointer;}
+  .thumb img{width:100%;height:100%;object-fit:cover;}
+  .thumb-label{font-size:0.65rem;text-align:center;color:var(--ink-muted);margin-top:2px;}
+
+  /* PUBLIC */
+  .public-banner{background:var(--teal-pale);padding:16px 20px;border-radius:8px;margin-bottom:24px;display:flex;align-items:center;gap:12px;}
+  .public-banner p{font-size:0.88rem;color:var(--teal-deep);}
+
+  .page{display:none;}
+  .page.active{display:block;}
+
+  @media(max-width:900px){
+    .sidebar{display:none;}.main{margin-left:0;}
+    .stats-row{grid-template-columns:1fr 1fr;}
+    .form-row,.detail-grid{grid-template-columns:1fr;}
+    .form-row-3{grid-template-columns:1fr;}
+  }
+  @media(max-width:640px){.stats-row{grid-template-columns:1fr;}.topbar{flex-direction:column;align-items:flex-start;}}
+</style>
+</head>
+<body>
+
+<div class="app">
+<aside class="sidebar">
+  <div class="sidebar-logo"><img src="images/Logo_1.png" alt="GRAMA"></div>
+  <div class="sidebar-label">Cancer Care Portal</div>
+  <ul class="sidebar-nav" id="sidebarNav">
+    <li><a href="#" class="active" data-page="dashboard" onclick="navTo('dashboard',this)">📊 Dashboard</a></li>
+    <li><a href="#" data-page="patients" onclick="navTo('patients',this)">👥 All Patients</a></li>
+    <li><a href="#" data-page="dues" onclick="navTo('dues',this)" id="nav-dues">⏰ Due Actions</a></li>
+    <li><a href="#" data-page="public" onclick="navTo('public',this)">🌐 Public View</a></li>
+  </ul>
+  <div class="sidebar-bottom">
+    <div class="sidebar-user" id="dispName">Staff</div>
+    <div class="sidebar-role" id="dispRole">staff</div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+</aside>
+
+<div class="main">
+
+<!-- ═══ DASHBOARD ═══ -->
+<div class="page active" id="page-dashboard">
+  <div class="topbar">
+    <h1 id="dashTitle">Dashboard</h1>
+    <div class="topbar-actions" id="dashActions">
+      <button class="btn btn-primary" onclick="openAdd()">+ Add Patient</button>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-box-number" id="s-total">0</div><div class="stat-box-label">Total Patients</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="s-active">0</div><div class="stat-box-label">Active Treatment</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="s-screening">0</div><div class="stat-box-label">In Screening</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="s-dues">0</div><div class="stat-box-label">Actions Due</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h2>Recent Patients</h2><input type="text" class="search-input" placeholder="Search..." oninput="renderDash(this.value)"></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Name</th><th>Age/Gender</th><th>Diagnosis</th><th>Status</th><th>Visit #</th><th>Next Due</th><th>Actions</th></tr></thead><tbody id="dashBody"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ═══ ALL PATIENTS ═══ -->
+<div class="page" id="page-patients">
+  <div class="topbar">
+    <h1>All Patients — Detailed View</h1>
+    <div class="topbar-actions" id="patActions">
+      <button class="btn btn-primary" onclick="openAdd()">+ Add Patient</button>
+      <button class="btn btn-secondary" onclick="exportCSV()">Export CSV</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h2>Complete Patient Records</h2><input type="text" class="search-input" placeholder="Search..." oninput="renderAll(this.value)"></div>
+    <div style="overflow-x:auto"><table><thead><tr>
+      <th>Name</th><th>Age</th><th>Gender</th><th>Village</th><th>Block</th><th>Diagnosis</th><th>Status</th><th>Admitted</th><th>Visit #</th><th>Next Visit</th><th>Due Test</th><th>Due Medicine</th><th>Actions</th>
+    </tr></thead><tbody id="allBody"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ═══ DUE ACTIONS ═══ -->
+<div class="page" id="page-dues">
+  <div class="topbar"><h1>Due Actions</h1></div>
+  <div class="card">
+    <div class="card-header"><h2>Upcoming &amp; Overdue Items</h2></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Patient</th><th>Type</th><th>Details</th><th>Due Date</th><th>Status</th></tr></thead><tbody id="duesBody"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ═══ PUBLIC DASHBOARD ═══ -->
+<div class="page" id="page-public">
+  <div class="topbar"><h1>Public Dashboard</h1></div>
+  <div class="public-banner"><p>📊 This is an anonymised view of the Cancer Care Initiative's impact. Patient identities and personal details are not shown.</p></div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-box-number" id="pub-total">0</div><div class="stat-box-label">Patients Supported</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="pub-active">0</div><div class="stat-box-label">Currently in Treatment</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="pub-screening">0</div><div class="stat-box-label">Under Screening</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="pub-completed">0</div><div class="stat-box-label">Treatment Completed</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h2>Patient Overview (Anonymised)</h2></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Age</th><th>Gender</th><th>Village</th><th>Diagnosis</th><th>Status</th><th>Visits</th></tr></thead><tbody id="pubBody"></tbody></table></div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<!-- ═══ ADD/EDIT MODAL ═══ -->
+<div class="modal-overlay" id="patientModal">
+<div class="modal">
+  <div class="modal-head"><h2 id="modalTitle">Add New Patient</h2><button class="modal-close" onclick="closeModal()">&times;</button></div>
+  <div class="modal-body">
+    <input type="hidden" id="editId">
+    <div class="form-title">Patient Information</div>
+    <div class="form-row"><div class="fg"><label>Full Name *</label><input type="text" id="pName"></div><div class="fg"><label>Age</label><input type="number" id="pAge" min="0" max="120"></div></div>
+    <div class="form-row"><div class="fg"><label>Gender</label><select id="pGender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div><div class="fg"><label>Phone</label><input type="tel" id="pPhone"></div></div>
+    <div class="form-row-3"><div class="fg"><label>Village / Panchayat</label><input type="text" id="pVillage"><div class="fg"><label>Block</label><input type="text" id="pBlock"></div></div><div class="fg"><label>District</label><input type="text" id="pDistrict" value="Muzaffarpur"></div></div>
+
+    <div class="form-title">Aadhar &amp; Bank Details</div>
+    <div class="form-row"><div class="fg"><label>Aadhar Card Number</label><input type="text" id="pAadhar" placeholder="12 digit number" maxlength="14"></div><div class="fg"><label>Bank Name</label><input type="text" id="pBank"></div></div>
+    <div class="form-row"><div class="fg"><label>Bank Account Number</label><input type="text" id="pAccount"></div><div class="fg"><label>IFSC Code</label><input type="text" id="pIFSC"></div></div>
+
+    <div class="form-title">Medical Details</div>
+    <div class="form-row"><div class="fg"><label>Diagnosis / Cancer Type</label><input type="text" id="pDiagnosis" placeholder="e.g. Oral cancer, Breast cancer"></div><div class="fg"><label>Status</label><select id="pStatus"><option value="Screening">Screening</option><option value="Under Investigation">Under Investigation</option><option value="Treatment">Treatment (Active)</option><option value="Admitted">Admitted</option><option value="On Medication">On Medication</option><option value="Follow-up">Follow-up</option><option value="Completed">Completed</option></select></div></div>
+    <div class="form-row"><div class="fg"><label>Is Patient Admitted?</label><select id="pAdmitted"><option value="No">No</option><option value="Yes">Yes</option></select></div><div class="fg"><label>Visit Number</label><input type="number" id="pVisitNum" min="0" value="1"></div></div>
+    <div class="fg"><label>Current Treatment</label><textarea id="pTreatment" placeholder="Treatment details..."></textarea></div>
+    <div class="fg"><label>Current Medication</label><textarea id="pMedication" placeholder="Medicines and dosages..."></textarea></div>
+
+    <div class="form-title">Upcoming Schedule</div>
+    <div class="form-row"><div class="fg"><label>Next Visit Date</label><input type="date" id="pNextVisit"></div><div class="fg"><label>Next Medical Test</label><input type="text" id="pNextTest"></div></div>
+    <div class="form-row"><div class="fg"><label>Test Due Date</label><input type="date" id="pTestDate"></div><div class="fg"><label>Medicine Refill Due</label><input type="date" id="pMedDate"></div></div>
+
+    <div class="form-title">Notes</div>
+    <div class="fg"><label>Latest Notes</label><textarea id="pNotes" placeholder="Observations, doctor remarks..."></textarea></div>
+
+    <div class="form-title">Upload Reports / Images</div>
+    <div class="fg">
+      <div class="form-row"><div class="fg"><label>Category</label><select id="fileCategory"><option value="Latest Report">Latest Report</option><option value="History">History</option><option value="Prescription">Prescription</option><option value="Other">Other</option></select></div></div>
+      <div class="file-area" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFiles(this)">
+        <p><strong>Click to upload</strong> reports, prescriptions, or test results</p>
+      </div>
+      <div class="file-list" id="fileList"></div>
+    </div>
+  </div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="savePatient()">Save Patient</button></div>
+</div>
+</div>
+
+<!-- ═══ UPDATE VISIT MODAL ═══ -->
+<div class="modal-overlay" id="updateModal">
+<div class="modal" style="max-width:520px">
+  <div class="modal-head"><h2>Add Visit Update</h2><button class="modal-close" onclick="closeUpdate()">&times;</button></div>
+  <div class="modal-body">
+    <input type="hidden" id="updateId">
+    <div class="fg"><label>Visit Date</label><input type="date" id="uDate"></div>
+    <div class="fg"><label>Visit Number</label><input type="number" id="uVisitNum" min="1"></div>
+    <div class="fg"><label>What happened at this visit?</label><textarea id="uNotes" placeholder="Describe the visit — tests done, doctor observations, treatment changes..."></textarea></div>
+    <div class="form-row"><div class="fg"><label>Updated Status</label><select id="uStatus"><option value="">No change</option><option value="Screening">Screening</option><option value="Under Investigation">Under Investigation</option><option value="Treatment">Treatment</option><option value="Admitted">Admitted</option><option value="On Medication">On Medication</option><option value="Follow-up">Follow-up</option><option value="Completed">Completed</option></select></div><div class="fg"><label>Next Visit Date</label><input type="date" id="uNextVisit"></div></div>
+  </div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeUpdate()">Cancel</button><button class="btn btn-primary" onclick="saveUpdate()">Save Update</button></div>
+</div>
+</div>
+
+<!-- ═══ VIEW MODAL ═══ -->
+<div class="modal-overlay" id="viewModal">
+<div class="modal">
+  <div class="modal-head"><h2 id="viewTitle">Patient</h2><button class="modal-close" onclick="closeView()">&times;</button></div>
+  <div class="modal-body" id="viewBody"></div>
+  <div class="modal-foot" id="viewFoot"></div>
+</div>
+</div>
+
+<script>
+// AUTH
+if(sessionStorage.getItem('cc_logged_in')!=='true')window.location.href='portal-login.html';
+var ROLE=sessionStorage.getItem('cc_role')||'public';
+var UNAME=sessionStorage.getItem('cc_name')||'User';
+var UUSER=sessionStorage.getItem('cc_user')||'';
+document.getElementById('dispName').textContent=UNAME;
+document.getElementById('dispRole').textContent=ROLE==='staff'?'Full Access':ROLE==='advisor'?'Advisor (Read-Only)':'Public';
+
+// Role-based UI
+if(ROLE==='public'){
+  document.getElementById('nav-dues').parentElement.querySelector('a').classList.add('hidden');
+  navTo('public',document.querySelector('[data-page="public"]'));
+}
+if(ROLE==='advisor'){
+  document.getElementById('dashActions').style.display='none';
+  document.getElementById('patActions').innerHTML='<button class="btn btn-secondary" onclick="exportCSV()">Export CSV</button>';
+}
+
+// DATA
+var patients=JSON.parse(localStorage.getItem('cc_patients')||'[]');
+var tempFiles=[];
+function save(){localStorage.setItem('cc_patients',JSON.stringify(patients));}
+function gid(){return 'p_'+Date.now()+'_'+Math.random().toString(36).substr(2,5);}
+function esc(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+function fmtDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});}
+function dueStatus(d){if(!d)return{t:'—',c:''};var diff=Math.floor((new Date(d)-new Date(new Date().toDateString()))/864e5);if(diff<0)return{t:'Overdue ('+Math.abs(diff)+'d)',c:'due-over'};if(diff<=3)return{t:'In '+diff+'d',c:'due-soon'};return{t:fmtDate(d),c:'due-ok'};}
+function statusCls(s){return{'Screening':'b-screening','Under Investigation':'b-screening','Treatment':'b-treatment','Admitted':'b-treatment','On Medication':'b-active','Follow-up':'b-followup','Completed':'b-completed'}[s]||'b-screening';}
+
+// NAV
+function navTo(name,el){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.sidebar-nav a').forEach(function(a){a.classList.remove('active');});
+  if(el)el.classList.add('active');
+  if(name==='dashboard')renderDash();
+  if(name==='patients')renderAll();
+  if(name==='dues')renderDues();
+  if(name==='public')renderPublic();
+}
+function logout(){sessionStorage.clear();window.location.href='portal-login.html';}
+
+// RENDER DASHBOARD
+function renderDash(q){
+  var list=patients;
+  if(q){var f=q.toLowerCase();list=list.filter(function(p){return(p.name||'').toLowerCase().indexOf(f)>=0||(p.diagnosis||'').toLowerCase().indexOf(f)>=0;});}
+  var now=new Date(new Date().toDateString());
+  var active=patients.filter(function(p){return['Treatment','Admitted','On Medication'].indexOf(p.status)>=0;}).length;
+  var screening=patients.filter(function(p){return['Screening','Under Investigation'].indexOf(p.status)>=0;}).length;
+  var dues=0;patients.forEach(function(p){[p.nextVisit,p.testDate,p.medDate].forEach(function(d){if(d&&new Date(d)<=new Date(now.getTime()+3*864e5))dues++;});});
+  document.getElementById('s-total').textContent=patients.length;
+  document.getElementById('s-active').textContent=active;
+  document.getElementById('s-screening').textContent=screening;
+  document.getElementById('s-dues').textContent=dues;
+
+  var tbody=document.getElementById('dashBody');
+  var recent=list.slice(-10).reverse();
+  if(!recent.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:36px;color:var(--ink-muted)">No patients yet.</td></tr>';return;}
+  var h='';recent.forEach(function(p){
+    var nd=dueStatus(p.nextVisit);
+    var acts='<span class="link" onclick="viewPatient(\''+p.id+'\')">View</span>';
+    if(ROLE==='staff')acts+=' · <span class="link" onclick="editPatient(\''+p.id+'\')">Edit</span> · <span class="link" onclick="openUpdate(\''+p.id+'\')">Update</span>';
+    h+='<tr><td><strong>'+esc(p.name)+'</strong></td><td>'+(p.age||'—')+' / '+(p.gender?p.gender[0]:'—')+'</td><td>'+esc(p.diagnosis||'—')+'</td><td><span class="badge '+statusCls(p.status)+'">'+p.status+'</span></td><td>'+(p.visitNum||'—')+'</td><td>'+(nd.c?'<span class="due '+nd.c+'">'+nd.t+'</span>':nd.t)+'</td><td>'+acts+'</td></tr>';
+  });tbody.innerHTML=h;
+}
+
+// RENDER ALL PATIENTS
+function renderAll(q){
+  var list=patients;
+  if(q){var f=q.toLowerCase();list=list.filter(function(p){return(p.name||'').toLowerCase().indexOf(f)>=0||(p.village||'').toLowerCase().indexOf(f)>=0||(p.diagnosis||'').toLowerCase().indexOf(f)>=0||(p.block||'').toLowerCase().indexOf(f)>=0;});}
+  var tbody=document.getElementById('allBody');
+  if(!list.length){tbody.innerHTML='<tr><td colspan="13" style="text-align:center;padding:36px;color:var(--ink-muted)">No patients.</td></tr>';return;}
+  var h='';list.forEach(function(p){
+    var nd=dueStatus(p.nextVisit),td=dueStatus(p.testDate),md=dueStatus(p.medDate);
+    var acts='<span class="link" onclick="viewPatient(\''+p.id+'\')">View</span>';
+    if(ROLE==='staff')acts+=' · <span class="link" onclick="editPatient(\''+p.id+'\')">Edit</span> · <span class="link" onclick="openUpdate(\''+p.id+'\')">Update</span>';
+    h+='<tr><td><strong>'+esc(p.name)+'</strong></td><td>'+(p.age||'—')+'</td><td>'+(p.gender||'—')+'</td><td>'+esc(p.village||'—')+'</td><td>'+esc(p.block||'—')+'</td><td>'+esc(p.diagnosis||'—')+'</td><td><span class="badge '+statusCls(p.status)+'">'+p.status+'</span></td><td>'+(p.admitted||'No')+'</td><td>'+(p.visitNum||'—')+'</td><td>'+(nd.c?'<span class="due '+nd.c+'">'+nd.t+'</span>':nd.t)+'</td><td>'+(td.c?'<span class="due '+td.c+'">'+td.t+'</span>':td.t)+'</td><td>'+(md.c?'<span class="due '+md.c+'">'+md.t+'</span>':md.t)+'</td><td>'+acts+'</td></tr>';
+  });tbody.innerHTML=h;
+}
+
+// RENDER DUES
+function renderDues(){
+  var now=new Date(new Date().toDateString());var items=[];
+  patients.forEach(function(p){
+    if(p.nextVisit)items.push({name:p.name,id:p.id,type:'Visit',detail:'Hospital visit',date:p.nextVisit});
+    if(p.testDate)items.push({name:p.name,id:p.id,type:'Test',detail:p.nextTest||'Pending',date:p.testDate});
+    if(p.medDate)items.push({name:p.name,id:p.id,type:'Medicine',detail:'Refill due',date:p.medDate});
+  });
+  items.sort(function(a,b){return new Date(a.date)-new Date(b.date);});
+  var tbody=document.getElementById('duesBody');
+  if(!items.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:36px;color:var(--ink-muted)">No due actions.</td></tr>';return;}
+  var h='';items.forEach(function(i){var d=dueStatus(i.date);h+='<tr><td><strong>'+esc(i.name)+'</strong></td><td>'+i.type+'</td><td>'+esc(i.detail)+'</td><td>'+fmtDate(i.date)+'</td><td><span class="due '+d.c+'">'+d.t+'</span></td></tr>';});
+  tbody.innerHTML=h;
+}
+
+// RENDER PUBLIC
+function renderPublic(){
+  var completed=patients.filter(function(p){return p.status==='Completed';}).length;
+  document.getElementById('pub-total').textContent=patients.length;
+  document.getElementById('pub-active').textContent=patients.filter(function(p){return['Treatment','Admitted','On Medication'].indexOf(p.status)>=0;}).length;
+  document.getElementById('pub-screening').textContent=patients.filter(function(p){return['Screening','Under Investigation'].indexOf(p.status)>=0;}).length;
+  document.getElementById('pub-completed').textContent=completed;
+  var tbody=document.getElementById('pubBody');
+  if(!patients.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:36px;color:var(--ink-muted)">No data yet.</td></tr>';return;}
+  var h='';patients.forEach(function(p,i){
+    h+='<tr><td>'+(i+1)+'</td><td>'+(p.age||'—')+'</td><td>'+(p.gender||'—')+'</td><td>'+esc(p.block||'—')+'</td><td>'+esc(p.diagnosis||'—')+'</td><td><span class="badge '+statusCls(p.status)+'">'+p.status+'</span></td><td>'+(p.visitNum||'—')+'</td></tr>';
+  });tbody.innerHTML=h;
+}
+
+// ADD/EDIT
+function openAdd(){
+  document.getElementById('modalTitle').textContent='Add New Patient';
+  document.getElementById('editId').value='';clearForm();tempFiles=[];renderFiles();
+  document.getElementById('patientModal').classList.add('show');
+}
+function editPatient(id){
+  var p=patients.find(function(x){return x.id===id;});if(!p)return;
+  document.getElementById('modalTitle').textContent='Edit Patient';
+  document.getElementById('editId').value=id;
+  'pName pAge pGender pPhone pVillage pBlock pDistrict pAadhar pBank pAccount pIFSC pDiagnosis pStatus pAdmitted pVisitNum pTreatment pMedication pNextVisit pNextTest pTestDate pMedDate pNotes'.split(' ').forEach(function(f){var el=document.getElementById(f);if(el)el.value=p[f.replace('p','').replace(/^./,function(c){return c.toLowerCase();})]||el.defaultValue||'';});
+  // Map fields properly
+  document.getElementById('pName').value=p.name||'';
+  document.getElementById('pAge').value=p.age||'';
+  document.getElementById('pGender').value=p.gender||'';
+  document.getElementById('pPhone').value=p.phone||'';
+  document.getElementById('pVillage').value=p.village||'';
+   document.getElementById('pBlock').value=p.block||'';
+  document.getElementById('pDistrict').value=p.district||'Muzaffarpur';
+  document.getElementById('pAadhar').value=p.aadhar||'';
+  document.getElementById('pBank').value=p.bank||'';
+  document.getElementById('pAccount').value=p.account||'';
+  document.getElementById('pIFSC').value=p.ifsc||'';
+  document.getElementById('pDiagnosis').value=p.diagnosis||'';
+  document.getElementById('pStatus').value=p.status||'Screening';
+  document.getElementById('pAdmitted').value=p.admitted||'No';
+  document.getElementById('pVisitNum').value=p.visitNum||1;
+  document.getElementById('pTreatment').value=p.treatment||'';
+  document.getElementById('pMedication').value=p.medication||'';
+  document.getElementById('pNextVisit').value=p.nextVisit||'';
+  document.getElementById('pNextTest').value=p.nextTest||'';
+  document.getElementById('pTestDate').value=p.testDate||'';
+  document.getElementById('pMedDate').value=p.medDate||'';
+  document.getElementById('pNotes').value=p.notes||'';
+  tempFiles=p.files?p.files.slice():[];renderFiles();
+  document.getElementById('patientModal').classList.add('show');
+}
+function closeModal(){document.getElementById('patientModal').classList.remove('show');clearForm();}
+function clearForm(){['pName','pAge','pPhone','pVillage','pBlock','pAadhar','pBank','pAccount','pIFSC','pDiagnosis','pTreatment','pMedication','pNextVisit','pNextTest','pTestDate','pMedDate','pNotes'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('pGender').value='';document.getElementById('pDistrict').value='Muzaffarpur';document.getElementById('pStatus').value='Screening';document.getElementById('pAdmitted').value='No';document.getElementById('pVisitNum').value=1;}
+
+function savePatient(){
+  var name=document.getElementById('pName').value.trim();if(!name){alert('Name is required');return;}
+  var eid=document.getElementById('editId').value;
+  var d={id:eid||gid(),name:name,age:document.getElementById('pAge').value,gender:document.getElementById('pGender').value,village:document.getElementById('pVillage').value,phone:document.getElementById('pPhone').value,block:document.getElementById('pBlock').value,district:document.getElementById('pDistrict').value,aadhar:document.getElementById('pAadhar').value,bank:document.getElementById('pBank').value,account:document.getElementById('pAccount').value,ifsc:document.getElementById('pIFSC').value,diagnosis:document.getElementById('pDiagnosis').value,status:document.getElementById('pStatus').value,admitted:document.getElementById('pAdmitted').value,visitNum:document.getElementById('pVisitNum').value,treatment:document.getElementById('pTreatment').value,medication:document.getElementById('pMedication').value,nextVisit:document.getElementById('pNextVisit').value,nextTest:document.getElementById('pNextTest').value,testDate:document.getElementById('pTestDate').value,medDate:document.getElementById('pMedDate').value,notes:document.getElementById('pNotes').value,files:tempFiles,updatedAt:new Date().toISOString(),updatedBy:UUSER};
+  if(eid){var idx=patients.findIndex(function(p){return p.id===eid;});if(idx>=0){d.createdAt=patients[idx].createdAt;d.history=patients[idx].history||[];d.history.push({date:new Date().toISOString(),user:UNAME,note:'Record updated'});patients[idx]=d;}}
+  else{d.createdAt=new Date().toISOString();d.history=[{date:new Date().toISOString(),user:UNAME,note:'Patient registered'}];patients.push(d);}
+  save();closeModal();renderDash();
+}
+
+// FILES
+function handleFiles(input){
+  var cat=document.getElementById('fileCategory').value;
+  Array.from(input.files).forEach(function(f){if(f.size>2*1024*1024){alert('Too large: '+f.name);return;}var r=new FileReader();r.onload=function(e){tempFiles.push({name:f.name,data:e.target.result,date:new Date().toISOString(),category:cat});renderFiles();};r.readAsDataURL(f);});input.value='';
+}
+function renderFiles(){
+  var c=document.getElementById('fileList');if(!tempFiles.length){c.innerHTML='';return;}
+  var h='';tempFiles.forEach(function(f,i){h+='<div class="file-item"><span class="file-cat">'+esc(f.category||'Other')+'</span> '+esc(f.name)+'<button onclick="tempFiles.splice('+i+',1);renderFiles()">&times;</button></div>';});c.innerHTML=h;
+}
+
+// UPDATE VISIT
+function openUpdate(id){
+  var p=patients.find(function(x){return x.id===id;});if(!p)return;
+  document.getElementById('updateId').value=id;
+  document.getElementById('uDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('uVisitNum').value=(parseInt(p.visitNum)||0)+1;
+  document.getElementById('uNotes').value='';
+  document.getElementById('uStatus').value='';
+  document.getElementById('uNextVisit').value='';
+  document.getElementById('updateModal').classList.add('show');
+}
+function closeUpdate(){document.getElementById('updateModal').classList.remove('show');}
+function saveUpdate(){
+  var id=document.getElementById('updateId').value;
+  var idx=patients.findIndex(function(p){return p.id===id;});if(idx<0)return;
+  var p=patients[idx];
+  var notes=document.getElementById('uNotes').value.trim();if(!notes){alert('Please describe what happened at this visit');return;}
+  var newStatus=document.getElementById('uStatus').value;
+  var newNext=document.getElementById('uNextVisit').value;
+  var visitNum=document.getElementById('uVisitNum').value;
+  p.visitNum=visitNum;
+  if(newStatus)p.status=newStatus;
+  if(newNext)p.nextVisit=newNext;
+  if(!p.history)p.history=[];
+  p.history.push({date:document.getElementById('uDate').value||new Date().toISOString(),user:UNAME,note:'Visit #'+visitNum+': '+notes});
+  p.updatedAt=new Date().toISOString();p.updatedBy=UUSER;
+  save();closeUpdate();renderDash();
+}
+
+// VIEW
+function viewPatient(id){
+  var p=patients.find(function(x){return x.id===id;});if(!p)return;
+  document.getElementById('viewTitle').textContent=p.name;
+  var h='<div class="detail-section"><h3>Patient Information</h3><div class="detail-grid">';
+  h+='<div class="detail-item"><label>Name</label><span>'+esc(p.name)+'</span></div>';
+  h+='<div class="detail-item"><label>Age / Gender</label><span>'+(p.age||'—')+' / '+(p.gender||'—')+'</span></div>';
+  h+='<div class="detail-item"><label>Phone</label><span>'+(p.phone||'—')+'</span></div>';
+  h+='<div class="detail-item"><label>Village</label><span>'+esc(p.village||'—')+'</span></div>';
+  h+='<div class="detail-item"><label>Block</label><span>'+esc(p.block||'—')+'</span></div>';
+  h+='<div class="detail-item"><label>District</label><span>'+esc(p.district||'—')+'</span></div>';
+  if(ROLE==='staff'){
+    h+='<div class="detail-item"><label>Aadhar</label><span>'+(p.aadhar||'—')+'</span></div>';
+    h+='<div class="detail-item"><label>Bank</label><span>'+(p.bank||'—')+' / '+(p.ifsc||'—')+'</span></div>';
+    h+='<div class="detail-item"><label>Account</label><span>'+(p.account||'—')+'</span></div>';
+  }
+  h+='</div></div>';
+
+  h+='<div class="detail-section"><h3>Medical Details</h3><div class="detail-grid">';
+  h+='<div class="detail-item"><label>Diagnosis</label><span>'+esc(p.diagnosis||'—')+'</span></div>';
+  h+='<div class="detail-item"><label>Status</label><span class="badge '+statusCls(p.status)+'">'+p.status+'</span></div>';
+  h+='<div class="detail-item"><label>Admitted</label><span>'+(p.admitted||'No')+'</span></div>';
+  h+='<div class="detail-item"><label>Visit #</label><span>'+(p.visitNum||'—')+'</span></div>';
+  h+='<div class="detail-item"><label>Registered</label><span>'+fmtDate(p.createdAt)+'</span></div>';
+  h+='</div>';
+  if(p.treatment)h+='<div style="margin-top:10px"><label style="font-size:0.72rem;color:var(--ink-muted)">Treatment</label><p style="font-size:0.88rem;margin-top:3px">'+esc(p.treatment)+'</p></div>';
+  if(p.medication)h+='<div style="margin-top:10px"><label style="font-size:0.72rem;color:var(--ink-muted)">Medication</label><p style="font-size:0.88rem;margin-top:3px">'+esc(p.medication)+'</p></div>';
+  h+='</div>';
+
+  // Schedule
+  var nd=dueStatus(p.nextVisit),td=dueStatus(p.testDate),md=dueStatus(p.medDate);
+  h+='<div class="detail-section"><h3>Schedule</h3><div class="detail-grid">';
+  h+='<div class="detail-item"><label>Next Visit</label><span>'+(nd.c?'<span class="due '+nd.c+'">'+nd.t+'</span>':nd.t)+'</span></div>';
+  h+='<div class="detail-item"><label>Next Test</label><span>'+esc(p.nextTest||'—')+(td.c?' <span class="due '+td.c+'">'+td.t+'</span>':'')+'</span></div>';
+  h+='<div class="detail-item"><label>Medicine Refill</label><span>'+(md.c?'<span class="due '+md.c+'">'+md.t+'</span>':md.t)+'</span></div>';
+  h+='</div></div>';
+
+  if(p.notes)h+='<div class="detail-section"><h3>Notes</h3><p style="font-size:0.88rem;color:var(--ink-light)">'+esc(p.notes)+'</p></div>';
+
+  // Files by category
+  if(p.files&&p.files.length){
+    var latest=p.files.filter(function(f){return f.category==='Latest Report';});
+    var history=p.files.filter(function(f){return f.category!=='Latest Report';});
+    if(latest.length){
+      h+='<div class="detail-section"><h3>Latest Reports (for Dr. Vidyasagar)</h3><div class="thumb-row">';
+      latest.forEach(function(f){h+='<div><div class="thumb" onclick="window.open(\''+f.data+'\')"><img src="'+f.data+'"></div><div class="thumb-label">'+esc(f.name)+'</div></div>';});
+      h+='</div></div>';
+    }
+    if(history.length){
+      h+='<div class="detail-section"><h3>History &amp; Other Documents</h3><div class="thumb-row">';
+      history.forEach(function(f){h+='<div><div class="thumb" onclick="window.open(\''+f.data+'\')"><img src="'+f.data+'"></div><div class="thumb-label">'+esc(f.category||'')+': '+esc(f.name)+'</div></div>';});
+      h+='</div></div>';
+    }
+  }
+
+  // Visit history
+  if(p.history&&p.history.length){
+    h+='<div class="detail-section"><h3>Full Case History</h3>';
+    p.history.slice().reverse().forEach(function(v){h+='<div class="visit-entry"><div class="visit-entry-date">'+fmtDate(v.date)+' — '+esc(v.user)+'</div><div class="visit-entry-notes">'+esc(v.note)+'</div></div>';});
+    h+='</div>';
+  }
+
+  document.getElementById('viewBody').innerHTML=h;
+  var foot='<button class="btn btn-secondary" onclick="closeView()">Close</button>';
+  if(ROLE==='staff')foot+='<button class="btn btn-primary" onclick="closeView();editPatient(\''+id+'\')">Edit</button><button class="btn btn-warn" onclick="closeView();openUpdate(\''+id+'\')">Add Visit Update</button>';
+  document.getElementById('viewFoot').innerHTML=foot;
+  document.getElementById('viewModal').classList.add('show');
+}
+function closeView(){document.getElementById('viewModal').classList.remove('show');}
+
+// CSV
+function exportCSV(){
+  var headers=['Name','Age','Gender','Phone','Village','Block','District','Aadhar','Bank','Account','IFSC','Diagnosis','Status','Admitted','Visit#','Treatment','Medication','Next Visit','Next Test','Test Date','Med Date','Notes'];
+  var rows=patients.map(function(p){return[p.name,p.age,p.gender,p.phone,p.village,p.block,p.district,p.aadhar,p.bank,p.account,p.ifsc,p.diagnosis,p.status,p.admitted,p.visitNum,p.treatment,p.medication,p.nextVisit,p.nextTest,p.testDate,p.medDate,p.notes].map(function(v){return'"'+((v||'')+'').replace(/"/g,'""')+'"';});});
+  var csv=[headers.join(',')].concat(rows.map(function(r){return r.join(',');})).join('\n');
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='cancer_patients_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+}
+
+// INIT
+renderDash();
+</script>
+</body>
+</html>

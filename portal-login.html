@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff Login — Cancer Care Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --teal-deep: #0f4c3a; --teal: #1a6b5a; --teal-pale: #e8f4f0; --ink: #1a1a1a; --ink-muted: #7a7a7a; --cream: #FDFCFA; --sand: #e8e4df; --red: #991b1b; --font: 'DM Sans', sans-serif; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--font); background: var(--cream); min-height: 100vh; display: flex; flex-direction: column; }
+  .login-header { padding: 20px clamp(24px,4vw,48px); border-bottom: 1px solid var(--sand); display: flex; justify-content: space-between; align-items: center; }
+  .login-header img { height: 34px; }
+  .login-header a { font-size: 0.84rem; color: var(--ink-muted); text-decoration: none; }
+  .login-header a:hover { color: var(--teal); }
+  .login-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 24px; }
+  .login-card { width: 100%; max-width: 400px; background: #fff; border-radius: 12px; padding: 44px 36px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid rgba(15,76,58,0.08); }
+  .login-icon { width: 52px; height: 52px; border-radius: 50%; background: var(--teal-pale); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+  .login-card h1 { font-size: 1.4rem; font-weight: 700; text-align: center; margin-bottom: 6px; }
+  .login-card .sub { font-size: 0.88rem; color: var(--ink-muted); text-align: center; margin-bottom: 28px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--ink-muted); margin-bottom: 4px; }
+  .form-group input { width: 100%; padding: 11px 14px; border: 1.5px solid var(--sand); border-radius: 6px; font-family: var(--font); font-size: 0.9rem; outline: none; }
+  .form-group input:focus { border-color: var(--teal); }
+  .login-btn { width: 100%; padding: 13px; background: var(--teal-deep); color: #fff; border: none; border-radius: 6px; font-family: var(--font); font-size: 0.92rem; font-weight: 600; cursor: pointer; margin-top: 4px; }
+  .login-btn:hover { background: var(--teal); }
+  .login-error { display: none; background: #fef2f2; border: 1px solid #fecaca; color: var(--red); padding: 10px; border-radius: 6px; font-size: 0.84rem; margin-bottom: 14px; text-align: center; }
+  .login-error.show { display: block; }
+  .divider { text-align: center; margin: 24px 0; position: relative; }
+  .divider::before { content: ''; position: absolute; left: 0; top: 50%; width: 100%; height: 1px; background: var(--sand); }
+  .divider span { background: #fff; padding: 0 12px; font-size: 0.78rem; color: var(--ink-muted); position: relative; }
+  .public-btn { width: 100%; padding: 12px; background: var(--teal-pale); color: var(--teal-deep); border: 1px solid rgba(15,76,58,0.15); border-radius: 6px; font-family: var(--font); font-size: 0.88rem; font-weight: 600; cursor: pointer; }
+  .public-btn:hover { background: #d5ede5; }
+  .login-footer { text-align: center; margin-top: 20px; font-size: 0.8rem; color: var(--ink-muted); }
+  .login-footer a { color: var(--teal); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="login-header">
+  <a href="index.html"><img src="images/Logo_1.png" alt="GRAMA"></a>
+  <a href="index.html">← Back to Initiative</a>
+</div>
+
+<div class="login-wrapper">
+  <div class="login-card">
+    <div class="login-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0f4c3a" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <h1>Staff Portal</h1>
+    <p class="sub">Cancer Care Initiative</p>
+
+    <div class="login-error" id="loginError">Invalid username or password</div>
+
+    <div class="form-group"><label>Username</label><input type="text" id="username" placeholder="Enter username"></div>
+    <div class="form-group"><label>Password</label><input type="password" id="password" placeholder="Enter password"></div>
+    <button class="login-btn" onclick="handleLogin()">Login</button>
+
+    <div class="divider"><span>or</span></div>
+    <button class="public-btn" onclick="publicDashboard()">View Public Dashboard →</button>
+
+    <p class="login-footer">Need help? <a href="mailto:gramagovernance@gmail.com">Contact us</a></p>
+  </div>
+</div>
+
+<script>
+  // Roles: staff (full edit), advisor (read-only), public (anonymised)
+  var USERS = {
+    'grama': { pass: 'grama2026', role: 'staff', name: 'GRAMA Staff' },
+    'admin': { pass: 'admin2026', role: 'staff', name: 'Admin' },
+    'chanchal': { pass: 'chanchal2026', role: 'staff', name: 'Chanchal' },
+    'drvidyasagar': { pass: 'doctor2026', role: 'advisor', name: 'Dr. Vidyasagar' },
+    'sharan': { pass: 'sharan2026', role: 'advisor', name: 'M.R. Sharan' }
+  };
+
+  function handleLogin() {
+    var user = document.getElementById('username').value.trim().toLowerCase();
+    var pass = document.getElementById('password').value;
+    if (USERS[user] && USERS[user].pass === pass) {
+      sessionStorage.setItem('cc_logged_in', 'true');
+      sessionStorage.setItem('cc_user', user);
+      sessionStorage.setItem('cc_role', USERS[user].role);
+      sessionStorage.setItem('cc_name', USERS[user].name);
+      window.location.href = 'portal.html';
+    } else {
+      document.getElementById('loginError').classList.add('show');
+      setTimeout(function() { document.getElementById('loginError').classList.remove('show'); }, 3000);
+    }
+  }
+
+  function publicDashboard() {
+    sessionStorage.setItem('cc_logged_in', 'true');
+    sessionStorage.setItem('cc_user', 'public');
+    sessionStorage.setItem('cc_role', 'public');
+    sessionStorage.setItem('cc_name', 'Public View');
+    window.location.href = 'portal.html';
+  }
+
+  document.getElementById('password').addEventListener('keypress', function(e) { if (e.key === 'Enter') handleLogin(); });
+  if (sessionStorage.getItem('cc_logged_in') === 'true') window.location.href = 'portal.html';
+</script>
+</body>
+</html>

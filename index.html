@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cancer Care Initiative</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest:#0f4c3a;--teal:#1a6b5a;--teal-light:#2d8a73;--teal-soft:#e8f4f0;--mint:#f2f9f7;
+    --amber:#c4603c;--amber-soft:#faf0ec;
+    --slate:#334155;--slate-light:#64748b;--slate-muted:#94a3b8;
+    --white:#ffffff;--offwhite:#f8fafb;--bone:#f1f5f4;--line:#e2e8f0;
+    --serif:'Playfair Display',Georgia,serif;
+    --sans:'Inter',-apple-system,sans-serif;
+    --max:1200px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{font-family:var(--sans);color:var(--slate);background:var(--white);line-height:1.7;font-size:16px;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+
+  /* ─── TOPBAR ─── */
+  .topbar{position:fixed;top:0;width:100%;z-index:100;background:rgba(255,255,255,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);height:60px;display:flex;align-items:center;padding:0 clamp(20px,4vw,48px);}
+  .topbar-inner{max-width:var(--max);margin:0 auto;width:100%;display:flex;justify-content:space-between;align-items:center;}
+  .topbar img{height:32px;}
+  .topbar-links{display:flex;gap:24px;align-items:center;}
+  .topbar-links a{font-size:0.82rem;font-weight:500;color:var(--slate-light);text-decoration:none;transition:color 0.2s;}
+  .topbar-links a:hover{color:var(--forest);}
+  .topbar-links .portal-link{background:var(--forest);color:#fff;padding:7px 18px;border-radius:5px;font-weight:600;}
+  .topbar-links .portal-link:hover{background:var(--teal);}
+
+  /* ─── HERO ─── */
+  .hero{margin-top:60px;min-height:85vh;display:grid;grid-template-columns:1fr 1fr;position:relative;}
+  .hero-content{display:flex;flex-direction:column;justify-content:center;padding:clamp(40px,6vw,80px) clamp(24px,4vw,60px);background:var(--forest);color:#fff;}
+  .hero-tag{font-size:0.7rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:24px;}
+  .hero h1{font-family:var(--serif);font-size:clamp(2.2rem,4.5vw,3.4rem);font-weight:500;line-height:1.15;margin-bottom:24px;}
+  .hero-desc{font-size:1.05rem;line-height:1.85;color:rgba(255,255,255,0.7);max-width:480px;}
+  .hero-image{background:var(--bone);position:relative;overflow:hidden;}
+  .hero-image img{width:100%;height:100%;object-fit:cover;display:block;}
+  .hero-image-placeholder{width:100%;height:100%;background:linear-gradient(135deg,var(--teal-soft),var(--bone));display:flex;align-items:center;justify-content:center;color:var(--slate-muted);font-size:0.9rem;}
+
+  /* ─── CHALLENGE ─── */
+  .challenge{padding:clamp(60px,8vw,120px) clamp(24px,4vw,48px);background:var(--offwhite);}
+  .challenge-inner{max-width:var(--max);margin:0 auto;}
+  .challenge-top{max-width:700px;margin-bottom:48px;}
+  .tag-label{font-size:0.68rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal);margin-bottom:12px;}
+  .challenge-top h2{font-family:var(--serif);font-size:clamp(1.6rem,3vw,2.4rem);font-weight:500;line-height:1.3;color:var(--slate);margin-bottom:16px;}
+  .challenge-top p{font-size:1.02rem;line-height:1.85;color:var(--slate-light);}
+  .challenge-callout{background:var(--white);border-radius:12px;padding:clamp(28px,4vw,48px);border-left:5px solid var(--teal);max-width:800px;margin:0 auto;box-shadow:0 4px 16px rgba(0,0,0,0.04);}
+  .challenge-callout p{font-family:var(--serif);font-size:1.15rem;font-style:italic;line-height:1.75;color:var(--slate);text-align:center;}
+
+  /* ─── FINANCIAL ─── */
+  .financial{padding:clamp(60px,8vw,120px) clamp(24px,4vw,48px);background:var(--white);}
+  .financial-inner{max-width:var(--max);margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:0;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.06);}
+  .financial-image{background:var(--bone);position:relative;min-height:400px;}
+  .financial-image img{width:100%;height:100%;object-fit:cover;display:block;}
+  .financial-content{background:var(--forest);color:#fff;padding:clamp(32px,5vw,56px);display:flex;flex-direction:column;justify-content:center;}
+  .financial-content .tag-label{color:rgba(255,255,255,0.4);}
+  .financial-content h2{font-family:var(--serif);font-size:clamp(1.5rem,2.5vw,2rem);font-weight:500;color:#fff;margin-bottom:20px;}
+  .financial-content p{font-size:0.98rem;line-height:1.85;color:rgba(255,255,255,0.7);margin-bottom:16px;}
+  .support-list{list-style:none;margin-top:16px;}
+  .support-list li{display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;font-size:0.92rem;color:rgba(255,255,255,0.8);}
+  .support-list li::before{content:'✓';flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:var(--teal-light);margin-top:2px;}
+
+  /* ─── COLLABORATORS ─── */
+  .collabs{padding:clamp(60px,8vw,120px) clamp(24px,4vw,48px);background:var(--offwhite);}
+  .collabs-inner{max-width:var(--max);margin:0 auto;}
+  .collabs-header{text-align:center;max-width:600px;margin:0 auto 56px;}
+  .collabs-header h2{font-family:var(--serif);font-size:clamp(1.6rem,3vw,2.4rem);font-weight:500;margin-bottom:12px;}
+  .collabs-header p{color:var(--slate-light);font-size:1rem;}
+
+  .collab-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .collab-card{background:var(--white);border-radius:12px;padding:0;overflow:hidden;border:1px solid var(--line);transition:all 0.3s;}
+  .collab-card:hover{box-shadow:0 8px 28px rgba(0,0,0,0.06);transform:translateY(-3px);}
+  .collab-stripe{height:5px;}
+  .stripe-1{background:linear-gradient(90deg,#0f4c3a,#2d8a73);}
+  .stripe-2{background:linear-gradient(90deg,#c4603c,#e8845a);}
+  .stripe-3{background:linear-gradient(90deg,#b8860b,#d4a853);}
+  .stripe-4{background:linear-gradient(90deg,#5a5a8a,#8080b0);}
+  .collab-body{padding:28px 24px;}
+  .collab-role-tag{display:inline-block;font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:4px;margin-bottom:14px;}
+  .role-funding{background:#e8f4f0;color:#0f4c3a;}
+  .role-field{background:#faf0ec;color:#c4603c;}
+  .role-clinical{background:#fdf8ee;color:#b8860b;}
+  .role-coord{background:#f0f0f8;color:#5a5a8a;}
+  .collab-card h3{font-family:var(--serif);font-size:1.15rem;font-weight:600;color:var(--slate);margin-bottom:4px;}
+  .collab-card .collab-title{font-size:0.82rem;color:var(--slate-muted);font-style:italic;margin-bottom:14px;line-height:1.5;}
+  .collab-card p:last-child{font-size:0.9rem;line-height:1.75;color:var(--slate-light);}
+  .collab-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+  .collab-top-text{flex:1;}
+  .collab-photo{width:90px;height:90px;border-radius:50%;overflow:hidden;flex-shrink:0;border:3px solid var(--line);background:var(--bone);margin-left:20px;}
+  .collab-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+
+  /* ─── HOW IT WORKS ─── */
+  .process{padding:clamp(60px,8vw,120px) clamp(24px,4vw,48px);background:var(--slate);color:#fff;position:relative;overflow:hidden;}
+  .process::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 20% 50%,rgba(26,107,90,0.15),transparent 60%);}
+  .process-inner{max-width:var(--max);margin:0 auto;position:relative;z-index:2;}
+  .process-header{text-align:center;margin-bottom:60px;}
+  .process-header .tag-label{color:rgba(255,255,255,0.3);}
+  .process-header h2{font-family:var(--serif);font-size:clamp(1.6rem,3vw,2.4rem);font-weight:500;color:#fff;margin-bottom:12px;}
+  .process-header p{color:rgba(255,255,255,0.5);font-size:1rem;}
+
+  .process-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative;}
+  .process-steps::before{content:'';position:absolute;top:40px;left:12.5%;right:12.5%;height:2px;background:linear-gradient(90deg,var(--teal),var(--teal-light),var(--amber),var(--teal));}
+  .step{text-align:center;padding:0 16px;position:relative;}
+  .step-circle{width:80px;height:80px;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;position:relative;z-index:2;}
+  .step:nth-child(1) .step-circle{background:linear-gradient(135deg,#0f4c3a,#1a6b5a);box-shadow:0 8px 24px rgba(15,76,58,0.3);}
+  .step:nth-child(2) .step-circle{background:linear-gradient(135deg,#1a6b5a,#2d8a73);box-shadow:0 8px 24px rgba(26,107,90,0.3);}
+  .step:nth-child(3) .step-circle{background:linear-gradient(135deg,#c4603c,#e8845a);box-shadow:0 8px 24px rgba(196,96,60,0.3);}
+  .step:nth-child(4) .step-circle{background:linear-gradient(135deg,#b8860b,#d4a853);box-shadow:0 8px 24px rgba(184,134,11,0.3);}
+  .step h4{font-size:0.95rem;font-weight:600;color:#fff;margin-bottom:8px;}
+  .step p{font-size:0.82rem;line-height:1.6;color:rgba(255,255,255,0.55);}
+  .step-who{margin-top:12px;font-size:0.7rem;font-weight:600;letter-spacing:0.06em;color:rgba(255,255,255,0.35);text-transform:uppercase;}
+
+  /* ─── GALLERY ─── */
+  .gallery{padding:clamp(60px,8vw,120px) clamp(24px,4vw,48px);background:var(--offwhite);}
+  .gallery-inner{max-width:var(--max);margin:0 auto;}
+  .gallery-header{text-align:center;margin-bottom:48px;}
+  .gallery-header h2{font-family:var(--serif);font-size:clamp(1.6rem,3vw,2.2rem);font-weight:500;}
+  .gallery-mosaic{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:220px;gap:12px;}
+  .gallery-mosaic .wide{grid-column:span 2;}
+  .gallery-mosaic .tall{grid-row:span 2;}
+  .gallery-item{border-radius:10px;overflow:hidden;background:var(--bone);}
+  .gallery-item img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.5s;}
+  .gallery-item:hover img{transform:scale(1.05);}
+
+  /* ─── PORTAL ─── */
+  .portal{padding:clamp(60px,8vw,80px) clamp(24px,4vw,48px);background:var(--white);text-align:center;border-top:1px solid var(--line);}
+  .portal h2{font-family:var(--serif);font-size:1.6rem;font-weight:500;margin-bottom:10px;}
+  .portal p{font-size:0.95rem;color:var(--slate-light);margin-bottom:24px;}
+  .portal-btn{display:inline-flex;align-items:center;gap:8px;background:var(--forest);color:#fff;padding:14px 36px;border-radius:6px;font-size:0.92rem;font-weight:600;text-decoration:none;transition:background 0.3s;}
+  .portal-btn:hover{background:var(--teal);}
+  .portal-note{font-size:0.78rem;color:var(--slate-muted);margin-top:12px;}
+
+  /* ─── FOOTER ─── */
+  footer{background:#1a2e28;color:rgba(255,255,255,0.4);padding:28px clamp(24px,4vw,48px);}
+  .footer-inner{max-width:var(--max);margin:0 auto;display:flex;justify-content:space-between;align-items:center;}
+  footer a{color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.84rem;}
+  footer a:hover{color:#fff;}
+  footer span{font-size:0.76rem;}
+
+  /* ─── ANIMATION ─── */
+  .reveal{opacity:0;transform:translateY(24px);transition:all 0.8s cubic-bezier(0.16,1,0.3,1);}
+  .reveal.visible{opacity:1;transform:translateY(0);}
+
+  /* ─── RESPONSIVE ─── */
+  @media(max-width:900px){
+    .hero{grid-template-columns:1fr;min-height:auto;}
+    .hero-image{min-height:300px;}
+    .financial-inner{grid-template-columns:1fr;}
+    .financial-image{min-height:280px;}
+    .collab-row{grid-template-columns:1fr 1fr;}
+    .collab-body{flex-direction:column-reverse;text-align:center;}
+    .collab-photo{width:100px;height:100px;}
+    .process-steps{grid-template-columns:1fr 1fr;gap:32px;}
+    .process-steps::before{display:none;}
+    .gallery-mosaic{grid-template-columns:1fr 1fr;grid-auto-rows:180px;}
+    .gallery-mosaic .wide{grid-column:span 1;}
+    .footer-inner{flex-direction:column;gap:8px;text-align:center;}
+  }
+  @media(max-width:640px){
+    .process-steps{grid-template-columns:1fr;}
+    .gallery-mosaic{grid-template-columns:1fr;grid-auto-rows:200px;}
+    .collab-row{grid-template-columns:1fr;}
+    .gallery-mosaic .tall{grid-row:span 1;}
+    .topbar-links{gap:12px;}
+    .topbar-links a{font-size:0.76rem;}
+  }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar"><div class="topbar-inner">
+  <a href="index.html"><img src="images/Logo_1.png" alt="GRAMA"></a>
+  <div class="topbar-links">
+    <a href="portal-login.html" class="portal-link">Staff Portal</a>
+  </div>
+</div></div>
+
+<!-- HERO — split layout -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-tag reveal">Initiatives We Support</div>
+    <h1 class="reveal">Cancer Care Initiative</h1>
+    <p class="hero-desc reveal">A collaborative effort to bring early cancer detection, awareness, and treatment support to the most marginalised — because no one should lose their life to a disease that can be treated, simply because they couldn't access or afford care.</p>
+  </div>
+  <div class="hero-image">
+    <!-- Replace with: images/cancer-initiative/cancer-hero.jpg (a powerful health camp or community photo) -->
+    <img src="images/cancer-initiative/cancer-hero.jpg" alt="Health camp in rural Bihar">
+  </div>
+</section>
+
+<!-- CHALLENGE -->
+<section class="challenge">
+  <div class="challenge-inner">
+    <div class="challenge-top reveal">
+      <div class="tag-label">The Challenge</div>
+      <h2>Cancer is treatable. But for millions, the belief that it isn't becomes a death sentence.</h2>
+      <p>Among the most marginalised communities, cancer carries a fatalism that prevents people from seeking help. The word itself is enough to make families give up hope. Myths, stigma, and fear combine with a lack of access to create a devastating gap between what medicine can do and what reaches those who need it most.</p>
+    </div>
+    <div class="challenge-callout reveal">
+      <p>The idea is simple but transformative: identify cancer as early as possible, break the myths that prevent people from seeking care, and financially support patients through treatment — so that a diagnosis does not become a verdict.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FINANCIAL SUPPORT — image + content side by side -->
+<section class="financial">
+  <div class="financial-inner reveal">
+    <div class="financial-image">
+      <!-- Replace with: images/cancer-initiative/cancer-support.jpg (patient receiving care, or community health scene) -->
+      <img src="images/cancer-initiative/cancer-support.jpg" alt="Patient receiving support">
+    </div>
+    <div class="financial-content">
+      <div class="tag-label">How We Support</div>
+      <h2>Financial &amp; Facilitation Support</h2>
+      <p>We provide direct financial support covering everything from initial screening to treatment — until patients can access government schemes or NGO support. We also facilitate that transition.</p>
+      <ul class="support-list">
+        <li>Travel costs for hospital visits and diagnostic tests</li>
+        <li>Initial consultations and follow-up screenings</li>
+        <li>Treatment costs, medication, and hospital stays</li>
+        <li>Linkage to Ayushman Bharat, PMJAY, and NGO schemes</li>
+        <li>Ongoing coordination between all partners</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- COLLABORATORS -->
+<section class="collabs">
+  <div class="collabs-inner">
+    <div class="collabs-header reveal">
+      <div class="tag-label">A Collective Effort</div>
+      <h2>Four Partners, One Mission</h2>
+      <p>This initiative works because each partner brings something essential.</p>
+    </div>
+    <div class="collab-row">
+
+  <div class="collab-card reveal">
+    <div class="collab-stripe stripe-1"></div>
+    <div class="collab-body">
+      <div class="collab-top">
+        <div class="collab-top-text">
+          <span class="collab-role-tag role-funding">Funding &amp; Medical Oversight</span>
+          <h3>Dr. M.S. Vidyasagar</h3>
+          <p class="collab-title">Retired Head of Department, Radiation Oncology — Kasturba Medical College, Manipal, Karnataka</p>
+        </div>
+        <div class="collab-photo"><img src="images/cancer-initiative/dr-vidyasagar.jpg" alt="Dr. Vidyasagar"></div>
+      </div>
+      <p>Funds the entire initiative and provides remote medical oversight — reviewing patient profiles, tracking updates, and offering clinical guidance.</p>
+    </div>
+  </div>
+
+  <div class="collab-card reveal">
+    <div class="collab-stripe stripe-2"></div>
+    <div class="collab-body">
+      <div class="collab-top">
+        <div class="collab-top-text">
+          <span class="collab-role-tag role-field">Field Operations &amp; Awareness</span>
+          <h3>MNREGA Watch</h3>
+          <p class="collab-title">Grassroots organisation present across all blocks of Muzaffarpur</p>
+        </div>
+        <div class="collab-photo"><img src="images/cancer-initiative/mnrega-watch.jpg" alt="NREGA Watch"></div>
+      </div>
+      <p>Organises health camps in panchayats, spreads cancer awareness, and identifies suspected cases — reaching people who would never walk into a hospital on their own.</p>
+    </div>
+  </div>
+
+  <div class="collab-card reveal">
+    <div class="collab-stripe stripe-3"></div>
+    <div class="collab-body">
+      <div class="collab-top">
+        <div class="collab-top-text">
+          <span class="collab-role-tag role-clinical">Clinical Care &amp; Treatment</span>
+          <h3>Dr. Ravikant Singh &amp; Team</h3>
+          <p class="collab-title">Officer-in-Charge, Homi Bhabha Cancer Hospital &amp; Research Centre, Muzaffarpur</p>
+        </div>
+        <div class="collab-photo"><img src="images/cancer-initiative/dr-ravikant.jpg" alt="Dr. Ravikant Singh"></div>
+      </div>
+      <p>Participates in field camps for screening and provides the clinical backbone — diagnosis, treatment, and ongoing medical care for confirmed patients.</p>
+    </div>
+  </div>
+
+  <div class="collab-card reveal">
+    <div class="collab-stripe stripe-4"></div>
+    <div class="collab-body">
+      <div class="collab-top">
+        <div class="collab-top-text">
+          <span class="collab-role-tag role-coord">Coordination &amp; Facilitation</span>
+          <h3>GRAMA</h3>
+          <p class="collab-title">Coordination and patient tracking</p>
+        </div>
+      <div class="collab-photo" style="background:#fff;padding:15px;"><img src="images/Logo_1.png" alt="GRAMA" style="object-fit:contain;"></div>
+      </div>
+      <p>Tracks every patient's journey from screening to treatment, bridges gaps between partners, facilitates hospital visits, manages records, and connects patients to government and NGO support.</p>
+    </div>
+  </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS — graphical process -->
+<section class="process">
+  <div class="process-inner">
+    <div class="process-header reveal">
+      <div class="tag-label">Step by Step</div>
+      <h2>How It Works</h2>
+      <p>From community camps to hospital care</p>
+    </div>
+    <div class="process-steps reveal">
+      <div class="step">
+        <div class="step-circle">🏕️</div>
+        <h4>Health Camps</h4>
+        <p>Screening camps in panchayats with MNREGA Watch and Dr. Ravikant's team</p>
+        <div class="step-who">MNREGA Watch + Hospital</div>
+      </div>
+      <div class="step">
+        <div class="step-circle">🔍</div>
+        <h4>Identification</h4>
+        <p>Suspected patients identified, counselled, and referred for testing</p>
+        <div class="step-who">GRAMA + MNREGA Watch</div>
+      </div>
+      <div class="step">
+        <div class="step-circle">🏥</div>
+        <h4>Diagnosis</h4>
+        <p>Confirmation testing at Homi Bhabha Cancer Hospital with full financial support</p>
+        <div class="step-who">Dr. Ravikant + Dr. Vidyasagar</div>
+      </div>
+      <div class="step">
+        <div class="step-circle">💛</div>
+        <h4>Treatment &amp; Care</h4>
+        <p>Full treatment with financial assistance until govt/NGO support is secured</p>
+        <div class="step-who">All Partners</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY — mosaic layout -->
+<section class="gallery">
+  <div class="gallery-inner">
+    <div class="gallery-header reveal">
+      <div class="tag-label">From the Field</div>
+      <h2>Our Work in Action</h2>
+    </div>
+    <div class="gallery-mosaic reveal">
+      <div class="gallery-item wide"><img src="images/cancer-initiative/cancer-1.jpg" alt="Health camp"></div>
+      <div class="gallery-item"><img src="images/cancer-initiative/cancer-2.jpg" alt="Screening"></div>
+      <div class="gallery-item"><img src="images/cancer-initiative/cancer-3.jpg" alt="Awareness"></div>
+      <div class="gallery-item tall"><img src="images/cancer-initiative/cancer-4.jpg" alt="Patient support"></div>
+      <div class="gallery-item"><img src="images/cancer-initiative/cancer-5.jpg" alt="Hospital"></div>
+      <div class="gallery-item"><img src="images/cancer-initiative/cancer-6.jpg" alt="Team"></div>
+      <div class="gallery-item"><img src="images/cancer-initiative/cancer-7.jpg" alt="Health Camp"></div>
+    </div>
+  </div>
+</section>
+
+<!-- PORTAL -->
+<section class="portal" id="portal">
+  <div class="tag-label reveal">Team Access</div>
+  <h2 class="reveal">Staff Portal</h2>
+  <p class="reveal">Access patient records, treatment updates, and case history.</p>
+  <a href="portal-login.html" class="portal-btn reveal">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    Login to Portal
+  </a>
+  <p class="portal-note reveal">Restricted to authorised team members</p>
+</section>
+
+<footer><div class="footer-inner">
+  <a href="https://gramagovernance.com" target="_blank" rel="noopener">GRAMA →</a>
+  <span>Cancer Care Initiative — A collaborative effort facilitated by GRAMA</span>
+</div></footer>
+
+<script>
+  var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:0.08,rootMargin:'0px 0px -40px 0px'});
+  document.querySelectorAll('.reveal').forEach(function(el){obs.observe(el);});
+</script>
+</body>
+</html>
