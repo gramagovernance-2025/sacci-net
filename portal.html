@@ -329,12 +329,11 @@ function toDb(p){
 }
 
 async function init(){
-  var isPublic=sessionStorage.getItem('sacci_public_view')==='true';
   var sessionResp=await sb.auth.getSession();
   var session=sessionResp.data.session;
 
-  if(!session && !isPublic){window.location.href='portal-login.html';return;}
-
+  // No session = public dashboard, no login required. This lets the "Public
+  // Dashboard" link on the main site go straight here.
   if(session){
     var profResp=await sb.from('profiles').select('name,role').eq('id',session.user.id).single();
     if(!profResp.data){
@@ -403,7 +402,7 @@ function navTo(name,el){
   if(name==='dues')renderDues();
   if(name==='public')renderPublic();
 }
-async function logout(){await sb.auth.signOut();sessionStorage.removeItem('sacci_public_view');window.location.href='portal-login.html';}
+async function logout(){await sb.auth.signOut();window.location.href='portal-login.html';}
 
 // RENDER DASHBOARD
 function renderDash(q){

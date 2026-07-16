@@ -83,12 +83,10 @@
     var { error } = await sb.auth.signInWithPassword({ email: email, password: pass });
     document.getElementById('loginBtn').disabled = false;
     if (error) { showError(error.message || 'Invalid email or password'); return; }
-    sessionStorage.removeItem('sacci_public_view');
     window.location.href = 'portal.html';
   }
 
   function publicDashboard() {
-    sessionStorage.setItem('sacci_public_view', 'true');
     window.location.href = 'portal.html';
   }
 
