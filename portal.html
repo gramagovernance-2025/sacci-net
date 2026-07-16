@@ -294,34 +294,102 @@
 </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
 <script>
-// AUTH
-if(sessionStorage.getItem('cc_logged_in')!=='true')window.location.href='portal-login.html';
-var ROLE=sessionStorage.getItem('cc_role')||'public';
-var UNAME=sessionStorage.getItem('cc_name')||'User';
-var UUSER=sessionStorage.getItem('cc_user')||'';
-document.getElementById('dispName').textContent=UNAME;
-document.getElementById('dispRole').textContent=ROLE==='staff'?'Full Access':ROLE==='advisor'?'Advisor (Read-Only)':'Public';
-
-// Role-based UI
-if(ROLE==='public'){
-  document.getElementById('nav-dues').parentElement.querySelector('a').classList.add('hidden');
-  navTo('public',document.querySelector('[data-page="public"]'));
-}
-if(ROLE==='advisor'){
-  document.getElementById('dashActions').style.display='none';
-  document.getElementById('patActions').innerHTML='<button class="btn btn-secondary" onclick="exportCSV()">Export CSV</button>';
-}
-
-// DATA
-var patients=JSON.parse(localStorage.getItem('cc_patients')||'[]');
+// AUTH + DATA — backed by Supabase (see supabase/schema.sql). Patient records
+// live in Postgres behind Row Level Security, not in this browser's storage,
+// so everyone with portal access sees the same data.
+var ROLE='public', UNAME='Public View', UUSER='';
+var patients=[];
 var tempFiles=[];
-function save(){localStorage.setItem('cc_patients',JSON.stringify(patients));}
-function gid(){return 'p_'+Date.now()+'_'+Math.random().toString(36).substr(2,5);}
+var editingId=null;
+
 function esc(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
 function fmtDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});}
 function dueStatus(d){if(!d)return{t:'—',c:''};var diff=Math.floor((new Date(d)-new Date(new Date().toDateString()))/864e5);if(diff<0)return{t:'Overdue ('+Math.abs(diff)+'d)',c:'due-over'};if(diff<=3)return{t:'In '+diff+'d',c:'due-soon'};return{t:fmtDate(d),c:'due-ok'};}
 function statusCls(s){return{'Screening':'b-screening','Under Investigation':'b-screening','Treatment':'b-treatment','Admitted':'b-treatment','On Medication':'b-active','Follow-up':'b-followup','Completed':'b-completed'}[s]||'b-screening';}
+
+// DB row <-> app object. The `patients` table uses snake_case columns;
+// everything above/below this line still speaks the original camelCase shape.
+function fromDb(r){
+  return {id:r.id,name:r.name,age:r.age,gender:r.gender,phone:r.phone,village:r.village,block:r.block,district:r.district,
+    aadhar:r.aadhar,bank:r.bank,account:r.account,ifsc:r.ifsc,diagnosis:r.diagnosis,status:r.status,admitted:r.admitted,
+    visitNum:r.visit_num,treatment:r.treatment,medication:r.medication,nextVisit:r.next_visit,nextTest:r.next_test,
+    testDate:r.test_date,medDate:r.med_date,notes:r.notes,history:r.history||[],
+    createdAt:r.created_at,updatedAt:r.updated_at,updatedBy:r.updated_by};
+}
+function toDb(p){
+  return {name:p.name,age:p.age||null,gender:p.gender||null,phone:p.phone||null,village:p.village||null,block:p.block||null,
+    district:p.district||null,aadhar:p.aadhar||null,bank:p.bank||null,account:p.account||null,ifsc:p.ifsc||null,
+    diagnosis:p.diagnosis||null,status:p.status||'Screening',admitted:p.admitted||'No',visit_num:parseInt(p.visitNum)||1,
+    treatment:p.treatment||null,medication:p.medication||null,next_visit:p.nextVisit||null,next_test:p.nextTest||null,
+    test_date:p.testDate||null,med_date:p.medDate||null,notes:p.notes||null,updated_by:UNAME};
+}
+
+async function init(){
+  var isPublic=sessionStorage.getItem('sacci_public_view')==='true';
+  var sessionResp=await supabase.auth.getSession();
+  var session=sessionResp.data.session;
+
+  if(!session && !isPublic){window.location.href='portal-login.html';return;}
+
+  if(session){
+    var profResp=await supabase.from('profiles').select('name,role').eq('id',session.user.id).single();
+    if(!profResp.data){
+      alert('Your account is signed in but has no portal access yet. Contact an admin to be added.');
+      await supabase.auth.signOut();
+      window.location.href='portal-login.html';
+      return;
+    }
+    ROLE=profResp.data.role;UNAME=profResp.data.name;UUSER=session.user.email;
+  } else {
+    ROLE='public';UNAME='Public View';
+  }
+
+  document.getElementById('dispName').textContent=UNAME;
+  document.getElementById('dispRole').textContent=ROLE==='staff'?'Full Access':ROLE==='advisor'?'Advisor (Read-Only)':'Public';
+
+  if(ROLE==='public'){
+    document.getElementById('nav-dues').parentElement.querySelector('a').classList.add('hidden');
+  }
+  if(ROLE==='advisor'){
+    document.getElementById('dashActions').style.display='none';
+    document.getElementById('patActions').innerHTML='<button class="btn btn-secondary" onclick="exportCSV()">Export CSV</button>';
+  }
+
+  await loadPatients();
+  if(ROLE==='public'){navTo('public',document.querySelector('[data-page="public"]'));}
+  else{renderDash();}
+
+  if(ROLE!=='public'){
+    supabase.channel('patients-changes')
+      .on('postgres_changes',{event:'*',schema:'public',table:'patients'},function(){loadPatients().then(refreshActivePage);})
+      .subscribe();
+  }
+}
+
+async function loadPatients(){
+  if(ROLE==='public'){
+    var resp=await supabase.from('patients_public').select('*').order('created_at',{ascending:false});
+    patients=(resp.data||[]).map(function(r){return{id:r.id,age:r.age,gender:r.gender,block:r.block,diagnosis:r.diagnosis,status:r.status,visitNum:r.visit_num};});
+    if(resp.error)console.error(resp.error);
+  } else {
+    var resp2=await supabase.from('patients').select('*').order('created_at',{ascending:false});
+    patients=(resp2.data||[]).map(fromDb);
+    if(resp2.error)console.error(resp2.error);
+  }
+}
+
+function refreshActivePage(){
+  var active=document.querySelector('.page.active');
+  if(!active)return;
+  var name=active.id.replace('page-','');
+  if(name==='dashboard')renderDash();
+  if(name==='patients')renderAll();
+  if(name==='dues')renderDues();
+  if(name==='public')renderPublic();
+}
 
 // NAV
 function navTo(name,el){
@@ -334,7 +402,7 @@ function navTo(name,el){
   if(name==='dues')renderDues();
   if(name==='public')renderPublic();
 }
-function logout(){sessionStorage.clear();window.location.href='portal-login.html';}
+async function logout(){await supabase.auth.signOut();sessionStorage.removeItem('sacci_public_view');window.location.href='portal-login.html';}
 
 // RENDER DASHBOARD
 function renderDash(q){
@@ -406,19 +474,22 @@ function renderPublic(){
 // ADD/EDIT
 function openAdd(){
   document.getElementById('modalTitle').textContent='Add New Patient';
-  document.getElementById('editId').value='';clearForm();tempFiles=[];renderFiles();
+  editingId=crypto.randomUUID();
+  document.getElementById('editId').value=editingId;
+  clearForm();tempFiles=[];renderFiles();
   document.getElementById('patientModal').classList.add('show');
 }
-function editPatient(id){
+async function editPatient(id){
   var p=patients.find(function(x){return x.id===id;});if(!p)return;
   document.getElementById('modalTitle').textContent='Edit Patient';
+  editingId=id;
   document.getElementById('editId').value=id;
   document.getElementById('pName').value=p.name||'';
   document.getElementById('pAge').value=p.age||'';
   document.getElementById('pGender').value=p.gender||'';
   document.getElementById('pPhone').value=p.phone||'';
   document.getElementById('pVillage').value=p.village||'';
-   document.getElementById('pBlock').value=p.block||'';
+  document.getElementById('pBlock').value=p.block||'';
   document.getElementById('pDistrict').value=p.district||'Muzaffarpur';
   document.getElementById('pAadhar').value=p.aadhar||'';
   document.getElementById('pBank').value=p.bank||'';
@@ -435,29 +506,71 @@ function editPatient(id){
   document.getElementById('pTestDate').value=p.testDate||'';
   document.getElementById('pMedDate').value=p.medDate||'';
   document.getElementById('pNotes').value=p.notes||'';
-  tempFiles=p.files?p.files.slice():[];renderFiles();
+  var filesResp=await supabase.from('patient_files').select('*').eq('patient_id',id);
+  tempFiles=filesResp.data||[];renderFiles();
   document.getElementById('patientModal').classList.add('show');
 }
-function closeModal(){document.getElementById('patientModal').classList.remove('show');clearForm();}
+function closeModal(){document.getElementById('patientModal').classList.remove('show');clearForm();editingId=null;}
 function clearForm(){['pName','pAge','pPhone','pVillage','pBlock','pAadhar','pBank','pAccount','pIFSC','pDiagnosis','pTreatment','pMedication','pNextVisit','pNextTest','pTestDate','pMedDate','pNotes'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('pGender').value='';document.getElementById('pDistrict').value='Muzaffarpur';document.getElementById('pStatus').value='Screening';document.getElementById('pAdmitted').value='No';document.getElementById('pVisitNum').value=1;}
 
-function savePatient(){
+async function savePatient(){
   var name=document.getElementById('pName').value.trim();if(!name){alert('Name is required');return;}
   var eid=document.getElementById('editId').value;
-  var d={id:eid||gid(),name:name,age:document.getElementById('pAge').value,gender:document.getElementById('pGender').value,village:document.getElementById('pVillage').value,phone:document.getElementById('pPhone').value,block:document.getElementById('pBlock').value,district:document.getElementById('pDistrict').value,aadhar:document.getElementById('pAadhar').value,bank:document.getElementById('pBank').value,account:document.getElementById('pAccount').value,ifsc:document.getElementById('pIFSC').value,diagnosis:document.getElementById('pDiagnosis').value,status:document.getElementById('pStatus').value,admitted:document.getElementById('pAdmitted').value,visitNum:document.getElementById('pVisitNum').value,treatment:document.getElementById('pTreatment').value,medication:document.getElementById('pMedication').value,nextVisit:document.getElementById('pNextVisit').value,nextTest:document.getElementById('pNextTest').value,testDate:document.getElementById('pTestDate').value,medDate:document.getElementById('pMedDate').value,notes:document.getElementById('pNotes').value,files:tempFiles,updatedAt:new Date().toISOString(),updatedBy:UUSER};
-  if(eid){var idx=patients.findIndex(function(p){return p.id===eid;});if(idx>=0){d.createdAt=patients[idx].createdAt;d.history=patients[idx].history||[];d.history.push({date:new Date().toISOString(),user:UNAME,note:'Record updated'});patients[idx]=d;}}
-  else{d.createdAt=new Date().toISOString();d.history=[{date:new Date().toISOString(),user:UNAME,note:'Patient registered'}];patients.push(d);}
-  save();closeModal();renderDash();
+  var formVals={name:name,age:document.getElementById('pAge').value,gender:document.getElementById('pGender').value,
+    village:document.getElementById('pVillage').value,phone:document.getElementById('pPhone').value,block:document.getElementById('pBlock').value,
+    district:document.getElementById('pDistrict').value,aadhar:document.getElementById('pAadhar').value,bank:document.getElementById('pBank').value,
+    account:document.getElementById('pAccount').value,ifsc:document.getElementById('pIFSC').value,diagnosis:document.getElementById('pDiagnosis').value,
+    status:document.getElementById('pStatus').value,admitted:document.getElementById('pAdmitted').value,visitNum:document.getElementById('pVisitNum').value,
+    treatment:document.getElementById('pTreatment').value,medication:document.getElementById('pMedication').value,nextVisit:document.getElementById('pNextVisit').value,
+    nextTest:document.getElementById('pNextTest').value,testDate:document.getElementById('pTestDate').value,medDate:document.getElementById('pMedDate').value,
+    notes:document.getElementById('pNotes').value};
+  var row=toDb(formVals);
+  var existing=patients.find(function(p){return p.id===eid;});
+  var resp;
+  if(existing){
+    var history=(existing.history||[]).slice();
+    history.push({date:new Date().toISOString(),user:UNAME,note:'Record updated'});
+    row.history=history;
+    resp=await supabase.from('patients').update(row).eq('id',eid);
+  } else {
+    row.id=eid;
+    row.history=[{date:new Date().toISOString(),user:UNAME,note:'Patient registered'}];
+    resp=await supabase.from('patients').insert(row);
+  }
+  if(resp.error){alert('Could not save: '+resp.error.message);return;}
+  await loadPatients();
+  closeModal();
+  refreshActivePage();
 }
 
-// FILES
-function handleFiles(input){
+// FILES — uploaded straight to Supabase Storage as they're picked; editingId
+// is always set by the time the modal is open (openAdd generates one).
+async function handleFiles(input){
   var cat=document.getElementById('fileCategory').value;
-  Array.from(input.files).forEach(function(f){if(f.size>2*1024*1024){alert('Too large: '+f.name);return;}var r=new FileReader();r.onload=function(e){tempFiles.push({name:f.name,data:e.target.result,date:new Date().toISOString(),category:cat});renderFiles();};r.readAsDataURL(f);});input.value='';
+  var files=Array.from(input.files);
+  for(var i=0;i<files.length;i++){
+    var f=files[i];
+    if(f.size>2*1024*1024){alert('Too large: '+f.name);continue;}
+    var path=editingId+'/'+Date.now()+'_'+f.name;
+    var upResp=await supabase.storage.from('patient-files').upload(path,f);
+    if(upResp.error){alert('Upload failed for '+f.name+': '+upResp.error.message);continue;}
+    var insResp=await supabase.from('patient_files').insert({patient_id:editingId,name:f.name,category:cat,storage_path:path,uploaded_by:UNAME}).select().single();
+    if(insResp.error){alert('Could not record '+f.name+': '+insResp.error.message);continue;}
+    tempFiles.push(insResp.data);
+  }
+  renderFiles();
+  input.value='';
 }
 function renderFiles(){
   var c=document.getElementById('fileList');if(!tempFiles.length){c.innerHTML='';return;}
-  var h='';tempFiles.forEach(function(f,i){h+='<div class="file-item"><span class="file-cat">'+esc(f.category||'Other')+'</span> '+esc(f.name)+'<button onclick="tempFiles.splice('+i+',1);renderFiles()">&times;</button></div>';});c.innerHTML=h;
+  var h='';tempFiles.forEach(function(f,i){h+='<div class="file-item"><span class="file-cat">'+esc(f.category||'Other')+'</span> '+esc(f.name)+'<button onclick="removeFile('+i+')">&times;</button></div>';});c.innerHTML=h;
+}
+async function removeFile(idx){
+  var f=tempFiles[idx];if(!f)return;
+  if(f.storage_path)await supabase.storage.from('patient-files').remove([f.storage_path]);
+  if(f.id)await supabase.from('patient_files').delete().eq('id',f.id);
+  tempFiles.splice(idx,1);
+  renderFiles();
 }
 
 // UPDATE VISIT
@@ -472,25 +585,27 @@ function openUpdate(id){
   document.getElementById('updateModal').classList.add('show');
 }
 function closeUpdate(){document.getElementById('updateModal').classList.remove('show');}
-function saveUpdate(){
+async function saveUpdate(){
   var id=document.getElementById('updateId').value;
-  var idx=patients.findIndex(function(p){return p.id===id;});if(idx<0)return;
-  var p=patients[idx];
+  var p=patients.find(function(x){return x.id===id;});if(!p)return;
   var notes=document.getElementById('uNotes').value.trim();if(!notes){alert('Please describe what happened at this visit');return;}
   var newStatus=document.getElementById('uStatus').value;
   var newNext=document.getElementById('uNextVisit').value;
   var visitNum=document.getElementById('uVisitNum').value;
-  p.visitNum=visitNum;
-  if(newStatus)p.status=newStatus;
-  if(newNext)p.nextVisit=newNext;
-  if(!p.history)p.history=[];
-  p.history.push({date:document.getElementById('uDate').value||new Date().toISOString(),user:UNAME,note:'Visit #'+visitNum+': '+notes});
-  p.updatedAt=new Date().toISOString();p.updatedBy=UUSER;
-  save();closeUpdate();renderDash();
+  var history=(p.history||[]).slice();
+  history.push({date:document.getElementById('uDate').value||new Date().toISOString(),user:UNAME,note:'Visit #'+visitNum+': '+notes});
+  var updates={visit_num:parseInt(visitNum)||p.visitNum,history:history,updated_by:UNAME};
+  if(newStatus)updates.status=newStatus;
+  if(newNext)updates.next_visit=newNext;
+  var resp=await supabase.from('patients').update(updates).eq('id',id);
+  if(resp.error){alert('Could not save update: '+resp.error.message);return;}
+  await loadPatients();
+  closeUpdate();
+  refreshActivePage();
 }
 
 // VIEW
-function viewPatient(id){
+async function viewPatient(id){
   var p=patients.find(function(x){return x.id===id;});if(!p)return;
   document.getElementById('viewTitle').textContent=p.name;
   var h='<div class="detail-section"><h3>Patient Information</h3><div class="detail-grid">';
@@ -528,18 +643,25 @@ function viewPatient(id){
 
   if(p.notes)h+='<div class="detail-section"><h3>Notes</h3><p style="font-size:0.88rem;color:var(--ink-light)">'+esc(p.notes)+'</p></div>';
 
-  // Files by category
-  if(p.files&&p.files.length){
-    var latest=p.files.filter(function(f){return f.category==='Latest Report';});
-    var history=p.files.filter(function(f){return f.category!=='Latest Report';});
+  // Files by category — signed URLs since patient-files is a private bucket
+  var filesResp=await supabase.from('patient_files').select('*').eq('patient_id',id);
+  var files=filesResp.data||[];
+  if(files.length){
+    var urls={};
+    for(var i=0;i<files.length;i++){
+      var signedResp=await supabase.storage.from('patient-files').createSignedUrl(files[i].storage_path,3600);
+      urls[files[i].id]=signedResp.data?signedResp.data.signedUrl:'';
+    }
+    var latest=files.filter(function(f){return f.category==='Latest Report';});
+    var histFiles=files.filter(function(f){return f.category!=='Latest Report';});
     if(latest.length){
       h+='<div class="detail-section"><h3>Latest Reports (for Dr. Vidyasagar)</h3><div class="thumb-row">';
-      latest.forEach(function(f){h+='<div><div class="thumb" onclick="window.open(\''+f.data+'\')"><img src="'+f.data+'"></div><div class="thumb-label">'+esc(f.name)+'</div></div>';});
+      latest.forEach(function(f){h+='<div><div class="thumb" onclick="window.open(\''+urls[f.id]+'\')"><img src="'+urls[f.id]+'"></div><div class="thumb-label">'+esc(f.name)+'</div></div>';});
       h+='</div></div>';
     }
-    if(history.length){
+    if(histFiles.length){
       h+='<div class="detail-section"><h3>History &amp; Other Documents</h3><div class="thumb-row">';
-      history.forEach(function(f){h+='<div><div class="thumb" onclick="window.open(\''+f.data+'\')"><img src="'+f.data+'"></div><div class="thumb-label">'+esc(f.category||'')+': '+esc(f.name)+'</div></div>';});
+      histFiles.forEach(function(f){h+='<div><div class="thumb" onclick="window.open(\''+urls[f.id]+'\')"><img src="'+urls[f.id]+'"></div><div class="thumb-label">'+esc(f.category||'')+': '+esc(f.name)+'</div></div>';});
       h+='</div></div>';
     }
   }
@@ -568,7 +690,7 @@ function exportCSV(){
 }
 
 // INIT
-renderDash();
+init();
 </script>
 </body>
 </html>

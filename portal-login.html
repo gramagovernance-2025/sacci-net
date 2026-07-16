@@ -50,11 +50,11 @@
     <h1>Staff Portal</h1>
     <p class="sub">Sita Anandam Cancer Care Initiative</p>
 
-    <div class="login-error" id="loginError">Invalid username or password</div>
+    <div class="login-error" id="loginError">Invalid email or password</div>
 
-    <div class="form-group"><label>Username</label><input type="text" id="username" placeholder="Enter username"></div>
-    <div class="form-group"><label>Password</label><input type="password" id="password" placeholder="Enter password"></div>
-    <button class="login-btn" onclick="handleLogin()">Login</button>
+    <div class="form-group"><label>Email</label><input type="email" id="email" placeholder="Enter your email" autocomplete="username"></div>
+    <div class="form-group"><label>Password</label><input type="password" id="password" placeholder="Enter password" autocomplete="current-password"></div>
+    <button class="login-btn" id="loginBtn" onclick="handleLogin()">Login</button>
 
     <div class="divider"><span>or</span></div>
     <button class="public-btn" onclick="publicDashboard()">View Public Dashboard →</button>
@@ -63,41 +63,41 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
 <script>
-  // Roles: staff (full edit), advisor (read-only), public (anonymised)
-  var USERS = {
-    'grama': { pass: 'grama2026', role: 'staff', name: 'GRAMA Staff' },
-    'admin': { pass: 'admin2026', role: 'staff', name: 'Admin' },
-    'chanchal': { pass: 'chanchal2026', role: 'staff', name: 'Chanchal' },
-    'drvidyasagar': { pass: 'doctor2026', role: 'advisor', name: 'Dr. Vidyasagar' },
-    'sharan': { pass: 'sharan2026', role: 'advisor', name: 'M.R. Sharan' }
-  };
+  // Roles (staff: full edit, advisor: read-only) live in the `profiles` table,
+  // keyed off the authenticated Supabase user — see supabase/schema.sql.
+  function showError(msg) {
+    var el = document.getElementById('loginError');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(function() { el.classList.remove('show'); }, 3500);
+  }
 
-  function handleLogin() {
-    var user = document.getElementById('username').value.trim().toLowerCase();
+  async function handleLogin() {
+    var email = document.getElementById('email').value.trim();
     var pass = document.getElementById('password').value;
-    if (USERS[user] && USERS[user].pass === pass) {
-      sessionStorage.setItem('cc_logged_in', 'true');
-      sessionStorage.setItem('cc_user', user);
-      sessionStorage.setItem('cc_role', USERS[user].role);
-      sessionStorage.setItem('cc_name', USERS[user].name);
-      window.location.href = 'portal.html';
-    } else {
-      document.getElementById('loginError').classList.add('show');
-      setTimeout(function() { document.getElementById('loginError').classList.remove('show'); }, 3000);
-    }
+    if (!email || !pass) { showError('Enter your email and password'); return; }
+    document.getElementById('loginBtn').disabled = true;
+    var { error } = await supabase.auth.signInWithPassword({ email: email, password: pass });
+    document.getElementById('loginBtn').disabled = false;
+    if (error) { showError(error.message || 'Invalid email or password'); return; }
+    sessionStorage.removeItem('sacci_public_view');
+    window.location.href = 'portal.html';
   }
 
   function publicDashboard() {
-    sessionStorage.setItem('cc_logged_in', 'true');
-    sessionStorage.setItem('cc_user', 'public');
-    sessionStorage.setItem('cc_role', 'public');
-    sessionStorage.setItem('cc_name', 'Public View');
+    sessionStorage.setItem('sacci_public_view', 'true');
     window.location.href = 'portal.html';
   }
 
   document.getElementById('password').addEventListener('keypress', function(e) { if (e.key === 'Enter') handleLogin(); });
-  if (sessionStorage.getItem('cc_logged_in') === 'true') window.location.href = 'portal.html';
+
+  (async function redirectIfLoggedIn() {
+    var { data: { session } } = await supabase.auth.getSession();
+    if (session) window.location.href = 'portal.html';
+  })();
 </script>
 </body>
 </html>
