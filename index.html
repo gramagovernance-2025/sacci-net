@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cancer Care Initiative</title>
+<title>Sita Anandam Cancer Care Initiative (SACCI)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -24,7 +24,7 @@
   /* ─── TOPBAR ─── */
   .topbar{position:fixed;top:0;width:100%;z-index:100;background:rgba(255,255,255,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);height:60px;display:flex;align-items:center;padding:0 clamp(20px,4vw,48px);}
   .topbar-inner{max-width:var(--max);margin:0 auto;width:100%;display:flex;justify-content:space-between;align-items:center;}
-  .topbar img{height:32px;}
+  .brand-mark{font-family:var(--serif);font-size:1.35rem;font-weight:700;color:var(--forest);letter-spacing:0.02em;text-decoration:none;}
   .topbar-links{display:flex;gap:24px;align-items:center;}
   .topbar-links a{font-size:0.82rem;font-weight:500;color:var(--slate-light);text-decoration:none;transition:color 0.2s;}
   .topbar-links a:hover{color:var(--forest);}
@@ -136,7 +136,7 @@
 
   /* ─── FOOTER ─── */
   footer{background:#1a2e28;color:rgba(255,255,255,0.4);padding:28px clamp(24px,4vw,48px);}
-  .footer-inner{max-width:var(--max);margin:0 auto;display:flex;justify-content:space-between;align-items:center;}
+  .footer-inner{max-width:var(--max);margin:0 auto;display:flex;justify-content:center;align-items:center;}
   footer a{color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.84rem;}
   footer a:hover{color:#fff;}
   footer span{font-size:0.76rem;}
@@ -174,7 +174,7 @@
 
 <!-- TOPBAR -->
 <div class="topbar"><div class="topbar-inner">
-  <a href="index.html"><img src="images/Logo_1.png" alt="GRAMA"></a>
+  <a href="index.html" class="brand-mark">SACCI</a>
   <div class="topbar-links">
     <a href="portal-login.html" class="portal-link">Staff Portal</a>
   </div>
@@ -184,7 +184,7 @@
 <section class="hero">
   <div class="hero-content">
     <div class="hero-tag reveal">Initiatives We Support</div>
-    <h1 class="reveal">Cancer Care Initiative</h1>
+    <h1 class="reveal">Sita Anandam Cancer Care Initiative</h1>
     <p class="hero-desc reveal">A collaborative effort to bring early cancer detection, awareness, and treatment support to the most marginalised — because no one should lose their life to a disease that can be treated, simply because they couldn't access or afford care.</p>
   </div>
   <div class="hero-image">
@@ -371,8 +371,7 @@
 </section>
 
 <footer><div class="footer-inner">
-  <a href="https://gramagovernance.com" target="_blank" rel="noopener">GRAMA →</a>
-  <span>Cancer Care Initiative — A collaborative effort facilitated by GRAMA</span>
+  <span>Sita Anandam Cancer Care Initiative (SACCI) — A collaborative effort facilitated by GRAMA</span>
 </div></footer>
 
 <script>

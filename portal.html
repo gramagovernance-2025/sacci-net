@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cancer Care Portal</title>
+<title>SACCI Staff Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -23,7 +23,7 @@
   /* SIDEBAR */
   .sidebar{width:var(--sidebar-w);background:#0a2e22;color:#fff;padding:20px 0;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;}
   .sidebar-logo{padding:0 16px 20px;border-bottom:1px solid rgba(255,255,255,0.08);}
-  .sidebar-logo img{height:28px;filter:brightness(0) invert(1);}
+  .sidebar-brand{font-family:var(--font);font-size:1.15rem;font-weight:700;color:#fff;letter-spacing:0.04em;}
   .sidebar-label{padding:16px 16px 6px;font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.25);}
   .sidebar-nav{list-style:none;}
   .sidebar-nav li a{display:flex;align-items:center;gap:8px;padding:9px 16px;color:rgba(255,255,255,0.55);text-decoration:none;font-size:0.84rem;font-weight:500;border-left:3px solid transparent;transition:all 0.2s;}
@@ -146,8 +146,8 @@
 
 <div class="app">
 <aside class="sidebar">
-  <div class="sidebar-logo"><img src="images/Logo_1.png" alt="GRAMA"></div>
-  <div class="sidebar-label">Cancer Care Portal</div>
+  <div class="sidebar-logo sidebar-brand">SACCI</div>
+  <div class="sidebar-label">Sita Anandam Cancer Care Portal</div>
   <ul class="sidebar-nav" id="sidebarNav">
     <li><a href="#" class="active" data-page="dashboard" onclick="navTo('dashboard',this)">📊 Dashboard</a></li>
     <li><a href="#" data-page="patients" onclick="navTo('patients',this)">👥 All Patients</a></li>
@@ -212,7 +212,7 @@
 <!-- ═══ PUBLIC DASHBOARD ═══ -->
 <div class="page" id="page-public">
   <div class="topbar"><h1>Public Dashboard</h1></div>
-  <div class="public-banner"><p>📊 This is an anonymised view of the Cancer Care Initiative's impact. Patient identities and personal details are not shown.</p></div>
+  <div class="public-banner"><p>📊 This is an anonymised view of the Sita Anandam Cancer Care Initiative's impact. Patient identities and personal details are not shown.</p></div>
   <div class="stats-row">
     <div class="stat-box"><div class="stat-box-number" id="pub-total">0</div><div class="stat-box-label">Patients Supported</div></div>
     <div class="stat-box"><div class="stat-box-number" id="pub-active">0</div><div class="stat-box-label">Currently in Treatment</div></div>
