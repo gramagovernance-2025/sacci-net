@@ -259,9 +259,9 @@
     <div class="form-title">Upload Reports / Images</div>
     <div class="fg">
       <div class="form-row"><div class="fg"><label>Category</label><select id="fileCategory"><option value="Latest Report">Latest Report</option><option value="History">History</option><option value="Prescription">Prescription</option><option value="Other">Other</option></select></div></div>
-      <div class="file-area" onclick="document.getElementById('fileInput').click()">
+      <div class="file-area" id="fileArea" onclick="if(isExistingPatient)document.getElementById('fileInput').click()">
         <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFiles(this)">
-        <p><strong>Click to upload</strong> reports, prescriptions, or test results</p>
+        <p id="fileAreaHint"><strong>Click to upload</strong> reports, prescriptions, or test results</p>
       </div>
       <div class="file-list" id="fileList"></div>
     </div>
@@ -304,6 +304,7 @@ var ROLE='public', UNAME='Public View', UUSER='';
 var patients=[];
 var tempFiles=[];
 var editingId=null;
+var isExistingPatient=false;
 
 function esc(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
 function fmtDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});}
@@ -472,17 +473,24 @@ function renderPublic(){
 }
 
 // ADD/EDIT
+function setFileAreaState(){
+  var area=document.getElementById('fileArea'),hint=document.getElementById('fileAreaHint');
+  if(isExistingPatient){area.style.opacity='1';area.style.cursor='pointer';hint.innerHTML='<strong>Click to upload</strong> reports, prescriptions, or test results';}
+  else{area.style.opacity='0.5';area.style.cursor='not-allowed';hint.textContent='Save the patient first, then reopen to add files';}
+}
 function openAdd(){
   document.getElementById('modalTitle').textContent='Add New Patient';
   editingId=crypto.randomUUID();
+  isExistingPatient=false;
   document.getElementById('editId').value=editingId;
-  clearForm();tempFiles=[];renderFiles();
+  clearForm();tempFiles=[];renderFiles();setFileAreaState();
   document.getElementById('patientModal').classList.add('show');
 }
 async function editPatient(id){
   var p=patients.find(function(x){return x.id===id;});if(!p)return;
   document.getElementById('modalTitle').textContent='Edit Patient';
   editingId=id;
+  isExistingPatient=true;
   document.getElementById('editId').value=id;
   document.getElementById('pName').value=p.name||'';
   document.getElementById('pAge').value=p.age||'';
@@ -507,10 +515,10 @@ async function editPatient(id){
   document.getElementById('pMedDate').value=p.medDate||'';
   document.getElementById('pNotes').value=p.notes||'';
   var filesResp=await sb.from('patient_files').select('*').eq('patient_id',id);
-  tempFiles=filesResp.data||[];renderFiles();
+  tempFiles=filesResp.data||[];renderFiles();setFileAreaState();
   document.getElementById('patientModal').classList.add('show');
 }
-function closeModal(){document.getElementById('patientModal').classList.remove('show');clearForm();editingId=null;}
+function closeModal(){document.getElementById('patientModal').classList.remove('show');clearForm();editingId=null;isExistingPatient=false;}
 function clearForm(){['pName','pAge','pPhone','pVillage','pBlock','pAadhar','pBank','pAccount','pIFSC','pDiagnosis','pTreatment','pMedication','pNextVisit','pNextTest','pTestDate','pMedDate','pNotes'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('pGender').value='';document.getElementById('pDistrict').value='Muzaffarpur';document.getElementById('pStatus').value='Screening';document.getElementById('pAdmitted').value='No';document.getElementById('pVisitNum').value=1;}
 
 async function savePatient(){
@@ -527,6 +535,7 @@ async function savePatient(){
   var row=toDb(formVals);
   var existing=patients.find(function(p){return p.id===eid;});
   var resp;
+  var wasNew=!existing;
   if(existing){
     var history=(existing.history||[]).slice();
     history.push({date:new Date().toISOString(),user:UNAME,note:'Record updated'});
@@ -539,13 +548,24 @@ async function savePatient(){
   }
   if(resp.error){alert('Could not save: '+resp.error.message);return;}
   await loadPatients();
-  closeModal();
-  refreshActivePage();
+  if(wasNew){
+    // Patient row now exists — switch the still-open modal into Edit mode so
+    // files can be attached right away (uploads need the row to exist first).
+    isExistingPatient=true;
+    document.getElementById('modalTitle').textContent='Edit Patient';
+    setFileAreaState();
+    refreshActivePage();
+  } else {
+    closeModal();
+    refreshActivePage();
+  }
 }
 
-// FILES — uploaded straight to Supabase Storage as they're picked; editingId
-// is always set by the time the modal is open (openAdd generates one).
+// FILES — uploaded straight to Supabase Storage as they're picked. Requires
+// the patient row to already exist (patient_files has a foreign key to it),
+// so this is blocked until the patient has been saved at least once.
 async function handleFiles(input){
+  if(!isExistingPatient){alert('Save the patient first, then you can attach files.');input.value='';return;}
   var cat=document.getElementById('fileCategory').value;
   var files=Array.from(input.files);
   for(var i=0;i<files.length;i++){
