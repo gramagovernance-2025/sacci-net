@@ -329,16 +329,16 @@ function toDb(p){
 
 async function init(){
   var isPublic=sessionStorage.getItem('sacci_public_view')==='true';
-  var sessionResp=await supabase.auth.getSession();
+  var sessionResp=await sb.auth.getSession();
   var session=sessionResp.data.session;
 
   if(!session && !isPublic){window.location.href='portal-login.html';return;}
 
   if(session){
-    var profResp=await supabase.from('profiles').select('name,role').eq('id',session.user.id).single();
+    var profResp=await sb.from('profiles').select('name,role').eq('id',session.user.id).single();
     if(!profResp.data){
       alert('Your account is signed in but has no portal access yet. Contact an admin to be added.');
-      await supabase.auth.signOut();
+      await sb.auth.signOut();
       window.location.href='portal-login.html';
       return;
     }
@@ -363,7 +363,7 @@ async function init(){
   else{renderDash();}
 
   if(ROLE!=='public'){
-    supabase.channel('patients-changes')
+    sb.channel('patients-changes')
       .on('postgres_changes',{event:'*',schema:'public',table:'patients'},function(){loadPatients().then(refreshActivePage);})
       .subscribe();
   }
@@ -371,11 +371,11 @@ async function init(){
 
 async function loadPatients(){
   if(ROLE==='public'){
-    var resp=await supabase.from('patients_public').select('*').order('created_at',{ascending:false});
+    var resp=await sb.from('patients_public').select('*').order('created_at',{ascending:false});
     patients=(resp.data||[]).map(function(r){return{id:r.id,age:r.age,gender:r.gender,block:r.block,diagnosis:r.diagnosis,status:r.status,visitNum:r.visit_num};});
     if(resp.error)console.error(resp.error);
   } else {
-    var resp2=await supabase.from('patients').select('*').order('created_at',{ascending:false});
+    var resp2=await sb.from('patients').select('*').order('created_at',{ascending:false});
     patients=(resp2.data||[]).map(fromDb);
     if(resp2.error)console.error(resp2.error);
   }
@@ -402,7 +402,7 @@ function navTo(name,el){
   if(name==='dues')renderDues();
   if(name==='public')renderPublic();
 }
-async function logout(){await supabase.auth.signOut();sessionStorage.removeItem('sacci_public_view');window.location.href='portal-login.html';}
+async function logout(){await sb.auth.signOut();sessionStorage.removeItem('sacci_public_view');window.location.href='portal-login.html';}
 
 // RENDER DASHBOARD
 function renderDash(q){
@@ -506,7 +506,7 @@ async function editPatient(id){
   document.getElementById('pTestDate').value=p.testDate||'';
   document.getElementById('pMedDate').value=p.medDate||'';
   document.getElementById('pNotes').value=p.notes||'';
-  var filesResp=await supabase.from('patient_files').select('*').eq('patient_id',id);
+  var filesResp=await sb.from('patient_files').select('*').eq('patient_id',id);
   tempFiles=filesResp.data||[];renderFiles();
   document.getElementById('patientModal').classList.add('show');
 }
@@ -531,11 +531,11 @@ async function savePatient(){
     var history=(existing.history||[]).slice();
     history.push({date:new Date().toISOString(),user:UNAME,note:'Record updated'});
     row.history=history;
-    resp=await supabase.from('patients').update(row).eq('id',eid);
+    resp=await sb.from('patients').update(row).eq('id',eid);
   } else {
     row.id=eid;
     row.history=[{date:new Date().toISOString(),user:UNAME,note:'Patient registered'}];
-    resp=await supabase.from('patients').insert(row);
+    resp=await sb.from('patients').insert(row);
   }
   if(resp.error){alert('Could not save: '+resp.error.message);return;}
   await loadPatients();
@@ -552,9 +552,9 @@ async function handleFiles(input){
     var f=files[i];
     if(f.size>2*1024*1024){alert('Too large: '+f.name);continue;}
     var path=editingId+'/'+Date.now()+'_'+f.name;
-    var upResp=await supabase.storage.from('patient-files').upload(path,f);
+    var upResp=await sb.storage.from('patient-files').upload(path,f);
     if(upResp.error){alert('Upload failed for '+f.name+': '+upResp.error.message);continue;}
-    var insResp=await supabase.from('patient_files').insert({patient_id:editingId,name:f.name,category:cat,storage_path:path,uploaded_by:UNAME}).select().single();
+    var insResp=await sb.from('patient_files').insert({patient_id:editingId,name:f.name,category:cat,storage_path:path,uploaded_by:UNAME}).select().single();
     if(insResp.error){alert('Could not record '+f.name+': '+insResp.error.message);continue;}
     tempFiles.push(insResp.data);
   }
@@ -567,8 +567,8 @@ function renderFiles(){
 }
 async function removeFile(idx){
   var f=tempFiles[idx];if(!f)return;
-  if(f.storage_path)await supabase.storage.from('patient-files').remove([f.storage_path]);
-  if(f.id)await supabase.from('patient_files').delete().eq('id',f.id);
+  if(f.storage_path)await sb.storage.from('patient-files').remove([f.storage_path]);
+  if(f.id)await sb.from('patient_files').delete().eq('id',f.id);
   tempFiles.splice(idx,1);
   renderFiles();
 }
@@ -597,7 +597,7 @@ async function saveUpdate(){
   var updates={visit_num:parseInt(visitNum)||p.visitNum,history:history,updated_by:UNAME};
   if(newStatus)updates.status=newStatus;
   if(newNext)updates.next_visit=newNext;
-  var resp=await supabase.from('patients').update(updates).eq('id',id);
+  var resp=await sb.from('patients').update(updates).eq('id',id);
   if(resp.error){alert('Could not save update: '+resp.error.message);return;}
   await loadPatients();
   closeUpdate();
@@ -644,12 +644,12 @@ async function viewPatient(id){
   if(p.notes)h+='<div class="detail-section"><h3>Notes</h3><p style="font-size:0.88rem;color:var(--ink-light)">'+esc(p.notes)+'</p></div>';
 
   // Files by category — signed URLs since patient-files is a private bucket
-  var filesResp=await supabase.from('patient_files').select('*').eq('patient_id',id);
+  var filesResp=await sb.from('patient_files').select('*').eq('patient_id',id);
   var files=filesResp.data||[];
   if(files.length){
     var urls={};
     for(var i=0;i<files.length;i++){
-      var signedResp=await supabase.storage.from('patient-files').createSignedUrl(files[i].storage_path,3600);
+      var signedResp=await sb.storage.from('patient-files').createSignedUrl(files[i].storage_path,3600);
       urls[files[i].id]=signedResp.data?signedResp.data.signedUrl:'';
     }
     var latest=files.filter(function(f){return f.category==='Latest Report';});

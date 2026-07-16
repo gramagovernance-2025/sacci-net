@@ -80,7 +80,7 @@
     var pass = document.getElementById('password').value;
     if (!email || !pass) { showError('Enter your email and password'); return; }
     document.getElementById('loginBtn').disabled = true;
-    var { error } = await supabase.auth.signInWithPassword({ email: email, password: pass });
+    var { error } = await sb.auth.signInWithPassword({ email: email, password: pass });
     document.getElementById('loginBtn').disabled = false;
     if (error) { showError(error.message || 'Invalid email or password'); return; }
     sessionStorage.removeItem('sacci_public_view');
@@ -95,7 +95,7 @@
   document.getElementById('password').addEventListener('keypress', function(e) { if (e.key === 'Enter') handleLogin(); });
 
   (async function redirectIfLoggedIn() {
-    var { data: { session } } = await supabase.auth.getSession();
+    var { data: { session } } = await sb.auth.getSession();
     if (session) window.location.href = 'portal.html';
   })();
 </script>
