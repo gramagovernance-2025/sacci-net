@@ -413,8 +413,6 @@ function editPatient(id){
   var p=patients.find(function(x){return x.id===id;});if(!p)return;
   document.getElementById('modalTitle').textContent='Edit Patient';
   document.getElementById('editId').value=id;
-  'pName pAge pGender pPhone pVillage pBlock pDistrict pAadhar pBank pAccount pIFSC pDiagnosis pStatus pAdmitted pVisitNum pTreatment pMedication pNextVisit pNextTest pTestDate pMedDate pNotes'.split(' ').forEach(function(f){var el=document.getElementById(f);if(el)el.value=p[f.replace('p','').replace(/^./,function(c){return c.toLowerCase();})]||el.defaultValue||'';});
-  // Map fields properly
   document.getElementById('pName').value=p.name||'';
   document.getElementById('pAge').value=p.age||'';
   document.getElementById('pGender').value=p.gender||'';
