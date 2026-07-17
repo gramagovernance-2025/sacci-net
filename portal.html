@@ -152,6 +152,7 @@
     <li><a href="#" class="active" data-page="dashboard" onclick="navTo('dashboard',this)">📊 Dashboard</a></li>
     <li><a href="#" data-page="patients" onclick="navTo('patients',this)">👥 All Patients</a></li>
     <li><a href="#" data-page="dues" onclick="navTo('dues',this)" id="nav-dues">⏰ Due Actions</a></li>
+    <li><a href="#" data-page="finances" onclick="navTo('finances',this)" id="nav-finances">💰 Finances</a></li>
     <li><a href="#" data-page="public" onclick="navTo('public',this)">🌐 Public View</a></li>
   </ul>
   <div class="sidebar-bottom">
@@ -206,6 +207,26 @@
   <div class="card">
     <div class="card-header"><h2>Upcoming &amp; Overdue Items</h2></div>
     <div style="overflow-x:auto"><table><thead><tr><th>Patient</th><th>Type</th><th>Details</th><th>Due Date</th><th>Status</th></tr></thead><tbody id="duesBody"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ═══ FINANCES (staff only) ═══ -->
+<div class="page" id="page-finances">
+  <div class="topbar">
+    <h1>Finances</h1>
+    <div class="topbar-actions">
+      <button class="btn btn-primary" onclick="openAddTxn()">+ Log Payment</button>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-box-number" id="f-total">₹0</div><div class="stat-box-label">Total Disbursed</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="f-travel">₹0</div><div class="stat-box-label">Travel</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="f-treatment">₹0</div><div class="stat-box-label">Treatment</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="f-other">₹0</div><div class="stat-box-label">Screening / Medicine / Other</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h2>All Payments</h2><input type="text" class="search-input" placeholder="Search by patient..." oninput="renderFinances(this.value)"></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Patient</th><th>Amount</th><th>Purpose</th><th>Date</th><th>Notes</th><th>Recorded By</th><th>Actions</th></tr></thead><tbody id="txnBody"></tbody></table></div>
   </div>
 </div>
 
@@ -285,6 +306,21 @@
 </div>
 </div>
 
+<!-- ═══ LOG PAYMENT MODAL ═══ -->
+<div class="modal-overlay" id="txnModal">
+<div class="modal" style="max-width:520px">
+  <div class="modal-head"><h2 id="txnModalTitle">Log Payment</h2><button class="modal-close" onclick="closeTxn()">&times;</button></div>
+  <div class="modal-body">
+    <input type="hidden" id="txnId">
+    <div class="fg"><label>Patient</label><select id="txnPatient"></select></div>
+    <div class="form-row"><div class="fg"><label>Amount (₹)</label><input type="number" id="txnAmount" min="0" step="0.01"></div><div class="fg"><label>Purpose</label><select id="txnPurpose"><option>Travel</option><option>Screening</option><option>Treatment</option><option>Medicine</option><option>Hospital Stay</option><option>Other</option></select></div></div>
+    <div class="fg"><label>Date</label><input type="date" id="txnDate"></div>
+    <div class="fg"><label>Notes</label><textarea id="txnNotes" placeholder="What was this payment for, specifically?"></textarea></div>
+  </div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeTxn()">Cancel</button><button class="btn btn-primary" onclick="saveTxn()">Save Payment</button></div>
+</div>
+</div>
+
 <!-- ═══ VIEW MODAL ═══ -->
 <div class="modal-overlay" id="viewModal">
 <div class="modal">
@@ -302,6 +338,7 @@
 // so everyone with portal access sees the same data.
 var ROLE='public', UNAME='Public View', UUSER='';
 var patients=[];
+var transactions=[];
 var tempFiles=[];
 var editingId=null;
 var isExistingPatient=false;
@@ -359,18 +396,27 @@ async function init(){
   if(ROLE==='public'){
     document.getElementById('sidebarNav').style.display='none';
   }
+  if(ROLE!=='staff'){
+    document.getElementById('nav-finances').parentElement.style.display='none';
+  }
   if(ROLE==='advisor'){
     document.getElementById('dashActions').style.display='none';
     document.getElementById('patActions').innerHTML='<button class="btn btn-secondary" onclick="exportCSV()">Export CSV</button>';
   }
 
   await loadPatients();
+  if(ROLE==='staff')await loadTransactions();
   if(ROLE==='public'){navTo('public',document.querySelector('[data-page="public"]'));}
   else{renderDash();}
 
   if(ROLE!=='public'){
     sb.channel('patients-changes')
       .on('postgres_changes',{event:'*',schema:'public',table:'patients'},function(){loadPatients().then(refreshActivePage);})
+      .subscribe();
+  }
+  if(ROLE==='staff'){
+    sb.channel('transactions-changes')
+      .on('postgres_changes',{event:'*',schema:'public',table:'transactions'},function(){loadTransactions().then(refreshActivePage);})
       .subscribe();
   }
 }
@@ -394,6 +440,7 @@ function refreshActivePage(){
   if(name==='dashboard')renderDash();
   if(name==='patients')renderAll();
   if(name==='dues')renderDues();
+  if(name==='finances')renderFinances();
   if(name==='public')renderPublic();
 }
 
@@ -406,6 +453,7 @@ function navTo(name,el){
   if(name==='dashboard')renderDash();
   if(name==='patients')renderAll();
   if(name==='dues')renderDues();
+  if(name==='finances')renderFinances();
   if(name==='public')renderPublic();
 }
 async function logout(){await sb.auth.signOut();window.location.href='portal-login.html';}
@@ -475,6 +523,80 @@ function renderPublic(){
   var h='';patients.forEach(function(p,i){
     h+='<tr><td>'+(i+1)+'</td><td>'+(p.age||'—')+'</td><td>'+(p.gender||'—')+'</td><td>'+esc(p.block||'—')+'</td><td>'+esc(p.diagnosis||'—')+'</td><td><span class="badge '+statusCls(p.status)+'">'+p.status+'</span></td><td>'+(p.visitNum||'—')+'</td></tr>';
   });tbody.innerHTML=h;
+}
+
+// RENDER FINANCES (staff only)
+function renderFinances(q){
+  var list=transactions;
+  if(q){var f=q.toLowerCase();list=list.filter(function(t){return patientName(t.patient_id).toLowerCase().indexOf(f)>=0;});}
+  var sum=function(arr){return arr.reduce(function(s,t){return s+Number(t.amount);},0);};
+  var total=sum(transactions);
+  var travel=sum(transactions.filter(function(t){return t.purpose==='Travel';}));
+  var treatment=sum(transactions.filter(function(t){return t.purpose==='Treatment';}));
+  var other=total-travel-treatment;
+  document.getElementById('f-total').textContent='₹'+total.toLocaleString('en-IN');
+  document.getElementById('f-travel').textContent='₹'+travel.toLocaleString('en-IN');
+  document.getElementById('f-treatment').textContent='₹'+treatment.toLocaleString('en-IN');
+  document.getElementById('f-other').textContent='₹'+other.toLocaleString('en-IN');
+
+  var tbody=document.getElementById('txnBody');
+  if(!list.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:36px;color:var(--ink-muted)">No payments logged yet.</td></tr>';return;}
+  var sorted=list.slice().sort(function(a,b){return new Date(b.txn_date)-new Date(a.txn_date);});
+  var h='';sorted.forEach(function(t){
+    h+='<tr><td><strong>'+esc(patientName(t.patient_id))+'</strong></td><td>₹'+Number(t.amount).toLocaleString('en-IN')+'</td><td>'+esc(t.purpose)+'</td><td>'+fmtDate(t.txn_date)+'</td><td>'+esc(t.notes||'—')+'</td><td>'+esc(t.recorded_by||'—')+'</td><td><span class="link" onclick="editTxn(\''+t.id+'\')">Edit</span> · <span class="link" onclick="deleteTxn(\''+t.id+'\')">Delete</span></td></tr>';
+  });tbody.innerHTML=h;
+}
+function patientName(id){var p=patients.find(function(x){return x.id===id;});return p?p.name:'(unknown patient)';}
+function patientTotal(id){return transactions.filter(function(t){return t.patient_id===id;}).reduce(function(s,t){return s+Number(t.amount);},0);}
+
+async function loadTransactions(){
+  var resp=await sb.from('transactions').select('*');
+  transactions=resp.data||[];
+  if(resp.error)console.error(resp.error);
+}
+
+function openAddTxn(){
+  document.getElementById('txnModalTitle').textContent='Log Payment';
+  document.getElementById('txnId').value='';
+  document.getElementById('txnAmount').value='';
+  document.getElementById('txnPurpose').value='Travel';
+  document.getElementById('txnDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('txnNotes').value='';
+  var sel=document.getElementById('txnPatient');
+  sel.innerHTML=patients.slice().sort(function(a,b){return a.name.localeCompare(b.name);})
+    .map(function(p){return'<option value="'+p.id+'">'+esc(p.name)+'</option>';}).join('');
+  document.getElementById('txnModal').classList.add('show');
+}
+function editTxn(id){
+  var t=transactions.find(function(x){return x.id===id;});if(!t)return;
+  openAddTxn();
+  document.getElementById('txnModalTitle').textContent='Edit Payment';
+  document.getElementById('txnId').value=id;
+  document.getElementById('txnPatient').value=t.patient_id;
+  document.getElementById('txnAmount').value=t.amount;
+  document.getElementById('txnPurpose').value=t.purpose;
+  document.getElementById('txnDate').value=t.txn_date;
+  document.getElementById('txnNotes').value=t.notes||'';
+}
+function closeTxn(){document.getElementById('txnModal').classList.remove('show');}
+async function saveTxn(){
+  var amount=parseFloat(document.getElementById('txnAmount').value);
+  if(!amount||amount<=0){alert('Enter a valid amount');return;}
+  var id=document.getElementById('txnId').value;
+  var row={patient_id:document.getElementById('txnPatient').value,amount:amount,purpose:document.getElementById('txnPurpose').value,
+    txn_date:document.getElementById('txnDate').value,notes:document.getElementById('txnNotes').value,recorded_by:UNAME};
+  var resp=id?await sb.from('transactions').update(row).eq('id',id):await sb.from('transactions').insert(row);
+  if(resp.error){alert('Could not save: '+resp.error.message);return;}
+  await loadTransactions();
+  closeTxn();
+  renderFinances();
+}
+async function deleteTxn(id){
+  if(!confirm('Delete this payment record?'))return;
+  var resp=await sb.from('transactions').delete().eq('id',id);
+  if(resp.error){alert('Could not delete: '+resp.error.message);return;}
+  await loadTransactions();
+  renderFinances();
 }
 
 // ADD/EDIT
@@ -667,6 +789,18 @@ async function viewPatient(id){
   h+='</div></div>';
 
   if(p.notes)h+='<div class="detail-section"><h3>Notes</h3><p style="font-size:0.88rem;color:var(--ink-light)">'+esc(p.notes)+'</p></div>';
+
+  // Financial support — staff only
+  if(ROLE==='staff'){
+    var patientTxns=transactions.filter(function(t){return t.patient_id===id;}).sort(function(a,b){return new Date(b.txn_date)-new Date(a.txn_date);});
+    h+='<div class="detail-section"><h3>Financial Support — Total ₹'+patientTotal(id).toLocaleString('en-IN')+'</h3>';
+    if(patientTxns.length){
+      patientTxns.forEach(function(t){h+='<div class="visit-entry"><div class="visit-entry-date">'+fmtDate(t.txn_date)+' — ₹'+Number(t.amount).toLocaleString('en-IN')+' ('+esc(t.purpose)+')</div><div class="visit-entry-notes">'+esc(t.notes||'')+'</div></div>';});
+    } else {
+      h+='<p style="font-size:0.85rem;color:var(--ink-muted)">No payments logged for this patient yet.</p>';
+    }
+    h+='</div>';
+  }
 
   // Files by category — signed URLs since patient-files is a private bucket
   var filesResp=await sb.from('patient_files').select('*').eq('patient_id',id);

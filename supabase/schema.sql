@@ -127,6 +127,38 @@ drop policy if exists "advisors read patient files" on storage.objects;
 create policy "advisors read patient files" on storage.objects for select
   using (bucket_id = 'patient-files' and has_profile());
 
+-- ─── TRANSACTIONS (money given to/for patients) ──────────────
+-- Staff-only in both directions — advisors and the public never see this,
+-- unlike patients/patient_files which advisors can read.
+create table if not exists transactions (
+  id uuid primary key default gen_random_uuid(),
+  patient_id uuid references patients(id) on delete cascade,
+  amount numeric(10,2) not null check (amount > 0),
+  purpose text not null check (purpose in ('Travel','Screening','Treatment','Medicine','Hospital Stay','Other')),
+  notes text,
+  txn_date date not null default current_date,
+  recorded_by text,
+  created_at timestamptz default now()
+);
+
+alter table transactions enable row level security;
+
+drop policy if exists "staff only read transactions" on transactions;
+create policy "staff only read transactions" on transactions for select
+  using (is_staff());
+
+drop policy if exists "staff insert transactions" on transactions;
+create policy "staff insert transactions" on transactions for insert
+  with check (is_staff());
+
+drop policy if exists "staff update transactions" on transactions;
+create policy "staff update transactions" on transactions for update
+  using (is_staff());
+
+drop policy if exists "staff delete transactions" on transactions;
+create policy "staff delete transactions" on transactions for delete
+  using (is_staff());
+
 -- ─── REALTIME ───────────────────────────────────────────────
 -- Lets the portal subscribe to live inserts/updates/deletes.
 do $$
@@ -136,6 +168,12 @@ begin
     where pubname = 'supabase_realtime' and tablename = 'patients'
   ) then
     alter publication supabase_realtime add table patients;
+  end if;
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and tablename = 'transactions'
+  ) then
+    alter publication supabase_realtime add table transactions;
   end if;
 end $$;
 
