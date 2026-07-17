@@ -301,6 +301,15 @@
     <div class="fg"><label>Visit Number</label><input type="number" id="uVisitNum" min="1"></div>
     <div class="fg"><label>What happened at this visit?</label><textarea id="uNotes" placeholder="Describe the visit — tests done, doctor observations, treatment changes..."></textarea></div>
     <div class="form-row"><div class="fg"><label>Updated Status</label><select id="uStatus"><option value="">No change</option><option value="Screening">Screening</option><option value="Under Investigation">Under Investigation</option><option value="Treatment">Treatment</option><option value="Admitted">Admitted</option><option value="On Medication">On Medication</option><option value="Follow-up">Follow-up</option><option value="Completed">Completed</option></select></div><div class="fg"><label>Next Visit Date</label><input type="date" id="uNextVisit"></div></div>
+    <div class="fg">
+      <label>Attach Photos (optional)</label>
+      <div class="form-row"><div class="fg"><label style="font-weight:400;font-size:0.75rem;">Category</label><select id="uFileCategory"><option value="Latest Report">Latest Report</option><option value="History">History</option><option value="Prescription">Prescription</option><option value="Other">Other</option></select></div></div>
+      <div class="file-area" id="uFileArea" onclick="document.getElementById('uFileInput').click()">
+        <input type="file" id="uFileInput" accept="image/*" multiple onchange="handleUpdateFiles(this)">
+        <p><strong>Click to upload</strong> photos from this visit</p>
+      </div>
+      <div class="file-list" id="uFileList"></div>
+    </div>
   </div>
   <div class="modal-foot"><button class="btn btn-secondary" onclick="closeUpdate()">Cancel</button><button class="btn btn-primary" onclick="saveUpdate()">Save Update</button></div>
 </div>
@@ -721,17 +730,52 @@ async function removeFile(idx){
 }
 
 // UPDATE VISIT
-function openUpdate(id){
+async function openUpdate(id){
   var p=patients.find(function(x){return x.id===id;});if(!p)return;
+  updateTargetId=id;
   document.getElementById('updateId').value=id;
   document.getElementById('uDate').value=new Date().toISOString().slice(0,10);
   document.getElementById('uVisitNum').value=(parseInt(p.visitNum)||0)+1;
   document.getElementById('uNotes').value='';
   document.getElementById('uStatus').value='';
   document.getElementById('uNextVisit').value='';
+  var filesResp=await sb.from('patient_files').select('*').eq('patient_id',id);
+  updateTempFiles=filesResp.data||[];renderUpdateFiles();
   document.getElementById('updateModal').classList.add('show');
 }
-function closeUpdate(){document.getElementById('updateModal').classList.remove('show');}
+function closeUpdate(){document.getElementById('updateModal').classList.remove('show');updateTargetId=null;updateTempFiles=[];}
+
+// FILES for the Update Visit modal — independent of the Add/Edit modal's
+// tempFiles/editingId so the two flows can't interfere with each other.
+var updateTempFiles=[];
+var updateTargetId=null;
+function renderUpdateFiles(){
+  var c=document.getElementById('uFileList');if(!updateTempFiles.length){c.innerHTML='';return;}
+  var h='';updateTempFiles.forEach(function(f,i){h+='<div class="file-item"><span class="file-cat">'+esc(f.category||'Other')+'</span> '+esc(f.name)+'<button onclick="removeUpdateFile('+i+')">&times;</button></div>';});c.innerHTML=h;
+}
+async function handleUpdateFiles(input){
+  var cat=document.getElementById('uFileCategory').value;
+  var files=Array.from(input.files);
+  for(var i=0;i<files.length;i++){
+    var f=files[i];
+    if(f.size>2*1024*1024){alert('Too large: '+f.name);continue;}
+    var path=updateTargetId+'/'+Date.now()+'_'+f.name;
+    var upResp=await sb.storage.from('patient-files').upload(path,f);
+    if(upResp.error){alert('Upload failed for '+f.name+': '+upResp.error.message);continue;}
+    var insResp=await sb.from('patient_files').insert({patient_id:updateTargetId,name:f.name,category:cat,storage_path:path,uploaded_by:UNAME}).select().single();
+    if(insResp.error){alert('Could not record '+f.name+': '+insResp.error.message);continue;}
+    updateTempFiles.push(insResp.data);
+  }
+  renderUpdateFiles();
+  input.value='';
+}
+async function removeUpdateFile(idx){
+  var f=updateTempFiles[idx];if(!f)return;
+  if(f.storage_path)await sb.storage.from('patient-files').remove([f.storage_path]);
+  if(f.id)await sb.from('patient_files').delete().eq('id',f.id);
+  updateTempFiles.splice(idx,1);
+  renderUpdateFiles();
+}
 async function saveUpdate(){
   var id=document.getElementById('updateId').value;
   var p=patients.find(function(x){return x.id===id;});if(!p)return;
