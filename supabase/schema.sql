@@ -127,6 +127,48 @@ drop policy if exists "advisors read patient files" on storage.objects;
 create policy "advisors read patient files" on storage.objects for select
   using (bucket_id = 'patient-files' and has_profile());
 
+-- ─── PATIENT CODE (short, human-readable ID) ─────────────────
+-- Purely numeric, e.g. 202601 = 1st patient registered in 2026, 202602 = 2nd.
+-- Resets each year. Auto-assigned on insert; never generated client-side so
+-- two simultaneous inserts can't collide.
+alter table patients add column if not exists patient_code text unique;
+
+create or replace function assign_patient_code() returns trigger
+language plpgsql as $$
+declare
+  yr text := to_char(now(), 'YYYY');
+  seq int;
+begin
+  if new.patient_code is null then
+    select count(*) + 1 into seq from patients where patient_code like yr || '%';
+    new.patient_code := yr || lpad(seq::text, 2, '0');
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_assign_patient_code on patients;
+create trigger trg_assign_patient_code before insert on patients
+for each row execute function assign_patient_code();
+
+-- One-time backfill for existing patients that predate this column —
+-- assigns codes in registration order, safe to re-run (skips rows that
+-- already have a code).
+do $$
+declare
+  r record;
+  yr text;
+  seq int := 0;
+  last_yr text := '';
+begin
+  for r in select id, created_at from patients where patient_code is null order by created_at loop
+    yr := to_char(r.created_at, 'YYYY');
+    if yr <> last_yr then seq := 0; last_yr := yr; end if;
+    seq := seq + 1;
+    update patients set patient_code = yr || lpad(seq::text, 2, '0') where id = r.id;
+  end loop;
+end $$;
+
 -- ─── TRANSACTIONS (money given to/for patients) ──────────────
 -- Staff-only in both directions — advisors and the public never see this,
 -- unlike patients/patient_files which advisors can read.

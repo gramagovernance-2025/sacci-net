@@ -180,7 +180,7 @@
   </div>
   <div class="card">
     <div class="card-header"><h2>Recent Patients</h2><input type="text" class="search-input" placeholder="Search..." oninput="renderDash(this.value)"></div>
-    <div style="overflow-x:auto"><table><thead><tr><th>Name</th><th>Age/Gender</th><th>Diagnosis</th><th>Status</th><th>Last Visit</th><th>Visit #</th><th>Next Due</th><th>Actions</th></tr></thead><tbody id="dashBody"></tbody></table></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>ID</th><th>Name</th><th>Age/Gender</th><th>Diagnosis</th><th>Status</th><th>Last Visit</th><th>Visit #</th><th>Next Due</th><th>Actions</th></tr></thead><tbody id="dashBody"></tbody></table></div>
   </div>
 </div>
 
@@ -196,7 +196,7 @@
   <div class="card">
     <div class="card-header"><h2>Complete Patient Records</h2><input type="text" class="search-input" placeholder="Search..." oninput="renderAll(this.value)"></div>
     <div style="overflow-x:auto"><table><thead><tr>
-      <th>Name</th><th>Age</th><th>Gender</th><th>Village</th><th>Block</th><th>Diagnosis</th><th>Status</th><th>Admitted</th><th>Last Visit</th><th>Visit #</th><th>Next Visit</th><th>Due Test</th><th>Due Medicine</th><th>Actions</th>
+      <th>ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Village</th><th>Block</th><th>Diagnosis</th><th>Status</th><th>Admitted</th><th>Last Visit</th><th>Visit #</th><th>Next Visit</th><th>Due Test</th><th>Due Medicine</th><th>Actions</th>
     </tr></thead><tbody id="allBody"></tbody></table></div>
   </div>
 </div>
@@ -226,7 +226,7 @@
   </div>
   <div class="card">
     <div class="card-header"><h2>All Payments</h2><input type="text" class="search-input" placeholder="Search by patient..." oninput="renderFinances(this.value)"></div>
-    <div style="overflow-x:auto"><table><thead><tr><th>Patient</th><th>Amount</th><th>Purpose</th><th>Date</th><th>Notes</th><th>Recorded By</th><th>Actions</th></tr></thead><tbody id="txnBody"></tbody></table></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>ID</th><th>Patient</th><th>Amount</th><th>Purpose</th><th>Date</th><th>Notes</th><th>Recorded By</th><th>Actions</th></tr></thead><tbody id="txnBody"></tbody></table></div>
   </div>
 </div>
 
@@ -366,7 +366,7 @@ function lastVisit(p){
 // DB row <-> app object. The `patients` table uses snake_case columns;
 // everything above/below this line still speaks the original camelCase shape.
 function fromDb(r){
-  return {id:r.id,name:r.name,age:r.age,gender:r.gender,phone:r.phone,village:r.village,block:r.block,district:r.district,
+  return {id:r.id,code:r.patient_code,name:r.name,age:r.age,gender:r.gender,phone:r.phone,village:r.village,block:r.block,district:r.district,
     aadhar:r.aadhar,bank:r.bank,account:r.account,ifsc:r.ifsc,diagnosis:r.diagnosis,status:r.status,admitted:r.admitted,
     visitNum:r.visit_num,treatment:r.treatment,medication:r.medication,nextVisit:r.next_visit,nextTest:r.next_test,
     testDate:r.test_date,medDate:r.med_date,notes:r.notes,history:r.history||[],
@@ -470,7 +470,7 @@ async function logout(){await sb.auth.signOut();window.location.href='portal-log
 // RENDER DASHBOARD
 function renderDash(q){
   var list=patients;
-  if(q){var f=q.toLowerCase();list=list.filter(function(p){return(p.name||'').toLowerCase().indexOf(f)>=0||(p.diagnosis||'').toLowerCase().indexOf(f)>=0;});}
+  if(q){var f=q.toLowerCase();list=list.filter(function(p){return(p.name||'').toLowerCase().indexOf(f)>=0||(p.diagnosis||'').toLowerCase().indexOf(f)>=0||(p.code||'').toLowerCase().indexOf(f)>=0;});}
   var now=new Date(new Date().toDateString());
   var active=patients.filter(function(p){return['Treatment','Admitted','On Medication'].indexOf(p.status)>=0;}).length;
   var screening=patients.filter(function(p){return['Screening','Under Investigation'].indexOf(p.status)>=0;}).length;
@@ -482,26 +482,26 @@ function renderDash(q){
 
   var tbody=document.getElementById('dashBody');
   var recent=list.slice(-10).reverse();
-  if(!recent.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:36px;color:var(--ink-muted)">No patients yet.</td></tr>';return;}
+  if(!recent.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:36px;color:var(--ink-muted)">No patients yet.</td></tr>';return;}
   var h='';recent.forEach(function(p){
     var nd=dueStatus(p.nextVisit);
     var acts='<span class="link" onclick="viewPatient(\''+p.id+'\')">View</span>';
     if(ROLE==='staff')acts+=' · <span class="link" onclick="editPatient(\''+p.id+'\')">Edit</span> · <span class="link" onclick="openUpdate(\''+p.id+'\')">Update</span>';
-    h+='<tr><td><strong>'+esc(p.name)+'</strong></td><td>'+(p.age||'—')+' / '+(p.gender?p.gender[0]:'—')+'</td><td>'+esc(p.diagnosis||'—')+'</td><td><span class="badge '+statusCls(p.status)+'">'+p.status+'</span></td><td>'+lastVisit(p)+'</td><td>'+(p.visitNum||'—')+'</td><td>'+(nd.c?'<span class="due '+nd.c+'">'+nd.t+'</span>':nd.t)+'</td><td>'+acts+'</td></tr>';
+    h+='<tr><td>'+esc(p.code||'—')+'</td><td><strong>'+esc(p.name)+'</strong></td><td>'+(p.age||'—')+' / '+(p.gender?p.gender[0]:'—')+'</td><td>'+esc(p.diagnosis||'—')+'</td><td><span class="badge '+statusCls(p.status)+'">'+p.status+'</span></td><td>'+lastVisit(p)+'</td><td>'+(p.visitNum||'—')+'</td><td>'+(nd.c?'<span class="due '+nd.c+'">'+nd.t+'</span>':nd.t)+'</td><td>'+acts+'</td></tr>';
   });tbody.innerHTML=h;
 }
 
 // RENDER ALL PATIENTS
 function renderAll(q){
   var list=patients;
-  if(q){var f=q.toLowerCase();list=list.filter(function(p){return(p.name||'').toLowerCase().indexOf(f)>=0||(p.village||'').toLowerCase().indexOf(f)>=0||(p.diagnosis||'').toLowerCase().indexOf(f)>=0||(p.block||'').toLowerCase().indexOf(f)>=0;});}
+  if(q){var f=q.toLowerCase();list=list.filter(function(p){return(p.name||'').toLowerCase().indexOf(f)>=0||(p.village||'').toLowerCase().indexOf(f)>=0||(p.diagnosis||'').toLowerCase().indexOf(f)>=0||(p.block||'').toLowerCase().indexOf(f)>=0||(p.code||'').toLowerCase().indexOf(f)>=0;});}
   var tbody=document.getElementById('allBody');
-  if(!list.length){tbody.innerHTML='<tr><td colspan="14" style="text-align:center;padding:36px;color:var(--ink-muted)">No patients.</td></tr>';return;}
+  if(!list.length){tbody.innerHTML='<tr><td colspan="15" style="text-align:center;padding:36px;color:var(--ink-muted)">No patients.</td></tr>';return;}
   var h='';list.forEach(function(p){
     var nd=dueStatus(p.nextVisit),td=dueStatus(p.testDate),md=dueStatus(p.medDate);
     var acts='<span class="link" onclick="viewPatient(\''+p.id+'\')">View</span>';
     if(ROLE==='staff')acts+=' · <span class="link" onclick="editPatient(\''+p.id+'\')">Edit</span> · <span class="link" onclick="openUpdate(\''+p.id+'\')">Update</span>';
-    h+='<tr><td><strong>'+esc(p.name)+'</strong></td><td>'+(p.age||'—')+'</td><td>'+(p.gender||'—')+'</td><td>'+esc(p.village||'—')+'</td><td>'+esc(p.block||'—')+'</td><td>'+esc(p.diagnosis||'—')+'</td><td><span class="badge '+statusCls(p.status)+'">'+p.status+'</span></td><td>'+(p.admitted||'No')+'</td><td>'+lastVisit(p)+'</td><td>'+(p.visitNum||'—')+'</td><td>'+(nd.c?'<span class="due '+nd.c+'">'+nd.t+'</span>':nd.t)+'</td><td>'+(td.c?'<span class="due '+td.c+'">'+td.t+'</span>':td.t)+'</td><td>'+(md.c?'<span class="due '+md.c+'">'+md.t+'</span>':md.t)+'</td><td>'+acts+'</td></tr>';
+    h+='<tr><td>'+esc(p.code||'—')+'</td><td><strong>'+esc(p.name)+'</strong></td><td>'+(p.age||'—')+'</td><td>'+(p.gender||'—')+'</td><td>'+esc(p.village||'—')+'</td><td>'+esc(p.block||'—')+'</td><td>'+esc(p.diagnosis||'—')+'</td><td><span class="badge '+statusCls(p.status)+'">'+p.status+'</span></td><td>'+(p.admitted||'No')+'</td><td>'+lastVisit(p)+'</td><td>'+(p.visitNum||'—')+'</td><td>'+(nd.c?'<span class="due '+nd.c+'">'+nd.t+'</span>':nd.t)+'</td><td>'+(td.c?'<span class="due '+td.c+'">'+td.t+'</span>':td.t)+'</td><td>'+(md.c?'<span class="due '+md.c+'">'+md.t+'</span>':md.t)+'</td><td>'+acts+'</td></tr>';
   });tbody.innerHTML=h;
 }
 
@@ -537,7 +537,7 @@ function renderPublic(){
 // RENDER FINANCES (staff only)
 function renderFinances(q){
   var list=transactions;
-  if(q){var f=q.toLowerCase();list=list.filter(function(t){return patientName(t.patient_id).toLowerCase().indexOf(f)>=0;});}
+  if(q){var f=q.toLowerCase();list=list.filter(function(t){return patientName(t.patient_id).toLowerCase().indexOf(f)>=0||patientCode(t.patient_id).toLowerCase().indexOf(f)>=0;});}
   var sum=function(arr){return arr.reduce(function(s,t){return s+Number(t.amount);},0);};
   var total=sum(transactions);
   var travel=sum(transactions.filter(function(t){return t.purpose==='Travel';}));
@@ -549,13 +549,14 @@ function renderFinances(q){
   document.getElementById('f-other').textContent='₹'+other.toLocaleString('en-IN');
 
   var tbody=document.getElementById('txnBody');
-  if(!list.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:36px;color:var(--ink-muted)">No payments logged yet.</td></tr>';return;}
+  if(!list.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:36px;color:var(--ink-muted)">No payments logged yet.</td></tr>';return;}
   var sorted=list.slice().sort(function(a,b){return new Date(b.txn_date)-new Date(a.txn_date);});
   var h='';sorted.forEach(function(t){
-    h+='<tr><td><strong>'+esc(patientName(t.patient_id))+'</strong></td><td>₹'+Number(t.amount).toLocaleString('en-IN')+'</td><td>'+esc(t.purpose)+'</td><td>'+fmtDate(t.txn_date)+'</td><td>'+esc(t.notes||'—')+'</td><td>'+esc(t.recorded_by||'—')+'</td><td><span class="link" onclick="editTxn(\''+t.id+'\')">Edit</span> · <span class="link" onclick="deleteTxn(\''+t.id+'\')">Delete</span></td></tr>';
+    h+='<tr><td>'+esc(patientCode(t.patient_id))+'</td><td><strong>'+esc(patientName(t.patient_id))+'</strong></td><td>₹'+Number(t.amount).toLocaleString('en-IN')+'</td><td>'+esc(t.purpose)+'</td><td>'+fmtDate(t.txn_date)+'</td><td>'+esc(t.notes||'—')+'</td><td>'+esc(t.recorded_by||'—')+'</td><td><span class="link" onclick="editTxn(\''+t.id+'\')">Edit</span> · <span class="link" onclick="deleteTxn(\''+t.id+'\')">Delete</span></td></tr>';
   });tbody.innerHTML=h;
 }
 function patientName(id){var p=patients.find(function(x){return x.id===id;});return p?p.name:'(unknown patient)';}
+function patientCode(id){var p=patients.find(function(x){return x.id===id;});return p&&p.code?p.code:'—';}
 function patientTotal(id){return transactions.filter(function(t){return t.patient_id===id;}).reduce(function(s,t){return s+Number(t.amount);},0);}
 
 async function loadTransactions(){
@@ -573,7 +574,7 @@ function openAddTxn(){
   document.getElementById('txnNotes').value='';
   var sel=document.getElementById('txnPatient');
   sel.innerHTML=patients.slice().sort(function(a,b){return a.name.localeCompare(b.name);})
-    .map(function(p){return'<option value="'+p.id+'">'+esc(p.name)+'</option>';}).join('');
+    .map(function(p){return'<option value="'+p.id+'">'+(p.code?p.code+' — ':'')+esc(p.name)+'</option>';}).join('');
   document.getElementById('txnModal').classList.add('show');
 }
 function editTxn(id){
@@ -798,7 +799,7 @@ async function saveUpdate(){
 // VIEW
 async function viewPatient(id){
   var p=patients.find(function(x){return x.id===id;});if(!p)return;
-  document.getElementById('viewTitle').textContent=p.name;
+  document.getElementById('viewTitle').textContent=p.name+(p.code?' ('+p.code+')':'');
   var h='<div class="detail-section"><h3>Patient Information</h3><div class="detail-grid">';
   h+='<div class="detail-item"><label>Name</label><span>'+esc(p.name)+'</span></div>';
   h+='<div class="detail-item"><label>Age / Gender</label><span>'+(p.age||'—')+' / '+(p.gender||'—')+'</span></div>';
@@ -886,8 +887,8 @@ function closeView(){document.getElementById('viewModal').classList.remove('show
 
 // CSV
 function exportCSV(){
-  var headers=['Name','Age','Gender','Phone','Village','Block','District','Aadhar','Bank','Account','IFSC','Diagnosis','Status','Admitted','Visit#','Treatment','Medication','Next Visit','Next Test','Test Date','Med Date','Notes'];
-  var rows=patients.map(function(p){return[p.name,p.age,p.gender,p.phone,p.village,p.block,p.district,p.aadhar,p.bank,p.account,p.ifsc,p.diagnosis,p.status,p.admitted,p.visitNum,p.treatment,p.medication,p.nextVisit,p.nextTest,p.testDate,p.medDate,p.notes].map(function(v){return'"'+((v||'')+'').replace(/"/g,'""')+'"';});});
+  var headers=['ID','Name','Age','Gender','Phone','Village','Block','District','Aadhar','Bank','Account','IFSC','Diagnosis','Status','Admitted','Visit#','Treatment','Medication','Next Visit','Next Test','Test Date','Med Date','Notes'];
+  var rows=patients.map(function(p){return[p.code,p.name,p.age,p.gender,p.phone,p.village,p.block,p.district,p.aadhar,p.bank,p.account,p.ifsc,p.diagnosis,p.status,p.admitted,p.visitNum,p.treatment,p.medication,p.nextVisit,p.nextTest,p.testDate,p.medDate,p.notes].map(function(v){return'"'+((v||'')+'').replace(/"/g,'""')+'"';});});
   var csv=[headers.join(',')].concat(rows.map(function(r){return r.join(',');})).join('\n');
   var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='cancer_patients_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
 }
