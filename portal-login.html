@@ -51,13 +51,20 @@
     <p class="sub">Sita Anandam Cancer Care Initiative</p>
 
     <div class="login-error" id="loginError">Invalid email or password</div>
+    <div class="login-error" id="resetMsg" style="background:#f0fdf4;border-color:#bbf7d0;color:#166534;"></div>
 
-    <div class="form-group"><label>Email</label><input type="email" id="email" placeholder="Enter your email" autocomplete="username"></div>
-    <div class="form-group"><label>Password</label><input type="password" id="password" placeholder="Enter password" autocomplete="current-password"></div>
-    <button class="login-btn" id="loginBtn" onclick="handleLogin()">Login</button>
+    <div id="loginForm">
+      <div class="form-group"><label>Email</label><input type="email" id="email" placeholder="Enter your email" autocomplete="username"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="password" placeholder="Enter password" autocomplete="current-password"></div>
+      <button class="login-btn" id="loginBtn" onclick="handleLogin()">Login</button>
+      <p class="login-footer"><a href="#" onclick="showReset(event)">Forgot password?</a></p>
+    </div>
 
-    <div class="divider"><span>or</span></div>
-    <button class="public-btn" onclick="publicDashboard()">View Public Dashboard →</button>
+    <div id="resetForm" style="display:none;">
+      <div class="form-group"><label>Email</label><input type="email" id="resetEmail" placeholder="Enter your email" autocomplete="username"></div>
+      <button class="login-btn" id="resetBtn" onclick="sendResetLink()">Send Reset Link</button>
+      <p class="login-footer"><a href="#" onclick="showLogin(event)">← Back to login</a></p>
+    </div>
 
     <p class="login-footer">Need help? <a href="mailto:gramagovernance@gmail.com">Contact us</a></p>
   </div>
@@ -86,8 +93,34 @@
     window.location.href = 'portal.html';
   }
 
-  function publicDashboard() {
-    window.location.href = 'portal.html';
+  function showReset(e) {
+    e.preventDefault();
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('resetForm').style.display = 'block';
+    document.getElementById('resetEmail').value = document.getElementById('email').value;
+  }
+  function showLogin(e) {
+    e.preventDefault();
+    document.getElementById('resetForm').style.display = 'none';
+    document.getElementById('loginForm').style.display = 'block';
+  }
+  function showResetMsg(msg) {
+    var el = document.getElementById('resetMsg');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(function() { el.classList.remove('show'); }, 6000);
+  }
+  async function sendResetLink() {
+    var email = document.getElementById('resetEmail').value.trim();
+    if (!email) { showError('Enter your email'); return; }
+    document.getElementById('resetBtn').disabled = true;
+    var { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname.replace('portal-login.html', 'reset-password.html')
+    });
+    document.getElementById('resetBtn').disabled = false;
+    if (error) { showError(error.message); return; }
+    showResetMsg('If that email has an account, a reset link is on its way.');
+    showLogin({ preventDefault: function(){} });
   }
 
   document.getElementById('password').addEventListener('keypress', function(e) { if (e.key === 'Enter') handleLogin(); });

@@ -179,7 +179,7 @@
   </div>
   <div class="card">
     <div class="card-header"><h2>Recent Patients</h2><input type="text" class="search-input" placeholder="Search..." oninput="renderDash(this.value)"></div>
-    <div style="overflow-x:auto"><table><thead><tr><th>Name</th><th>Age/Gender</th><th>Diagnosis</th><th>Status</th><th>Visit #</th><th>Next Due</th><th>Actions</th></tr></thead><tbody id="dashBody"></tbody></table></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Name</th><th>Age/Gender</th><th>Diagnosis</th><th>Status</th><th>Last Visit</th><th>Visit #</th><th>Next Due</th><th>Actions</th></tr></thead><tbody id="dashBody"></tbody></table></div>
   </div>
 </div>
 
@@ -195,7 +195,7 @@
   <div class="card">
     <div class="card-header"><h2>Complete Patient Records</h2><input type="text" class="search-input" placeholder="Search..." oninput="renderAll(this.value)"></div>
     <div style="overflow-x:auto"><table><thead><tr>
-      <th>Name</th><th>Age</th><th>Gender</th><th>Village</th><th>Block</th><th>Diagnosis</th><th>Status</th><th>Admitted</th><th>Visit #</th><th>Next Visit</th><th>Due Test</th><th>Due Medicine</th><th>Actions</th>
+      <th>Name</th><th>Age</th><th>Gender</th><th>Village</th><th>Block</th><th>Diagnosis</th><th>Status</th><th>Admitted</th><th>Last Visit</th><th>Visit #</th><th>Next Visit</th><th>Due Test</th><th>Due Medicine</th><th>Actions</th>
     </tr></thead><tbody id="allBody"></tbody></table></div>
   </div>
 </div>
@@ -310,6 +310,12 @@ function esc(s){var d=document.createElement('div');d.textContent=s||'';return d
 function fmtDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});}
 function dueStatus(d){if(!d)return{t:'—',c:''};var diff=Math.floor((new Date(d)-new Date(new Date().toDateString()))/864e5);if(diff<0)return{t:'Overdue ('+Math.abs(diff)+'d)',c:'due-over'};if(diff<=3)return{t:'In '+diff+'d',c:'due-soon'};return{t:fmtDate(d),c:'due-ok'};}
 function statusCls(s){return{'Screening':'b-screening','Under Investigation':'b-screening','Treatment':'b-treatment','Admitted':'b-treatment','On Medication':'b-active','Follow-up':'b-followup','Completed':'b-completed'}[s]||'b-screening';}
+function lastVisit(p){
+  if(!p.history||!p.history.length)return'—';
+  var dates=p.history.map(function(v){return new Date(v.date);}).filter(function(d){return!isNaN(d);});
+  if(!dates.length)return'—';
+  return fmtDate(new Date(Math.max.apply(null,dates)));
+}
 
 // DB row <-> app object. The `patients` table uses snake_case columns;
 // everything above/below this line still speaks the original camelCase shape.
@@ -419,12 +425,12 @@ function renderDash(q){
 
   var tbody=document.getElementById('dashBody');
   var recent=list.slice(-10).reverse();
-  if(!recent.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:36px;color:var(--ink-muted)">No patients yet.</td></tr>';return;}
+  if(!recent.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:36px;color:var(--ink-muted)">No patients yet.</td></tr>';return;}
   var h='';recent.forEach(function(p){
     var nd=dueStatus(p.nextVisit);
     var acts='<span class="link" onclick="viewPatient(\''+p.id+'\')">View</span>';
     if(ROLE==='staff')acts+=' · <span class="link" onclick="editPatient(\''+p.id+'\')">Edit</span> · <span class="link" onclick="openUpdate(\''+p.id+'\')">Update</span>';
-    h+='<tr><td><strong>'+esc(p.name)+'</strong></td><td>'+(p.age||'—')+' / '+(p.gender?p.gender[0]:'—')+'</td><td>'+esc(p.diagnosis||'—')+'</td><td><span class="badge '+statusCls(p.status)+'">'+p.status+'</span></td><td>'+(p.visitNum||'—')+'</td><td>'+(nd.c?'<span class="due '+nd.c+'">'+nd.t+'</span>':nd.t)+'</td><td>'+acts+'</td></tr>';
+    h+='<tr><td><strong>'+esc(p.name)+'</strong></td><td>'+(p.age||'—')+' / '+(p.gender?p.gender[0]:'—')+'</td><td>'+esc(p.diagnosis||'—')+'</td><td><span class="badge '+statusCls(p.status)+'">'+p.status+'</span></td><td>'+lastVisit(p)+'</td><td>'+(p.visitNum||'—')+'</td><td>'+(nd.c?'<span class="due '+nd.c+'">'+nd.t+'</span>':nd.t)+'</td><td>'+acts+'</td></tr>';
   });tbody.innerHTML=h;
 }
 
@@ -433,12 +439,12 @@ function renderAll(q){
   var list=patients;
   if(q){var f=q.toLowerCase();list=list.filter(function(p){return(p.name||'').toLowerCase().indexOf(f)>=0||(p.village||'').toLowerCase().indexOf(f)>=0||(p.diagnosis||'').toLowerCase().indexOf(f)>=0||(p.block||'').toLowerCase().indexOf(f)>=0;});}
   var tbody=document.getElementById('allBody');
-  if(!list.length){tbody.innerHTML='<tr><td colspan="13" style="text-align:center;padding:36px;color:var(--ink-muted)">No patients.</td></tr>';return;}
+  if(!list.length){tbody.innerHTML='<tr><td colspan="14" style="text-align:center;padding:36px;color:var(--ink-muted)">No patients.</td></tr>';return;}
   var h='';list.forEach(function(p){
     var nd=dueStatus(p.nextVisit),td=dueStatus(p.testDate),md=dueStatus(p.medDate);
     var acts='<span class="link" onclick="viewPatient(\''+p.id+'\')">View</span>';
     if(ROLE==='staff')acts+=' · <span class="link" onclick="editPatient(\''+p.id+'\')">Edit</span> · <span class="link" onclick="openUpdate(\''+p.id+'\')">Update</span>';
-    h+='<tr><td><strong>'+esc(p.name)+'</strong></td><td>'+(p.age||'—')+'</td><td>'+(p.gender||'—')+'</td><td>'+esc(p.village||'—')+'</td><td>'+esc(p.block||'—')+'</td><td>'+esc(p.diagnosis||'—')+'</td><td><span class="badge '+statusCls(p.status)+'">'+p.status+'</span></td><td>'+(p.admitted||'No')+'</td><td>'+(p.visitNum||'—')+'</td><td>'+(nd.c?'<span class="due '+nd.c+'">'+nd.t+'</span>':nd.t)+'</td><td>'+(td.c?'<span class="due '+td.c+'">'+td.t+'</span>':td.t)+'</td><td>'+(md.c?'<span class="due '+md.c+'">'+md.t+'</span>':md.t)+'</td><td>'+acts+'</td></tr>';
+    h+='<tr><td><strong>'+esc(p.name)+'</strong></td><td>'+(p.age||'—')+'</td><td>'+(p.gender||'—')+'</td><td>'+esc(p.village||'—')+'</td><td>'+esc(p.block||'—')+'</td><td>'+esc(p.diagnosis||'—')+'</td><td><span class="badge '+statusCls(p.status)+'">'+p.status+'</span></td><td>'+(p.admitted||'No')+'</td><td>'+lastVisit(p)+'</td><td>'+(p.visitNum||'—')+'</td><td>'+(nd.c?'<span class="due '+nd.c+'">'+nd.t+'</span>':nd.t)+'</td><td>'+(td.c?'<span class="due '+td.c+'">'+td.t+'</span>':td.t)+'</td><td>'+(md.c?'<span class="due '+md.c+'">'+md.t+'</span>':md.t)+'</td><td>'+acts+'</td></tr>';
   });tbody.innerHTML=h;
 }
 
