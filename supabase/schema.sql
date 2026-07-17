@@ -226,3 +226,14 @@ end $$;
 --
 -- insert into profiles (id, name, role) values
 --   ('<their-auth-uuid>', '<Their Name>', 'staff');   -- or 'advisor'
+
+-- ─── AI ANALYSIS + CASE SUMMARY ───────────────────────────────
+-- Written server-side by the analyze-report / summarize-patient Edge
+-- Functions (service-role key, bypasses RLS by design — the functions
+-- themselves check the caller's role before doing anything). No new
+-- policies needed: these are just columns on tables already covered by
+-- the has_profile()/is_staff() select/update policies above.
+alter table patient_files add column if not exists ai_analysis jsonb;
+alter table patient_files add column if not exists ai_analyzed_at timestamptz;
+alter table patients add column if not exists ai_summary text;
+alter table patients add column if not exists ai_summary_generated_at timestamptz;

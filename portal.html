@@ -125,6 +125,12 @@
   .thumb{width:90px;height:90px;border-radius:6px;overflow:hidden;border:1px solid var(--sand);cursor:pointer;}
   .thumb img{width:100%;height:100%;object-fit:cover;}
   .thumb-label{font-size:0.65rem;text-align:center;color:var(--ink-muted);margin-top:2px;}
+  .thumb-item{width:150px;}
+  .thumb-item .thumb{width:90px;margin:0 auto;}
+  .ai-analyze-btn{display:block;width:100%;margin-top:4px;}
+  .ai-box{margin-top:6px;padding:8px;background:var(--teal-pale);border-radius:6px;font-size:0.72rem;color:var(--ink);line-height:1.5;}
+  .ai-box b{color:var(--teal-deep);}
+  .ai-box-title{font-size:0.68rem;font-weight:700;color:var(--teal-deep);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.03em;}
 
   /* PUBLIC */
   .public-banner{background:var(--teal-pale);padding:16px 20px;border-radius:8px;margin-bottom:24px;display:flex;align-items:center;gap:12px;}
@@ -370,6 +376,7 @@ function fromDb(r){
     aadhar:r.aadhar,bank:r.bank,account:r.account,ifsc:r.ifsc,diagnosis:r.diagnosis,status:r.status,admitted:r.admitted,
     visitNum:r.visit_num,treatment:r.treatment,medication:r.medication,nextVisit:r.next_visit,nextTest:r.next_test,
     testDate:r.test_date,medDate:r.med_date,notes:r.notes,history:r.history||[],
+    aiSummary:r.ai_summary,aiSummaryAt:r.ai_summary_generated_at,
     createdAt:r.created_at,updatedAt:r.updated_at,updatedBy:r.updated_by};
 }
 function toDb(p){
@@ -796,11 +803,76 @@ async function saveUpdate(){
   refreshActivePage();
 }
 
+// AI: report reading + case summary — staff/advisor only, on-demand.
+function fileThumbHtml(f,url,labelHtml){
+  var canAnalyze=(ROLE==='staff'||ROLE==='advisor');
+  var h='<div class="thumb-item"><div class="thumb" onclick="window.open(\''+url+'\')"><img src="'+url+'"></div><div class="thumb-label">'+labelHtml+'</div>';
+  if(canAnalyze){
+    h+='<button class="btn btn-secondary btn-sm ai-analyze-btn" id="aiBtn-'+f.id+'" onclick="analyzeFile(\''+f.id+'\')">🤖 '+(f.ai_analysis?'Re-analyze':'Analyze')+'</button>';
+    h+='<div id="aiBox-'+f.id+'">'+(f.ai_analysis?renderAnalysis(f.ai_analysis):'')+'</div>';
+  }
+  h+='</div>';
+  return h;
+}
+function renderAnalysis(a){
+  if(!a)return'';
+  var meds=(a.medicines||[]).map(function(m){return esc(m.name)+(m.dosage?' — '+esc(m.dosage):'')+(m.frequency?' ('+esc(m.frequency)+')':'');}).join('<br>');
+  var h='<div class="ai-box"><div class="ai-box-title">🤖 AI Read'+(a.confidence?' — '+esc(a.confidence)+' confidence':'')+'</div>';
+  if(a.document_type)h+='<div><b>Type:</b> '+esc(a.document_type)+'</div>';
+  if(a.date_on_document)h+='<div><b>Date:</b> '+esc(a.date_on_document)+'</div>';
+  if(a.doctor_name)h+='<div><b>Doctor:</b> '+esc(a.doctor_name)+'</div>';
+  if(a.diagnosis_mentioned)h+='<div><b>Diagnosis:</b> '+esc(a.diagnosis_mentioned)+'</div>';
+  if(meds)h+='<div><b>Medicines:</b><br>'+meds+'</div>';
+  if(a.key_findings)h+='<div><b>Findings:</b> '+esc(a.key_findings)+'</div>';
+  h+='</div>';
+  return h;
+}
+async function analyzeFile(fileId){
+  var btn=document.getElementById('aiBtn-'+fileId);
+  btn.disabled=true;btn.textContent='Analyzing…';
+  var resp=await sb.functions.invoke('analyze-report',{body:{fileId:fileId}});
+  btn.disabled=false;
+  if(resp.error||!resp.data||resp.data.error){
+    btn.textContent='🤖 Analyze';
+    alert('Could not analyze this file: '+((resp.data&&resp.data.error)||(resp.error&&resp.error.message)||'unknown error'));
+    return;
+  }
+  btn.textContent='🤖 Re-analyze';
+  document.getElementById('aiBox-'+fileId).innerHTML=renderAnalysis(resp.data);
+}
+async function generateSummary(id){
+  var btn=document.getElementById('summaryBtn');
+  btn.disabled=true;btn.textContent='Generating…';
+  var resp=await sb.functions.invoke('summarize-patient',{body:{patientId:id}});
+  btn.disabled=false;
+  if(resp.error||!resp.data||resp.data.error){
+    btn.textContent='🤖 Generate Summary';
+    alert('Could not generate a summary: '+((resp.data&&resp.data.error)||(resp.error&&resp.error.message)||'unknown error'));
+    return;
+  }
+  var p=patients.find(function(x){return x.id===id;});
+  if(p){p.aiSummary=resp.data.summary;p.aiSummaryAt=new Date().toISOString();}
+  viewPatient(id);
+}
+
 // VIEW
 async function viewPatient(id){
   var p=patients.find(function(x){return x.id===id;});if(!p)return;
   document.getElementById('viewTitle').textContent=p.name+(p.code?' ('+p.code+')':'');
-  var h='<div class="detail-section"><h3>Patient Information</h3><div class="detail-grid">';
+  var h='';
+  if(ROLE==='staff'||ROLE==='advisor'){
+    h+='<div class="detail-section"><h3>Case Summary</h3>';
+    if(p.aiSummary){
+      h+='<p style="font-size:0.88rem;color:var(--ink-light);white-space:pre-wrap">'+esc(p.aiSummary)+'</p>';
+      h+='<div style="font-size:0.72rem;color:var(--ink-muted);margin-top:6px">Generated '+fmtDate(p.aiSummaryAt)+'</div>';
+      h+='<button class="btn btn-secondary btn-sm" id="summaryBtn" style="margin-top:8px" onclick="generateSummary(\''+id+'\')">🤖 Regenerate Summary</button>';
+    } else {
+      h+='<p style="font-size:0.85rem;color:var(--ink-muted)">No summary generated yet — original report photos below are always available too.</p>';
+      h+='<button class="btn btn-secondary btn-sm" id="summaryBtn" onclick="generateSummary(\''+id+'\')">🤖 Generate Summary</button>';
+    }
+    h+='</div>';
+  }
+  h+='<div class="detail-section"><h3>Patient Information</h3><div class="detail-grid">';
   h+='<div class="detail-item"><label>Name</label><span>'+esc(p.name)+'</span></div>';
   h+='<div class="detail-item"><label>Age / Gender</label><span>'+(p.age||'—')+' / '+(p.gender||'—')+'</span></div>';
   h+='<div class="detail-item"><label>Phone</label><span>'+(p.phone||'—')+'</span></div>';
@@ -860,12 +932,12 @@ async function viewPatient(id){
     var histFiles=files.filter(function(f){return f.category!=='Latest Report';});
     if(latest.length){
       h+='<div class="detail-section"><h3>Latest Reports (for Dr. Vidyasagar)</h3><div class="thumb-row">';
-      latest.forEach(function(f){h+='<div><div class="thumb" onclick="window.open(\''+urls[f.id]+'\')"><img src="'+urls[f.id]+'"></div><div class="thumb-label">'+esc(f.name)+'</div></div>';});
+      latest.forEach(function(f){h+=fileThumbHtml(f,urls[f.id],esc(f.name));});
       h+='</div></div>';
     }
     if(histFiles.length){
       h+='<div class="detail-section"><h3>History &amp; Other Documents</h3><div class="thumb-row">';
-      histFiles.forEach(function(f){h+='<div><div class="thumb" onclick="window.open(\''+urls[f.id]+'\')"><img src="'+urls[f.id]+'"></div><div class="thumb-label">'+esc(f.category||'')+': '+esc(f.name)+'</div></div>';});
+      histFiles.forEach(function(f){h+=fileThumbHtml(f,urls[f.id],esc(f.category||'')+': '+esc(f.name));});
       h+='</div></div>';
     }
   }
