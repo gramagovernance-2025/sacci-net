@@ -305,8 +305,13 @@
     <input type="hidden" id="updateId">
     <div class="fg">
       <label>Quick Update (plain English, optional)</label>
-      <textarea id="uFreeText" placeholder="e.g. 'Started chemo cycle 2, gave tab Paclitaxel 80mg weekly, patient tolerating well, next visit in 3 weeks, blood test due in 10 days'"></textarea>
+      <textarea id="uFreeText" placeholder="e.g. 'Started chemo cycle 2, gave tab Paclitaxel 80mg weekly, patient tolerating well, next visit in 3 weeks, blood test due in 10 days. Gave 2000 for travel.'"></textarea>
       <button type="button" class="btn btn-secondary btn-sm" id="uFillBtn" style="margin-top:6px" onclick="parseUpdateText()">🤖 Fill Form From Text</button>
+      <div id="uPaymentDetected" class="ai-box" style="display:none;margin-top:6px">
+        <div class="ai-box-title">💰 Payment Mentioned</div>
+        <div id="uPaymentDetectedText"></div>
+        <button type="button" class="btn btn-secondary btn-sm" style="margin-top:6px" onclick="logDetectedPayment()">Log This Payment</button>
+      </div>
     </div>
     <div class="fg"><label>Visit Date</label><input type="date" id="uDate"></div>
     <div class="fg"><label>Visit Number</label><input type="number" id="uVisitNum" min="1"></div>
@@ -755,6 +760,8 @@ async function openUpdate(id){
   document.getElementById('uDate').value=new Date().toISOString().slice(0,10);
   document.getElementById('uVisitNum').value=(parseInt(p.visitNum)||0)+1;
   document.getElementById('uFreeText').value='';
+  document.getElementById('uPaymentDetected').style.display='none';
+  detectedPayment=null;
   document.getElementById('uNotes').value='';
   document.getElementById('uStatus').value='';
   document.getElementById('uNextVisit').value='';
@@ -852,6 +859,29 @@ async function parseUpdateText(){
   if(d.next_test)document.getElementById('uNextTest').value=d.next_test;
   if(d.test_date)document.getElementById('uTestDate').value=d.test_date;
   if(d.med_date)document.getElementById('uMedDate').value=d.med_date;
+  var payBox=document.getElementById('uPaymentDetected');
+  if(d.payment_amount&&parseFloat(d.payment_amount)>0){
+    detectedPayment={amount:d.payment_amount,purpose:d.payment_purpose||'Other',notes:d.payment_notes||''};
+    document.getElementById('uPaymentDetectedText').textContent=
+      '₹'+d.payment_amount+(d.payment_purpose?' — '+d.payment_purpose:'')+(d.payment_notes?' ('+d.payment_notes+')':'');
+    payBox.style.display='';
+  } else {
+    detectedPayment=null;
+    payBox.style.display='none';
+  }
+}
+// Payment mentions found by parseUpdateText() don't get inserted directly —
+// they hand off into the existing Log Payment modal/saveTxn() flow so staff
+// reviews the amount before any money record is created.
+var detectedPayment=null;
+function logDetectedPayment(){
+  if(!detectedPayment||!updateTargetId)return;
+  openAddTxn();
+  document.getElementById('txnPatient').value=updateTargetId;
+  document.getElementById('txnAmount').value=detectedPayment.amount;
+  document.getElementById('txnPurpose').value=detectedPayment.purpose;
+  document.getElementById('txnDate').value=document.getElementById('uDate').value||new Date().toISOString().slice(0,10);
+  document.getElementById('txnNotes').value=detectedPayment.notes;
 }
 
 // AI: report reading + case summary — staff/advisor only, on-demand.

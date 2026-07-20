@@ -19,9 +19,15 @@ const STATUS_VALUES = [
   "On Medication", "Follow-up", "Completed",
 ] as const;
 
+const PURPOSE_VALUES = [
+  "", "Travel", "Screening", "Treatment", "Medicine", "Hospital Stay", "Other",
+] as const;
+
 // Empty string is the explicit "not mentioned in this text, leave
 // unchanged" signal — mirrors the existing uStatus/uNextVisit "no change"
-// convention already used by saveUpdate() in the frontend.
+// convention already used by saveUpdate() in the frontend. payment_amount
+// follows the same convention: empty means no money was mentioned, not
+// zero — the frontend only offers to log a payment when this is non-empty.
 const UpdateSchema = z.object({
   visit_notes: z.string(),
   status: z.enum(STATUS_VALUES),
@@ -32,6 +38,9 @@ const UpdateSchema = z.object({
   test_date: z.string(),
   med_date: z.string(),
   diagnosis: z.string(),
+  payment_amount: z.string(),
+  payment_purpose: z.enum(PURPOSE_VALUES),
+  payment_notes: z.string(),
 });
 
 Deno.serve(async (req) => {
@@ -87,7 +96,12 @@ Deno.serve(async (req) => {
         "read by the caller as \"leave unchanged\", so guessing or repeating the existing value is wrong and would " +
         "get treated as a real edit). Do not invent facts. If a date is ambiguous, leave the date field empty and " +
         "describe the ambiguity in visit_notes instead of guessing. visit_notes should be a clean rewrite of what " +
-        "happened at this visit, suitable for a permanent record.",
+        "happened at this visit, suitable for a permanent record. Separately, if the text mentions money given to " +
+        "or spent for the patient (e.g. travel fare, a medicine purchase, a hospital deposit), extract " +
+        "payment_amount as a plain number string with no currency symbol or commas (e.g. \"2000\"), " +
+        "payment_purpose as the closest matching category, and payment_notes with any specifics worth recording. " +
+        "Leave all three payment fields empty if no concrete amount is mentioned — do not estimate or guess an " +
+        "amount.",
       messages: [
         {
           role: "user",
