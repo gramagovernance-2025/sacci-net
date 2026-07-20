@@ -303,10 +303,20 @@
   <div class="modal-head"><h2>Add Visit Update</h2><button class="modal-close" onclick="closeUpdate()">&times;</button></div>
   <div class="modal-body">
     <input type="hidden" id="updateId">
+    <div class="fg">
+      <label>Quick Update (plain English, optional)</label>
+      <textarea id="uFreeText" placeholder="e.g. 'Started chemo cycle 2, gave tab Paclitaxel 80mg weekly, patient tolerating well, next visit in 3 weeks, blood test due in 10 days'"></textarea>
+      <button type="button" class="btn btn-secondary btn-sm" id="uFillBtn" style="margin-top:6px" onclick="parseUpdateText()">🤖 Fill Form From Text</button>
+    </div>
     <div class="fg"><label>Visit Date</label><input type="date" id="uDate"></div>
     <div class="fg"><label>Visit Number</label><input type="number" id="uVisitNum" min="1"></div>
     <div class="fg"><label>What happened at this visit?</label><textarea id="uNotes" placeholder="Describe the visit — tests done, doctor observations, treatment changes..."></textarea></div>
     <div class="form-row"><div class="fg"><label>Updated Status</label><select id="uStatus"><option value="">No change</option><option value="Screening">Screening</option><option value="Under Investigation">Under Investigation</option><option value="Treatment">Treatment</option><option value="Admitted">Admitted</option><option value="On Medication">On Medication</option><option value="Follow-up">Follow-up</option><option value="Completed">Completed</option></select></div><div class="fg"><label>Next Visit Date</label><input type="date" id="uNextVisit"></div></div>
+    <div class="fg"><label>Diagnosis / Cancer Type (leave blank for no change)</label><input type="text" id="uDiagnosis"></div>
+    <div class="fg"><label>Current Treatment (leave blank for no change)</label><textarea id="uTreatment" placeholder="Treatment details..."></textarea></div>
+    <div class="fg"><label>Current Medication (leave blank for no change)</label><textarea id="uMedication" placeholder="Medicines and dosages..."></textarea></div>
+    <div class="form-row"><div class="fg"><label>Next Medical Test</label><input type="text" id="uNextTest"></div><div class="fg"><label>Test Due Date</label><input type="date" id="uTestDate"></div></div>
+    <div class="fg"><label>Medicine Refill Due</label><input type="date" id="uMedDate"></div>
     <div class="fg">
       <label>Attach Photos (optional)</label>
       <div class="form-row"><div class="fg"><label style="font-weight:400;font-size:0.75rem;">Category</label><select id="uFileCategory"><option value="Latest Report">Latest Report</option><option value="History">History</option><option value="Prescription">Prescription</option><option value="Other">Other</option></select></div></div>
@@ -744,9 +754,16 @@ async function openUpdate(id){
   document.getElementById('updateId').value=id;
   document.getElementById('uDate').value=new Date().toISOString().slice(0,10);
   document.getElementById('uVisitNum').value=(parseInt(p.visitNum)||0)+1;
+  document.getElementById('uFreeText').value='';
   document.getElementById('uNotes').value='';
   document.getElementById('uStatus').value='';
   document.getElementById('uNextVisit').value='';
+  document.getElementById('uDiagnosis').value='';
+  document.getElementById('uTreatment').value='';
+  document.getElementById('uMedication').value='';
+  document.getElementById('uNextTest').value='';
+  document.getElementById('uTestDate').value='';
+  document.getElementById('uMedDate').value='';
   var filesResp=await sb.from('patient_files').select('*').eq('patient_id',id);
   updateTempFiles=filesResp.data||[];renderUpdateFiles();
   document.getElementById('updateModal').classList.add('show');
@@ -790,17 +807,51 @@ async function saveUpdate(){
   var notes=document.getElementById('uNotes').value.trim();if(!notes){alert('Please describe what happened at this visit');return;}
   var newStatus=document.getElementById('uStatus').value;
   var newNext=document.getElementById('uNextVisit').value;
+  var newDiagnosis=document.getElementById('uDiagnosis').value.trim();
+  var newTreatment=document.getElementById('uTreatment').value.trim();
+  var newMedication=document.getElementById('uMedication').value.trim();
+  var newNextTest=document.getElementById('uNextTest').value.trim();
+  var newTestDate=document.getElementById('uTestDate').value;
+  var newMedDate=document.getElementById('uMedDate').value;
   var visitNum=document.getElementById('uVisitNum').value;
   var history=(p.history||[]).slice();
   history.push({date:document.getElementById('uDate').value||new Date().toISOString(),user:UNAME,note:'Visit #'+visitNum+': '+notes});
   var updates={visit_num:parseInt(visitNum)||p.visitNum,history:history,updated_by:UNAME};
   if(newStatus)updates.status=newStatus;
   if(newNext)updates.next_visit=newNext;
+  if(newDiagnosis)updates.diagnosis=newDiagnosis;
+  if(newTreatment)updates.treatment=newTreatment;
+  if(newMedication)updates.medication=newMedication;
+  if(newNextTest)updates.next_test=newNextTest;
+  if(newTestDate)updates.test_date=newTestDate;
+  if(newMedDate)updates.med_date=newMedDate;
   var resp=await sb.from('patients').update(updates).eq('id',id);
   if(resp.error){alert('Could not save update: '+resp.error.message);return;}
   await loadPatients();
   closeUpdate();
   refreshActivePage();
+}
+async function parseUpdateText(){
+  var text=document.getElementById('uFreeText').value.trim();
+  if(!text){alert('Type a plain-English update first');return;}
+  var btn=document.getElementById('uFillBtn');
+  btn.disabled=true;btn.textContent='Reading…';
+  var resp=await sb.functions.invoke('parse-update',{body:{patientId:updateTargetId,text:text}});
+  btn.disabled=false;btn.textContent='🤖 Fill Form From Text';
+  if(resp.error||!resp.data||resp.data.error){
+    alert('Could not parse this update: '+await edgeErrorMessage(resp));
+    return;
+  }
+  var d=resp.data;
+  if(d.visit_notes)document.getElementById('uNotes').value=d.visit_notes;
+  if(d.status)document.getElementById('uStatus').value=d.status;
+  if(d.next_visit_date)document.getElementById('uNextVisit').value=d.next_visit_date;
+  if(d.diagnosis)document.getElementById('uDiagnosis').value=d.diagnosis;
+  if(d.treatment)document.getElementById('uTreatment').value=d.treatment;
+  if(d.medication)document.getElementById('uMedication').value=d.medication;
+  if(d.next_test)document.getElementById('uNextTest').value=d.next_test;
+  if(d.test_date)document.getElementById('uTestDate').value=d.test_date;
+  if(d.med_date)document.getElementById('uMedDate').value=d.med_date;
 }
 
 // AI: report reading + case summary — staff/advisor only, on-demand.
