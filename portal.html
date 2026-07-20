@@ -827,6 +827,16 @@ function renderAnalysis(a){
   h+='</div>';
   return h;
 }
+// supabase-js only gives a generic "non-2xx status code" message on function
+// errors — the real reason is our jsonResponse({error}) body, reachable via
+// error.context (the raw Response). Dig it out so alerts are actually useful.
+async function edgeErrorMessage(resp){
+  if(resp.data&&resp.data.error)return resp.data.error;
+  if(resp.error&&resp.error.context&&typeof resp.error.context.json==='function'){
+    try{var body=await resp.error.context.json();if(body&&body.error)return body.error;}catch(e){}
+  }
+  return (resp.error&&resp.error.message)||'unknown error';
+}
 async function analyzeFile(fileId){
   var btn=document.getElementById('aiBtn-'+fileId);
   btn.disabled=true;btn.textContent='Analyzing…';
@@ -834,7 +844,7 @@ async function analyzeFile(fileId){
   btn.disabled=false;
   if(resp.error||!resp.data||resp.data.error){
     btn.textContent='🤖 Analyze';
-    alert('Could not analyze this file: '+((resp.data&&resp.data.error)||(resp.error&&resp.error.message)||'unknown error'));
+    alert('Could not analyze this file: '+await edgeErrorMessage(resp));
     return;
   }
   btn.textContent='🤖 Re-analyze';
@@ -847,7 +857,7 @@ async function generateSummary(id){
   btn.disabled=false;
   if(resp.error||!resp.data||resp.data.error){
     btn.textContent='🤖 Generate Summary';
-    alert('Could not generate a summary: '+((resp.data&&resp.data.error)||(resp.error&&resp.error.message)||'unknown error'));
+    alert('Could not generate a summary: '+await edgeErrorMessage(resp));
     return;
   }
   var p=patients.find(function(x){return x.id===id;});
