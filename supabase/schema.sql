@@ -290,3 +290,14 @@ begin
     alter publication supabase_realtime add table activities;
   end if;
 end $$;
+
+-- ─── CASE CLOSURE ────────────────────────────────────────────
+-- A deliberate, reason-tracked close-out — distinct from status='Completed'
+-- (successful treatment completion). Covers death, discontinuing treatment,
+-- or transferring to another hospital. Reuses the existing `status` column
+-- (no check constraint on it, so 'Case Closed' just works) rather than a
+-- separate boolean, so it shows up in the same badges/filters everywhere
+-- status already does.
+alter table patients add column if not exists closure_reason text;
+alter table patients add column if not exists closure_notes text;
+alter table patients add column if not exists closed_at timestamptz;
