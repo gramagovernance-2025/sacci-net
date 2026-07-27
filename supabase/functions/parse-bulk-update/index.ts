@@ -16,17 +16,23 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
 
 const MATCH_CONFIDENCE_VALUES = ["high", "medium", "low", "none"] as const;
+const SEGMENT_KIND_VALUES = ["patient_update", "activity"] as const;
+const ACTIVITY_TYPE_VALUES = ["", "Meeting", "Health Camp", "Training", "Other"] as const;
 
 // Same "empty = not mentioned" convention as parse-update. matched_patient_code
 // is intentionally a patient_code (short, unique, unambiguous) rather than a
 // name or id the model would have to invent — "" means it couldn't confidently
 // match anyone in the roster, and match_notes explains why so staff can
-// resolve it by hand via the patient dropdown.
+// resolve it by hand via the patient dropdown. segment_kind splits a segment
+// into either a specific patient's care (the patient_* fields below) or an
+// organizational activity like a meeting or health camp (the activity_*
+// fields) — only the relevant set gets filled in either case.
 const SegmentSchema = z.object({
+  segment_kind: z.enum(SEGMENT_KIND_VALUES),
+  segment_text: z.string(),
   matched_patient_code: z.string(),
   match_confidence: z.enum(MATCH_CONFIDENCE_VALUES),
   match_notes: z.string(),
-  segment_text: z.string(),
   visit_notes: z.string(),
   status: z.enum(STATUS_VALUES),
   next_visit_date: z.string(),
@@ -40,6 +46,11 @@ const SegmentSchema = z.object({
   payment_amount: z.string(),
   payment_purpose: z.enum(PURPOSE_VALUES),
   payment_notes: z.string(),
+  activity_date: z.string(),
+  activity_type: z.enum(ACTIVITY_TYPE_VALUES),
+  activity_title: z.string(),
+  activity_description: z.string(),
+  activity_participants: z.string(),
 });
 
 const BulkSchema = z.object({
@@ -82,28 +93,37 @@ Deno.serve(async (req) => {
       model: "claude-opus-4-8",
       max_tokens: 4096,
       system:
-        "You are a medical-records assistant helping a cancer-care nonprofit's staff turn one free-form note " +
-        "into structured updates for the specific patients it discusses. The note may cover one patient or " +
-        "several, in any order, mixed together. Your job: split it into one segment per patient it actually " +
-        `discusses, and match each segment to a patient in the roster below by name/village/block. Today's date ` +
-        `is ${todayIso} — resolve relative phrasing ("next visit in 3 weeks") into absolute YYYY-MM-DD dates.\n\n` +
+        "You are a records assistant helping a cancer-care nonprofit's staff turn one free-form note into " +
+        "structured entries. The note may mix together several different things: updates about specific " +
+        "patients' care, AND organizational activity that isn't about any one patient — a meeting between staff/" +
+        "advisors (e.g. \"Dr. Vidyasagar met Dr. Ravikant to discuss X\"), a health camp (e.g. \"health camp in " +
+        "Motipur panchayat on 29 May 2026\"), a training, or similar program activity. Split the note into one " +
+        "segment per distinct thing it discusses, and classify each segment's segment_kind: \"patient_update\" " +
+        "for anything about one specific patient's diagnosis/treatment/visit, or \"activity\" for organizational " +
+        `activity not tied to a specific patient. Today's date is ${todayIso} — resolve relative phrasing ` +
+        "(\"next visit in 3 weeks\", \"on the 29th\") into absolute YYYY-MM-DD dates.\n\n" +
         "Roster (patient_code | name | village, block | status on file):\n" + rosterText + "\n\n" +
-        "For each segment: matched_patient_code must be a code from the roster above, or \"\" if you cannot " +
-        "confidently tell which roster patient it refers to (e.g. an ambiguous first name with no other " +
+        "segment_text must always be the verbatim substring of the original note that this segment came from — " +
+        "do not paraphrase it, staff needs to cross-check your split against the source.\n\n" +
+        "For patient_update segments: matched_patient_code must be a code from the roster above, or \"\" if you " +
+        "cannot confidently tell which roster patient it refers to (e.g. an ambiguous first name with no other " +
         "identifying detail, or someone not in the roster at all) — in that case explain why in match_notes so " +
         "staff can pick manually. Set match_confidence honestly: \"none\" whenever matched_patient_code is empty, " +
         "\"low\" for a guess you're not sure of even though you returned a code, \"high\"/\"medium\" otherwise. " +
-        "segment_text must be the verbatim substring of the original note that this segment came from — do not " +
-        "paraphrase it, staff needs to cross-check your split against the source. For the rest of each segment's " +
-        "fields, follow the same rules as filling in a single patient's visit update: leave a field empty string " +
-        "when the segment doesn't mention it (this is read as \"no change\", not zero/false), never invent facts, " +
-        "and write visit_notes as a light cleanup of the segment that preserves non-clinical detail near-verbatim " +
-        "— patient/family preferences, hesitations, refusals, hospital choices, financial worries, and similar " +
+        "Follow the same rules as filling in a single patient's visit update: leave a field empty string when " +
+        "the segment doesn't mention it (this is read as \"no change\", not zero/false), never invent facts, and " +
+        "write visit_notes as a light cleanup of the segment that preserves non-clinical detail near-verbatim — " +
+        "patient/family preferences, hesitations, refusals, hospital choices, financial worries, and similar " +
         "social/logistical color matter as much as the medical facts here, this record is used for the " +
         "nonprofit's own storytelling later. Extract payment_amount/payment_purpose/payment_notes only when a " +
         "concrete amount of money is mentioned for that patient, and committed_amount only when a total " +
         "estimated/committed cost of care is mentioned (distinct from a single payment) — leave these empty " +
-        "rather than estimating.",
+        "rather than estimating. Leave all activity_* fields empty for these segments.\n\n" +
+        "For activity segments: leave matched_patient_code/match_confidence/match_notes and all patient_update " +
+        "fields empty. Fill activity_date (best guess if not stated, otherwise today), activity_type (closest " +
+        "match, \"Other\" if unclear), activity_title (a short label, e.g. \"Dr. Vidyasagar & Dr. Ravikant " +
+        "meeting\"), activity_participants (who was involved, as named in the text), and activity_description — " +
+        "same near-verbatim, don't-sanitize principle as visit_notes above, this is storytelling material too.",
       messages: [
         { role: "user", content: `Free-text note:\n${text}` },
       ],

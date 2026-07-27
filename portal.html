@@ -177,6 +177,7 @@
     <h1 id="dashTitle">Dashboard</h1>
     <div class="topbar-actions" id="dashActions">
       <button class="btn btn-primary" onclick="openAdd()">+ Add Patient</button>
+      <button class="btn btn-secondary" onclick="openActivity()">+ Log Activity</button>
     </div>
   </div>
   <div class="stats-row">
@@ -188,6 +189,10 @@
   <div class="card">
     <div class="card-header"><h2>Recent Patients</h2><input type="text" class="search-input" placeholder="Search..." oninput="renderDash(this.value)"></div>
     <div style="overflow-x:auto"><table><thead><tr><th>ID</th><th>Name</th><th>Age/Gender</th><th>Diagnosis</th><th>Status</th><th>Last Visit</th><th>Visit #</th><th>Next Due</th><th>Actions</th></tr></thead><tbody id="dashBody"></tbody></table></div>
+  </div>
+  <div class="card" style="margin-top:20px">
+    <div class="card-header"><h2>Recent Activities</h2></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Type</th><th>Title / Description</th><th>Participants</th><th>Actions</th></tr></thead><tbody id="activityBody"></tbody></table></div>
   </div>
 </div>
 
@@ -376,6 +381,21 @@
 </div>
 </div>
 
+<!-- ═══ LOG ACTIVITY MODAL ═══ -->
+<div class="modal-overlay" id="activityModal">
+<div class="modal" style="max-width:520px">
+  <div class="modal-head"><h2 id="activityModalTitle">Log Activity</h2><button class="modal-close" onclick="closeActivity()">&times;</button></div>
+  <div class="modal-body">
+    <input type="hidden" id="activityId">
+    <div class="form-row"><div class="fg"><label>Date</label><input type="date" id="aDate"></div><div class="fg"><label>Type</label><select id="aType"><option>Meeting</option><option>Health Camp</option><option>Training</option><option>Other</option></select></div></div>
+    <div class="fg"><label>Title</label><input type="text" id="aTitle" placeholder="e.g. Dr. Vidyasagar & Dr. Ravikant meeting"></div>
+    <div class="fg"><label>Description</label><textarea id="aDescription" placeholder="What happened, discussed, or was decided..."></textarea></div>
+    <div class="fg"><label>Participants</label><input type="text" id="aParticipants" placeholder="e.g. Dr. Vidyasagar, Dr. Ravikant"></div>
+  </div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeActivity()">Cancel</button><button class="btn btn-primary" onclick="saveActivity()">Save Activity</button></div>
+</div>
+</div>
+
 <!-- ═══ VIEW MODAL ═══ -->
 <div class="modal-overlay" id="viewModal">
 <div class="modal">
@@ -394,6 +414,7 @@
 var ROLE='public', UNAME='Public View', UUSER='';
 var patients=[];
 var transactions=[];
+var activities=[];
 var tempFiles=[];
 var editingId=null;
 var isExistingPatient=false;
@@ -463,6 +484,7 @@ async function init(){
 
   await loadPatients();
   if(ROLE==='staff')await loadTransactions();
+  if(ROLE==='staff'||ROLE==='advisor')await loadActivities();
   if(ROLE==='public'){navTo('public',document.querySelector('[data-page="public"]'));}
   else{renderDash();}
 
@@ -474,6 +496,11 @@ async function init(){
   if(ROLE==='staff'){
     sb.channel('transactions-changes')
       .on('postgres_changes',{event:'*',schema:'public',table:'transactions'},function(){loadTransactions().then(refreshActivePage);})
+      .subscribe();
+  }
+  if(ROLE==='staff'||ROLE==='advisor'){
+    sb.channel('activities-changes')
+      .on('postgres_changes',{event:'*',schema:'public',table:'activities'},function(){loadActivities().then(refreshActivePage);})
       .subscribe();
   }
 }
@@ -529,6 +556,7 @@ function renderDash(q){
   document.getElementById('s-active').textContent=active;
   document.getElementById('s-screening').textContent=screening;
   document.getElementById('s-dues').textContent=dues;
+  if(ROLE==='staff'||ROLE==='advisor')renderActivities();
 
   var tbody=document.getElementById('dashBody');
   var recent=list.slice(-10).reverse();
@@ -675,6 +703,68 @@ async function deleteTxn(id){
   if(resp.error){alert('Could not delete: '+resp.error.message);return;}
   await loadTransactions();
   renderFinances();
+}
+
+// ACTIVITIES — org-level log (meetings, health camps, trainings), not tied
+// to any one patient. Same shape as the transactions functions just above:
+// staff-only writes, visible to staff+advisor per the activities RLS policy.
+async function loadActivities(){
+  var resp=await sb.from('activities').select('*');
+  activities=resp.data||[];
+  if(resp.error)console.error(resp.error);
+}
+function openActivity(){
+  document.getElementById('activityModalTitle').textContent='Log Activity';
+  document.getElementById('activityId').value='';
+  document.getElementById('aDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('aType').value='Meeting';
+  document.getElementById('aTitle').value='';
+  document.getElementById('aDescription').value='';
+  document.getElementById('aParticipants').value='';
+  document.getElementById('activityModal').classList.add('show');
+}
+function editActivity(id){
+  var a=activities.find(function(x){return x.id===id;});if(!a)return;
+  openActivity();
+  document.getElementById('activityModalTitle').textContent='Edit Activity';
+  document.getElementById('activityId').value=id;
+  document.getElementById('aDate').value=a.activity_date;
+  document.getElementById('aType').value=a.activity_type||'Other';
+  document.getElementById('aTitle').value=a.title||'';
+  document.getElementById('aDescription').value=a.description||'';
+  document.getElementById('aParticipants').value=a.participants||'';
+}
+function closeActivity(){document.getElementById('activityModal').classList.remove('show');}
+async function saveActivity(){
+  var desc=document.getElementById('aDescription').value.trim();if(!desc){alert('Describe what happened');return;}
+  var id=document.getElementById('activityId').value;
+  var row={activity_date:document.getElementById('aDate').value||new Date().toISOString().slice(0,10),
+    activity_type:document.getElementById('aType').value,title:document.getElementById('aTitle').value.trim()||null,
+    description:desc,participants:document.getElementById('aParticipants').value.trim()||null,created_by:UNAME};
+  var resp=id?await sb.from('activities').update(row).eq('id',id):await sb.from('activities').insert(row);
+  if(resp.error){alert('Could not save: '+resp.error.message);return;}
+  await loadActivities();
+  closeActivity();
+  refreshActivePage();
+}
+async function deleteActivity(id){
+  if(!confirm('Delete this activity record?'))return;
+  var resp=await sb.from('activities').delete().eq('id',id);
+  if(resp.error){alert('Could not delete: '+resp.error.message);return;}
+  await loadActivities();
+  refreshActivePage();
+}
+function renderActivities(){
+  var tbody=document.getElementById('activityBody');if(!tbody)return;
+  if(!activities.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:36px;color:var(--ink-muted)">No activities logged yet.</td></tr>';return;}
+  var sorted=activities.slice().sort(function(a,b){return new Date(b.activity_date)-new Date(a.activity_date);});
+  var h='';sorted.forEach(function(a){
+    var titleLine=a.title?'<strong>'+esc(a.title)+'</strong><br>':'';
+    h+='<tr><td>'+fmtDate(a.activity_date)+'</td><td>'+esc(a.activity_type)+'</td><td>'+titleLine+esc(a.description||'')+'</td><td>'+esc(a.participants||'—')+'</td><td>';
+    if(ROLE==='staff')h+='<span class="link" onclick="editActivity(\''+a.id+'\')">Edit</span> · <span class="link" onclick="deleteActivity(\''+a.id+'\')">Delete</span>';
+    else h+='—';
+    h+='</td></tr>';
+  });tbody.innerHTML=h;
 }
 
 // ADD/EDIT
@@ -972,36 +1062,23 @@ function bulkPatientOptions(selectedId){
   return patients.slice().sort(function(a,b){return a.name.localeCompare(b.name);})
     .map(function(p){return '<option value="'+p.id+'"'+(p.id===selectedId?' selected':'')+'>'+(p.code?p.code+' — ':'')+esc(p.name)+'</option>';}).join('');
 }
+var ACTIVITY_TYPE_OPTIONS=['Meeting','Health Camp','Training','Other'];
 function renderBulkCards(){
   var c=document.getElementById('bqResults');if(!c)return;
   if(!bulkSegments.length){c.innerHTML='';return;}
   var h='';
   bulkSegments.forEach(function(seg,i){
     var s=seg.data,dis=seg.saved?'disabled':'';
-    var matched=patients.find(function(p){return p.code===s.matched_patient_code;});
-    var pid=matched?matched.id:'';
-    var visitNum=matched?(parseInt(matched.visitNum)||0)+1:1;
-    h+='<div class="card" style="margin-top:16px"><div class="card-header"><h2>Update '+(i+1)+(seg.saved?' — ✓ Saved':'')+'</h2></div><div style="padding:20px">';
-    if(!matched||s.match_confidence==='low'||s.match_confidence==='none'){
-      h+='<div class="ai-box" style="margin-bottom:10px"><div class="ai-box-title">⚠️ Please confirm the patient</div>'+esc(s.match_notes||'Could not confidently match a patient — please pick one.')+'</div>';
-    }
-    h+='<div class="fg"><label>Patient</label><select id="bq-'+i+'-patient" onchange="onBulkPatientChange('+i+')" '+dis+'><option value="">Select a patient…</option>'+bulkPatientOptions(pid)+'</select></div>';
-    h+='<div class="fg"><label>Original text for this update</label><div class="ai-box" style="font-style:italic">'+esc(s.segment_text||'')+'</div></div>';
-    h+='<div class="form-row"><div class="fg"><label>Visit Date</label><input type="date" id="bq-'+i+'-visitdate" value="'+new Date().toISOString().slice(0,10)+'" '+dis+'></div><div class="fg"><label>Visit Number</label><input type="number" id="bq-'+i+'-visitnum" min="1" value="'+visitNum+'" '+dis+'></div></div>';
-    h+='<div class="fg"><label>What happened</label><textarea id="bq-'+i+'-notes" '+dis+'>'+esc(s.visit_notes||s.segment_text||'')+'</textarea></div>';
-    h+='<div class="form-row"><div class="fg"><label>Updated Status</label><select id="bq-'+i+'-status" '+dis+'><option value="">No change</option>'+STATUS_OPTIONS.map(function(o){return '<option'+(o===s.status?' selected':'')+'>'+o+'</option>';}).join('')+'</select></div><div class="fg"><label>Next Visit Date</label><input type="date" id="bq-'+i+'-nextvisit" '+dis+'></div></div>';
-    h+='<div class="fg"><label>Diagnosis (blank = no change)</label><input type="text" id="bq-'+i+'-diagnosis" '+dis+'></div>';
-    h+='<div class="fg"><label>Treatment (blank = no change)</label><textarea id="bq-'+i+'-treatment" '+dis+'>'+esc(s.treatment||'')+'</textarea></div>';
-    h+='<div class="fg"><label>Medication (blank = no change)</label><textarea id="bq-'+i+'-medication" '+dis+'>'+esc(s.medication||'')+'</textarea></div>';
-    h+='<div class="form-row"><div class="fg"><label>Next Test</label><input type="text" id="bq-'+i+'-nexttest" '+dis+'></div><div class="fg"><label>Test Due Date</label><input type="date" id="bq-'+i+'-testdate" '+dis+'></div></div>';
-    h+='<div class="fg"><label>Medicine Refill Due</label><input type="date" id="bq-'+i+'-meddate" '+dis+'></div>';
-    h+='<div class="fg"><label>Committed Amount (₹, blank = no change)</label><input type="number" id="bq-'+i+'-committed" min="0" step="0.01" '+dis+'></div>';
-    if(s.payment_amount&&parseFloat(s.payment_amount)>0){
+    var isActivity=s.segment_kind==='activity';
+    h+='<div class="card" style="margin-top:16px"><div class="card-header"><h2>'+(isActivity?'Activity':'Update')+' '+(i+1)+(seg.saved?' — ✓ Saved':'')+'</h2></div><div style="padding:20px">';
+    h+='<div class="fg"><label>Original text</label><div class="ai-box" style="font-style:italic">'+esc(s.segment_text||'')+'</div></div>';
+    h+=isActivity?renderActivityCardFields(i,s,dis):renderPatientCardFields(i,s,dis);
+    if(!isActivity&&s.payment_amount&&parseFloat(s.payment_amount)>0){
       h+='<div class="ai-box"><div class="ai-box-title">💰 Payment Mentioned</div>₹'+esc(s.payment_amount)+(s.payment_purpose?' — '+esc(s.payment_purpose):'')+(s.payment_notes?' ('+esc(s.payment_notes)+')':'');
       if(!seg.saved)h+='<button type="button" class="btn btn-secondary btn-sm" style="margin-top:6px" onclick="logBulkPayment('+i+')">Log This Payment</button>';
       h+='</div>';
     }
-    if(!seg.saved)h+='<button class="btn btn-primary" style="margin-top:12px" id="bq-'+i+'-savebtn" onclick="saveBulkCard('+i+')">Save This Update</button>';
+    if(!seg.saved)h+='<button class="btn btn-primary" style="margin-top:12px" id="bq-'+i+'-savebtn" onclick="'+(isActivity?'saveBulkActivity(':'saveBulkCard(')+i+')">Save This '+(isActivity?'Activity':'Update')+'</button>';
     h+='</div></div>';
   });
   c.innerHTML=h;
@@ -1010,6 +1087,13 @@ function renderBulkCards(){
   // otherwise break out of a value="..." attribute.
   bulkSegments.forEach(function(seg,i){
     var s=seg.data;
+    if(s.segment_kind==='activity'){
+      document.getElementById('bq-'+i+'-adate').value=s.activity_date||new Date().toISOString().slice(0,10);
+      document.getElementById('bq-'+i+'-atitle').value=s.activity_title||'';
+      document.getElementById('bq-'+i+'-adesc').value=s.activity_description||s.segment_text||'';
+      document.getElementById('bq-'+i+'-aparticipants').value=s.activity_participants||'';
+      return;
+    }
     document.getElementById('bq-'+i+'-nextvisit').value=s.next_visit_date||'';
     document.getElementById('bq-'+i+'-diagnosis').value=s.diagnosis||'';
     document.getElementById('bq-'+i+'-nexttest').value=s.next_test||'';
@@ -1017,6 +1101,34 @@ function renderBulkCards(){
     document.getElementById('bq-'+i+'-meddate').value=s.med_date||'';
     document.getElementById('bq-'+i+'-committed').value=s.committed_amount||'';
   });
+}
+function renderPatientCardFields(i,s,dis){
+  var matched=patients.find(function(p){return p.code===s.matched_patient_code;});
+  var pid=matched?matched.id:'';
+  var visitNum=matched?(parseInt(matched.visitNum)||0)+1:1;
+  var h='';
+  if(!matched||s.match_confidence==='low'||s.match_confidence==='none'){
+    h+='<div class="ai-box" style="margin-bottom:10px"><div class="ai-box-title">⚠️ Please confirm the patient</div>'+esc(s.match_notes||'Could not confidently match a patient — please pick one.')+'</div>';
+  }
+  h+='<div class="fg"><label>Patient</label><select id="bq-'+i+'-patient" onchange="onBulkPatientChange('+i+')" '+dis+'><option value="">Select a patient…</option>'+bulkPatientOptions(pid)+'</select></div>';
+  h+='<div class="form-row"><div class="fg"><label>Visit Date</label><input type="date" id="bq-'+i+'-visitdate" value="'+new Date().toISOString().slice(0,10)+'" '+dis+'></div><div class="fg"><label>Visit Number</label><input type="number" id="bq-'+i+'-visitnum" min="1" value="'+visitNum+'" '+dis+'></div></div>';
+  h+='<div class="fg"><label>What happened</label><textarea id="bq-'+i+'-notes" '+dis+'>'+esc(s.visit_notes||s.segment_text||'')+'</textarea></div>';
+  h+='<div class="form-row"><div class="fg"><label>Updated Status</label><select id="bq-'+i+'-status" '+dis+'><option value="">No change</option>'+STATUS_OPTIONS.map(function(o){return '<option'+(o===s.status?' selected':'')+'>'+o+'</option>';}).join('')+'</select></div><div class="fg"><label>Next Visit Date</label><input type="date" id="bq-'+i+'-nextvisit" '+dis+'></div></div>';
+  h+='<div class="fg"><label>Diagnosis (blank = no change)</label><input type="text" id="bq-'+i+'-diagnosis" '+dis+'></div>';
+  h+='<div class="fg"><label>Treatment (blank = no change)</label><textarea id="bq-'+i+'-treatment" '+dis+'>'+esc(s.treatment||'')+'</textarea></div>';
+  h+='<div class="fg"><label>Medication (blank = no change)</label><textarea id="bq-'+i+'-medication" '+dis+'>'+esc(s.medication||'')+'</textarea></div>';
+  h+='<div class="form-row"><div class="fg"><label>Next Test</label><input type="text" id="bq-'+i+'-nexttest" '+dis+'></div><div class="fg"><label>Test Due Date</label><input type="date" id="bq-'+i+'-testdate" '+dis+'></div></div>';
+  h+='<div class="fg"><label>Medicine Refill Due</label><input type="date" id="bq-'+i+'-meddate" '+dis+'></div>';
+  h+='<div class="fg"><label>Committed Amount (₹, blank = no change)</label><input type="number" id="bq-'+i+'-committed" min="0" step="0.01" '+dis+'></div>';
+  return h;
+}
+function renderActivityCardFields(i,s,dis){
+  var h='';
+  h+='<div class="form-row"><div class="fg"><label>Date</label><input type="date" id="bq-'+i+'-adate" '+dis+'></div><div class="fg"><label>Type</label><select id="bq-'+i+'-atype" '+dis+'>'+ACTIVITY_TYPE_OPTIONS.map(function(o){return '<option'+(o===s.activity_type?' selected':'')+'>'+o+'</option>';}).join('')+'</select></div></div>';
+  h+='<div class="fg"><label>Title</label><input type="text" id="bq-'+i+'-atitle" '+dis+'></div>';
+  h+='<div class="fg"><label>Description</label><textarea id="bq-'+i+'-adesc" '+dis+'></textarea></div>';
+  h+='<div class="fg"><label>Participants</label><input type="text" id="bq-'+i+'-aparticipants" '+dis+'></div>';
+  return h;
 }
 function onBulkPatientChange(i){
   var p=patients.find(function(x){return x.id===document.getElementById('bq-'+i+'-patient').value;});
@@ -1046,6 +1158,27 @@ async function saveBulkCard(i){
     alert('Could not save update: '+result.error);
     return;
   }
+  bulkSegments[i].saved=true;
+  refreshActivePage();
+}
+async function saveBulkActivity(i){
+  var desc=document.getElementById('bq-'+i+'-adesc').value.trim();
+  if(!desc){alert('Describe what happened');return;}
+  var btn=document.getElementById('bq-'+i+'-savebtn');
+  btn.disabled=true;btn.textContent='Saving…';
+  var row={activity_date:document.getElementById('bq-'+i+'-adate').value||new Date().toISOString().slice(0,10),
+    activity_type:document.getElementById('bq-'+i+'-atype').value,
+    title:document.getElementById('bq-'+i+'-atitle').value.trim()||null,
+    description:desc,
+    participants:document.getElementById('bq-'+i+'-aparticipants').value.trim()||null,
+    created_by:UNAME};
+  var resp=await sb.from('activities').insert(row);
+  if(resp.error){
+    btn.disabled=false;btn.textContent='Save This Activity';
+    alert('Could not save activity: '+resp.error.message);
+    return;
+  }
+  await loadActivities();
   bulkSegments[i].saved=true;
   refreshActivePage();
 }

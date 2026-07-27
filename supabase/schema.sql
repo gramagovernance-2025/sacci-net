@@ -244,3 +244,49 @@ alter table patients add column if not exists ai_summary_generated_at timestampt
 -- computed client-side from this plus the existing transactions table, no
 -- new columns needed for those.
 alter table patients add column if not exists committed_amount numeric(10,2);
+
+-- ─── ACTIVITIES (org-level, not tied to one patient) ─────────
+-- Meetings, health camps, trainings — logged manually or via the Quick
+-- Update page's parse-bulk-update classification. Not linked to any
+-- specific patient row on purpose; this is organizational/story material,
+-- not clinical data.
+create table if not exists activities (
+  id uuid primary key default gen_random_uuid(),
+  activity_date date not null default current_date,
+  activity_type text not null default 'Other' check (activity_type in ('Meeting','Health Camp','Training','Other')),
+  title text,
+  description text,
+  participants text,
+  created_by text,
+  created_at timestamptz default now()
+);
+
+alter table activities enable row level security;
+
+-- Same visibility split as patients: staff and advisors can read (Dr.
+-- Vidyasagar is often a participant himself), only staff can write.
+drop policy if exists "staff and advisors read activities" on activities;
+create policy "staff and advisors read activities" on activities for select
+  using (has_profile());
+
+drop policy if exists "staff insert activities" on activities;
+create policy "staff insert activities" on activities for insert
+  with check (is_staff());
+
+drop policy if exists "staff update activities" on activities;
+create policy "staff update activities" on activities for update
+  using (is_staff());
+
+drop policy if exists "staff delete activities" on activities;
+create policy "staff delete activities" on activities for delete
+  using (is_staff());
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and tablename = 'activities'
+  ) then
+    alter publication supabase_realtime add table activities;
+  end if;
+end $$;
