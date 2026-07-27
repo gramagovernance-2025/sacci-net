@@ -8,20 +8,12 @@ import { z } from "npm:zod@4.4.3";
 import { zodOutputFormat } from "npm:@anthropic-ai/sdk@0.112.1/helpers/zod";
 import { createClient } from "npm:@supabase/supabase-js@2.110.7";
 import { CORS_HEADERS, jsonResponse } from "../_shared/cors.ts";
+import { PURPOSE_VALUES, STATUS_VALUES } from "../_shared/patient-fields.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
-
-const STATUS_VALUES = [
-  "", "Screening", "Under Investigation", "Treatment", "Admitted",
-  "On Medication", "Follow-up", "Completed",
-] as const;
-
-const PURPOSE_VALUES = [
-  "", "Travel", "Screening", "Treatment", "Medicine", "Hospital Stay", "Other",
-] as const;
 
 // Empty string is the explicit "not mentioned in this text, leave
 // unchanged" signal — mirrors the existing uStatus/uNextVisit "no change"
@@ -38,6 +30,7 @@ const UpdateSchema = z.object({
   test_date: z.string(),
   med_date: z.string(),
   diagnosis: z.string(),
+  committed_amount: z.string(),
   payment_amount: z.string(),
   payment_purpose: z.enum(PURPOSE_VALUES),
   payment_notes: z.string(),
@@ -66,7 +59,7 @@ Deno.serve(async (req) => {
 
     const { data: patient } = await admin
       .from("patients")
-      .select("status, treatment, medication, next_visit, next_test, test_date, med_date, diagnosis, visit_num")
+      .select("status, treatment, medication, next_visit, next_test, test_date, med_date, diagnosis, visit_num, committed_amount")
       .eq("id", patientId)
       .single();
     if (!patient) return jsonResponse({ error: "Patient not found" }, 404);
@@ -81,6 +74,7 @@ Deno.serve(async (req) => {
       `Next test on file: ${patient.next_test ?? "none"}`,
       `Test due date on file: ${patient.test_date ?? "none"}`,
       `Medicine refill due on file: ${patient.med_date ?? "none"}`,
+      `Committed amount on file: ${patient.committed_amount ?? "none set"}`,
     ].join("\n");
 
     const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
@@ -95,13 +89,18 @@ Deno.serve(async (req) => {
         "something new for it — if a field is not mentioned or not changed, return an empty string for it (this is " +
         "read by the caller as \"leave unchanged\", so guessing or repeating the existing value is wrong and would " +
         "get treated as a real edit). Do not invent facts. If a date is ambiguous, leave the date field empty and " +
-        "describe the ambiguity in visit_notes instead of guessing. visit_notes should be a clean rewrite of what " +
-        "happened at this visit, suitable for a permanent record. Separately, if the text mentions money given to " +
-        "or spent for the patient (e.g. travel fare, a medicine purchase, a hospital deposit), extract " +
-        "payment_amount as a plain number string with no currency symbol or commas (e.g. \"2000\"), " +
-        "payment_purpose as the closest matching category, and payment_notes with any specifics worth recording. " +
-        "Leave all three payment fields empty if no concrete amount is mentioned — do not estimate or guess an " +
-        "amount.",
+        "describe the ambiguity in visit_notes instead of guessing. visit_notes should read like a clean version " +
+        "of what happened at this visit, suitable for a permanent record — but this record is used for the " +
+        "nonprofit's own storytelling later, not just clinical tracking, so preserve non-clinical detail " +
+        "near-verbatim rather than compressing it away: patient/family preferences, hesitations, refusals, " +
+        "hospital choices, financial worries, and similar social/logistical color are exactly as important to " +
+        "keep as the medical facts. Separately, if the text mentions money given to or spent for the patient " +
+        "(e.g. travel fare, a medicine purchase, a hospital deposit), extract payment_amount as a plain number " +
+        "string with no currency symbol or commas (e.g. \"2000\"), payment_purpose as the closest matching " +
+        "category, and payment_notes with any specifics worth recording. Leave all three payment fields empty if " +
+        "no concrete amount is mentioned — do not estimate or guess an amount. If the text mentions a total " +
+        "estimated/committed cost of care for this patient (distinct from a single payment), extract that into " +
+        "committed_amount as a plain number string, empty if not mentioned.",
       messages: [
         {
           role: "user",

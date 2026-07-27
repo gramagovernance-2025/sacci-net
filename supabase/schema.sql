@@ -237,3 +237,10 @@ alter table patient_files add column if not exists ai_analysis jsonb;
 alter table patient_files add column if not exists ai_analyzed_at timestamptz;
 alter table patients add column if not exists ai_summary text;
 alter table patients add column if not exists ai_summary_generated_at timestamptz;
+
+-- ─── FINANCE: COMMITTED AMOUNT ──────────────────────────────
+-- What SACCI has committed to for this patient's care — set manually or via
+-- a parsed update. Advance Given/Pending Payment on the Finances page are
+-- computed client-side from this plus the existing transactions table, no
+-- new columns needed for those.
+alter table patients add column if not exists committed_amount numeric(10,2);
