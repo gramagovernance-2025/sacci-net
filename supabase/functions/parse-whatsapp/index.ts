@@ -154,7 +154,10 @@ Deno.serve(async (req) => {
       messages: [
         { role: "user", content: `WhatsApp messages:\n${messagesText}` },
       ],
-      output_config: { format: zodOutputFormat(buildSchema(typeNames)) },
+      // medium effort: extraction doesn't need deep reasoning, and the edge
+      // runtime enforces a wall-clock limit — the portal additionally chunks
+      // large exports (~45 messages per call) to stay under it.
+      output_config: { effort: "medium", format: zodOutputFormat(buildSchema(typeNames)) },
     });
 
     const parsed = response.parsed_output;

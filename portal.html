@@ -1532,14 +1532,37 @@ async function waImport(){
       document.getElementById('waSummary').innerHTML='<div class="ai-box" style="margin-top:16px">'+esc(sum)+' Nothing new to import.</div>';
       waEntries=[];renderWaCards();return;
     }
-    document.getElementById('waSummary').innerHTML='<div class="ai-box" style="margin-top:16px">'+esc(sum)+' Reading '+waNew.length+' new message(s)…</div>';
-    var fnResp=await sb.functions.invoke('parse-whatsapp',{body:{messages:waNew.map(function(m){return{sent_at:m.sent_at,sender:m.sender,body:m.body,media:m.media};})}});
-    if(fnResp.error||!fnResp.data||fnResp.data.error){
-      alert('Could not read the messages: '+await edgeErrorMessage(fnResp));
-      document.getElementById('waSummary').innerHTML='';
-      return;
+    // Big exports go to the parser in chunks (~45 messages, cut at day
+    // boundaries) — the edge runtime enforces a wall-clock limit that one
+    // huge model call would blow through. A conversation thread spanning a
+    // chunk boundary can come back as two entries; staff just saves both.
+    var chunks=[];var cs=0;
+    while(cs<waNew.length){
+      var ce=Math.min(cs+45,waNew.length);
+      if(ce<waNew.length){
+        var de=ce;
+        while(de>cs+20&&waNew[de-1].sent_at.slice(0,10)===waNew[de].sent_at.slice(0,10))de--;
+        if(de>cs+20)ce=de;
+      }
+      chunks.push({start:cs,end:ce});
+      cs=ce;
     }
-    waEntries=(fnResp.data.entries||[]).map(function(e){return{data:e,saved:false};});
+    waEntries=[];
+    for(var ci=0;ci<chunks.length;ci++){
+      var ch=chunks[ci];
+      document.getElementById('waSummary').innerHTML='<div class="ai-box" style="margin-top:16px">'+esc(sum)+' Reading '+waNew.length+' new message(s)'+(chunks.length>1?' — part '+(ci+1)+' of '+chunks.length+'…':'…')+'</div>';
+      var slice=waNew.slice(ch.start,ch.end);
+      var fnResp=await sb.functions.invoke('parse-whatsapp',{body:{messages:slice.map(function(m){return{sent_at:m.sent_at,sender:m.sender,body:m.body,media:m.media};})}});
+      if(fnResp.error||!fnResp.data||fnResp.data.error){
+        alert('Could not read part '+(ci+1)+' of the messages: '+await edgeErrorMessage(fnResp));
+        document.getElementById('waSummary').innerHTML='';
+        return;
+      }
+      (fnResp.data.entries||[]).forEach(function(e){
+        e.source_message_indexes=(e.source_message_indexes||[]).map(function(x){return x+ch.start;});
+        waEntries.push({data:e,saved:false});
+      });
+    }
     document.getElementById('waSummary').innerHTML='<div class="ai-box" style="margin-top:16px">'+esc(sum)+' '+waNew.length+' new message(s) read → '+waEntries.length+' proposed entr'+(waEntries.length===1?'y':'ies')+' below. Review each one — nothing saves until you say so.</div>';
     renderWaCards();
   } finally {
