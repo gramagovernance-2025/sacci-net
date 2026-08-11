@@ -33,6 +33,13 @@ const SegmentSchema = z.object({
   matched_patient_code: z.string(),
   match_confidence: z.enum(MATCH_CONFIDENCE_VALUES),
   match_notes: z.string(),
+  new_patient_name: z.string(),
+  new_patient_age: z.string(),
+  new_patient_gender: z.enum(["", "Male", "Female", "Other"]),
+  new_patient_phone: z.string(),
+  new_patient_village: z.string(),
+  new_patient_block: z.string(),
+  new_patient_diagnosis: z.string(),
   visit_notes: z.string(),
   status: z.enum(STATUS_VALUES),
   next_visit_date: z.string(),
@@ -110,6 +117,11 @@ Deno.serve(async (req) => {
         "identifying detail, or someone not in the roster at all) — in that case explain why in match_notes so " +
         "staff can pick manually. Set match_confidence honestly: \"none\" whenever matched_patient_code is empty, " +
         "\"low\" for a guess you're not sure of even though you returned a code, \"high\"/\"medium\" otherwise. " +
+        "When the person is clearly a specific patient who is NOT in the roster (rather than merely ambiguous), " +
+        "also fill the new_patient_* fields from what the note states about them, so staff can register them in " +
+        "one click: new_patient_name (as written, properly capitalized), and age/gender/phone/village/block/" +
+        "diagnosis only where actually stated — never guessed. Leave all new_patient_* fields empty when the " +
+        "segment matches a roster patient. " +
         "Follow the same rules as filling in a single patient's visit update: leave a field empty string when " +
         "the segment doesn't mention it (this is read as \"no change\", not zero/false), never invent facts, and " +
         "write visit_notes as a light cleanup of the segment that preserves non-clinical detail near-verbatim — " +

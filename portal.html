@@ -1312,6 +1312,7 @@ function renderBulkCards(){
     document.getElementById('bq-'+i+'-testdate').value=s.test_date||'';
     document.getElementById('bq-'+i+'-meddate').value=s.med_date||'';
     document.getElementById('bq-'+i+'-committed').value=s.committed_amount||'';
+    setNpValues('bq',i,s);
   });
 }
 // Card field renderers shared by Quick Update ('bq') and WhatsApp Import
@@ -1324,7 +1325,17 @@ function renderPatientCardFields(prefix,i,s,dis){
   var visitNum=matched?(parseInt(matched.visitNum)||0)+1:1;
   var h='';
   if(!matched||s.match_confidence==='low'||s.match_confidence==='none'){
-    h+='<div class="ai-box" style="margin-bottom:10px"><div class="ai-box-title">⚠️ Please confirm the patient</div>'+esc(s.match_notes||'Could not confidently match a patient — please pick one.')+' If the patient isn\'t registered yet, add them from the Dashboard first, then pick them here.</div>';
+    h+='<div class="ai-box" style="margin-bottom:10px"><div class="ai-box-title">⚠️ Please confirm the patient</div>'+esc(s.match_notes||'Could not confidently match a patient — please pick one.')+'</div>';
+    // One-click registration for patients the messages mention but the
+    // roster doesn't have — fields pre-filled with whatever the parser
+    // could read out of the messages, editable before registering.
+    h+='<div class="ai-box" style="margin-bottom:10px"><div class="ai-box-title">➕ Not registered yet? Register them here</div>';
+    h+='<div class="form-row"><div class="fg"><label>Name *</label><input type="text" id="'+prefix+'-'+i+'-np-name" '+dis+'></div><div class="fg"><label>Phone</label><input type="tel" id="'+prefix+'-'+i+'-np-phone" '+dis+'></div></div>';
+    h+='<div class="form-row"><div class="fg"><label>Age</label><input type="number" id="'+prefix+'-'+i+'-np-age" min="0" max="120" '+dis+'></div><div class="fg"><label>Gender</label><select id="'+prefix+'-'+i+'-np-gender" '+dis+'><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div></div>';
+    h+='<div class="form-row"><div class="fg"><label>Village / Panchayat</label><input type="text" id="'+prefix+'-'+i+'-np-village" '+dis+'></div><div class="fg"><label>Block</label><input type="text" id="'+prefix+'-'+i+'-np-block" '+dis+'></div></div>';
+    h+='<div class="fg"><label>Diagnosis (if known)</label><input type="text" id="'+prefix+'-'+i+'-np-diagnosis" '+dis+'></div>';
+    h+='<button type="button" class="btn btn-secondary btn-sm" id="'+prefix+'-'+i+'-np-btn" onclick="registerNewPatient(\''+prefix+'\','+i+')" '+dis+'>➕ Register &amp; Select</button>';
+    h+='</div>';
   }
   h+='<div class="fg"><label>Patient</label><select id="'+prefix+'-'+i+'-patient" onchange="onCardPatientChange(\''+prefix+'\','+i+')" '+dis+'><option value="">Select a patient…</option>'+bulkPatientOptions(pid)+'</select></div>';
   h+='<div class="form-row"><div class="fg"><label>Visit Date</label><input type="date" id="'+prefix+'-'+i+'-visitdate" value="'+new Date().toISOString().slice(0,10)+'" '+dis+'></div><div class="fg"><label>Visit Number</label><input type="number" id="'+prefix+'-'+i+'-visitnum" min="1" value="'+visitNum+'" '+dis+'></div></div>';
@@ -1363,6 +1374,36 @@ function collectPatientFields(prefix,i){
     nextVisit:v('nextvisit'),diagnosis:v('diagnosis').trim(),treatment:v('treatment').trim(),
     medication:v('medication').trim(),nextTest:v('nexttest').trim(),testDate:v('testdate'),
     medDate:v('meddate'),committedAmount:v('committed')};
+}
+// Pre-fill the register-new-patient box from the parser's new_patient_*
+// suggestions (set via .value, not baked into HTML — same quoting caution
+// as the other card fields).
+function setNpValues(prefix,i,s){
+  function set(sfx,val){var el=document.getElementById(prefix+'-'+i+'-np-'+sfx);if(el)el.value=val||'';}
+  set('name',s.new_patient_name);set('age',s.new_patient_age);set('gender',s.new_patient_gender);
+  set('phone',s.new_patient_phone);set('village',s.new_patient_village);set('block',s.new_patient_block);
+  set('diagnosis',s.new_patient_diagnosis);
+}
+async function registerNewPatient(prefix,i){
+  var name=(document.getElementById(prefix+'-'+i+'-np-name').value||'').trim();
+  if(!name){alert('Enter the patient\'s name first');return;}
+  var btn=document.getElementById(prefix+'-'+i+'-np-btn');
+  btn.disabled=true;btn.textContent='Registering…';
+  function v(sfx){var el=document.getElementById(prefix+'-'+i+'-np-'+sfx);return el?(el.value||'').trim():'';}
+  var id=crypto.randomUUID();
+  var row={id:id,name:name,age:parseInt(v('age'))||null,gender:v('gender')||null,phone:v('phone')||null,
+    village:v('village')||null,block:v('block')||null,district:'Muzaffarpur',
+    diagnosis:v('diagnosis')||null,status:'Screening',admitted:'No',visit_num:0,
+    history:[{date:new Date().toISOString(),user:UNAME,note:'Patient registered (from import review)'}],
+    updated_by:UNAME};
+  var resp=await sb.from('patients').insert(row);
+  if(resp.error){btn.disabled=false;btn.textContent='➕ Register & Select';alert('Could not register: '+resp.error.message);return;}
+  await loadPatients();
+  var sel=document.getElementById(prefix+'-'+i+'-patient');
+  sel.innerHTML='<option value="">Select a patient…</option>'+bulkPatientOptions(id);
+  sel.value=id;
+  onCardPatientChange(prefix,i);
+  btn.textContent='✓ Registered';
 }
 async function saveBulkCard(i){
   var pid=document.getElementById('bq-'+i+'-patient').value;
@@ -1620,6 +1661,7 @@ function renderWaCards(){
       document.getElementById('wa-'+i+'-testdate').value=e.test_date||'';
       document.getElementById('wa-'+i+'-meddate').value=e.med_date||'';
       document.getElementById('wa-'+i+'-committed').value=e.committed_amount||'';
+      setNpValues('wa',i,e);
     } else {
       document.getElementById('wa-'+i+'-adate').value=e.occurred_on||new Date().toISOString().slice(0,10);
       document.getElementById('wa-'+i+'-atitle').value=e.title||'';
@@ -1681,7 +1723,7 @@ async function waUploadFiles(e,logId,patientId,isPub){
 
 function waMarkSaved(i){
   waEntries[i].saved=true;
-  ['patient','visitdate','visitnum','notes','status','nextvisit','diagnosis','treatment','medication','nexttest','testdate','meddate','committed','adate','atype','atitle','adesc','aparticipants','public'].forEach(function(sfx){
+  ['patient','visitdate','visitnum','notes','status','nextvisit','diagnosis','treatment','medication','nexttest','testdate','meddate','committed','adate','atype','atitle','adesc','aparticipants','public','np-name','np-age','np-gender','np-phone','np-village','np-block','np-diagnosis','np-btn'].forEach(function(sfx){
     var el=document.getElementById('wa-'+i+'-'+sfx);if(el)el.disabled=true;
   });
   var btn=document.getElementById('wa-'+i+'-savebtn');

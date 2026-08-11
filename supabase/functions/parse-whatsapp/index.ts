@@ -38,6 +38,13 @@ function buildSchema(logTypeNames: [string, ...string[]]) {
     matched_patient_code: z.string(),
     match_confidence: z.enum(MATCH_CONFIDENCE_VALUES),
     match_notes: z.string(),
+    new_patient_name: z.string(),
+    new_patient_age: z.string(),
+    new_patient_gender: z.enum(["", "Male", "Female", "Other"]),
+    new_patient_phone: z.string(),
+    new_patient_village: z.string(),
+    new_patient_block: z.string(),
+    new_patient_diagnosis: z.string(),
     visit_notes: z.string(),
     status: z.enum(STATUS_VALUES),
     next_visit_date: z.string(),
@@ -140,7 +147,11 @@ Deno.serve(async (req) => {
         "For 'Patient Update' entries: matched_patient_code must be a code from the roster above, or \"\" if you " +
         "cannot confidently tell which roster patient it refers to — explain why in match_notes so staff can pick " +
         "manually. Set match_confidence honestly: \"none\" whenever matched_patient_code is empty, \"low\" for an " +
-        "unsure guess, \"high\"/\"medium\" otherwise. Leave a field as empty string when the messages don't " +
+        "unsure guess, \"high\"/\"medium\" otherwise. When the person is clearly a specific patient who is NOT in " +
+        "the roster (rather than merely ambiguous), also fill the new_patient_* fields from what the messages state " +
+        "about them, so staff can register them in one click: new_patient_name (as written, properly capitalized), " +
+        "and age/gender/phone/village/block/diagnosis only where actually stated — never guessed. Leave all " +
+        "new_patient_* fields empty when the entry matches a roster patient. Leave a field as empty string when the messages don't " +
         "mention it (read as \"no change\", never zero/false), never invent facts, and write visit_notes as a " +
         "light cleanup of the thread that preserves non-clinical detail near-verbatim — who accompanied the " +
         "patient, family hesitations, hospital choices, money worries, and similar social/logistical color " +
