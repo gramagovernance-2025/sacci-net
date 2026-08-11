@@ -301,3 +301,207 @@ end $$;
 alter table patients add column if not exists closure_reason text;
 alter table patients add column if not exists closure_notes text;
 alter table patients add column if not exists closed_at timestamptz;
+
+-- ═══════════════════════════════════════════════════════════════
+-- UNIVERSAL LOG (2026-08-11 restructure)
+-- The input model generalizes from "a thing about a patient" to "any log":
+-- camps, saathi joinings, volunteer drafting, meetings, patient visits —
+-- one stream. Categories live in log_types (data, not code) so new kinds
+-- of entries need no schema or code change. The WhatsApp group is the main
+-- input source via pasted chat exports, deduped in whatsapp_messages.
+-- ═══════════════════════════════════════════════════════════════
+
+-- ─── LOG TYPES (dynamic categories) ──────────────────────────
+-- Staff add/retire categories from the portal as the work evolves; the
+-- portal and public dashboard render whatever is here. Retire a type by
+-- setting active=false — deleting is blocked while any log still uses it.
+create table if not exists log_types (
+  id uuid primary key default gen_random_uuid(),
+  name text unique not null,
+  emoji text default '📌',
+  -- Pre-ticks the "public" checkbox for new entries of this type. A human
+  -- still confirms at review time — nothing goes public without that.
+  public_default boolean not null default false,
+  -- Whether this type gets a count tile on the public dashboard.
+  show_public_tile boolean not null default false,
+  tile_label text,                -- public tile wording, e.g. 'Camps Held'
+  sort_order int not null default 100,
+  active boolean not null default true,
+  created_at timestamptz default now()
+);
+
+insert into log_types (name, emoji, public_default, show_public_tile, tile_label, sort_order) values
+  ('Patient Update',       '🩺', false, false, null,             10),
+  ('Health Camp',          '⛺', true,  true,  'Camps Held',     20),
+  ('Cancer Saathi Joined', '🤝', true,  true,  'Cancer Saathis', 30),
+  ('Volunteer Drafted',    '🙋', true,  true,  'Volunteers',     40),
+  ('Meeting',              '👥', false, false, null,             50),
+  ('Training',             '🎓', false, false, null,             60),
+  ('Milestone',            '🏆', true,  false, null,             70),
+  ('Other',                '📌', false, false, null,             90)
+on conflict (name) do nothing;
+
+-- ─── LOGS (the universal stream) ─────────────────────────────
+-- One row per loggable thing. Patient care hangs off the stream via the
+-- nullable patient_id rather than the stream hanging off patients.
+-- is_public is the single gate to the public dashboard and is only ever
+-- set by a human at entry/review time.
+create table if not exists logs (
+  id uuid primary key default gen_random_uuid(),
+  occurred_on date not null default current_date,
+  log_type_id uuid not null references log_types(id) on delete restrict,
+  title text,
+  description text,
+  participants text,
+  patient_id uuid references patients(id) on delete set null,
+  is_public boolean not null default false,
+  source text not null default 'manual'
+    check (source in ('manual','quick-update','whatsapp','system')),
+  source_text text,               -- verbatim origin, e.g. the WhatsApp lines this came from
+  legacy_activity_id uuid unique, -- set only on rows migrated from `activities`
+  created_by text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  updated_by text
+);
+
+-- ─── LOG FILES (photos/documents attached to a log entry) ────
+-- Bytes live in the `log-files` Storage bucket (created PUBLIC — this is
+-- storytelling material like camp photos, and paths are unguessable uuids).
+-- Anything clinically sensitive belongs in patient_files / the private
+-- patient-files bucket instead, never here; the import review step routes
+-- medical report photos there.
+create table if not exists log_files (
+  id uuid primary key default gen_random_uuid(),
+  log_id uuid not null references logs(id) on delete cascade,
+  name text not null,
+  storage_path text not null,
+  is_public boolean not null default false, -- may appear on the public timeline
+  uploaded_at timestamptz default now(),
+  uploaded_by text
+);
+
+-- ─── WHATSAPP MESSAGES (import ledger + archive) ─────────────
+-- Every message the WhatsApp import has ever seen, hashed for dedup, so
+-- overlapping chat exports can be pasted repeatedly without double-logging.
+-- Doubles as a permanent archive of the group's history. Staff-only in
+-- both directions, like transactions — raw messages name patients freely.
+create table if not exists whatsapp_messages (
+  id uuid primary key default gen_random_uuid(),
+  msg_hash text unique not null,  -- sha-256 of sender|sent_at|body
+  sender text,
+  sent_at timestamptz,
+  body text,
+  imported_at timestamptz default now(),
+  imported_by text
+);
+
+-- ─── RLS FOR THE LOG TABLES ──────────────────────────────────
+alter table log_types enable row level security;
+alter table logs enable row level security;
+alter table log_files enable row level security;
+alter table whatsapp_messages enable row level security;
+
+-- log_types / logs / log_files: same split as patients — staff and
+-- advisors read, staff write.
+drop policy if exists "staff and advisors read log_types" on log_types;
+create policy "staff and advisors read log_types" on log_types for select
+  using (has_profile());
+
+drop policy if exists "staff write log_types" on log_types;
+create policy "staff write log_types" on log_types for all
+  using (is_staff()) with check (is_staff());
+
+drop policy if exists "staff and advisors read logs" on logs;
+create policy "staff and advisors read logs" on logs for select
+  using (has_profile());
+
+drop policy if exists "staff write logs" on logs;
+create policy "staff write logs" on logs for all
+  using (is_staff()) with check (is_staff());
+
+drop policy if exists "staff and advisors read log_files" on log_files;
+create policy "staff and advisors read log_files" on log_files for select
+  using (has_profile());
+
+drop policy if exists "staff write log_files" on log_files;
+create policy "staff write log_files" on log_files for all
+  using (is_staff()) with check (is_staff());
+
+drop policy if exists "staff only whatsapp_messages" on whatsapp_messages;
+create policy "staff only whatsapp_messages" on whatsapp_messages for all
+  using (is_staff()) with check (is_staff());
+
+-- ─── PUBLIC (NO LOGIN) LOG VIEWS ─────────────────────────────
+-- Same pattern as patients_public: owner-privilege views, so anon sees
+-- only what a human explicitly flagged public. patient_id, source_text
+-- and created_by never cross this boundary.
+drop view if exists logs_public;
+create view logs_public
+with (security_invoker = false) as
+  select l.id, l.occurred_on, t.name as log_type, t.emoji,
+         l.title, l.description, l.participants, l.created_at
+  from logs l
+  join log_types t on t.id = l.log_type_id
+  where l.is_public;
+
+drop view if exists log_tiles_public;
+create view log_tiles_public
+with (security_invoker = false) as
+  select t.name, t.emoji, coalesce(t.tile_label, t.name) as tile_label,
+         t.sort_order, count(l.id) filter (where l.is_public) as n_public
+  from log_types t
+  left join logs l on l.log_type_id = t.id
+  where t.show_public_tile and t.active
+  group by t.id;
+
+drop view if exists log_files_public;
+create view log_files_public
+with (security_invoker = false) as
+  select f.log_id, f.name, f.storage_path
+  from log_files f
+  join logs l on l.id = f.log_id
+  where f.is_public and l.is_public;
+
+grant select on logs_public to anon;
+grant select on log_tiles_public to anon;
+grant select on log_files_public to anon;
+
+-- ─── MIGRATE ACTIVITIES → LOGS ───────────────────────────────
+-- Copies every activities row into logs exactly once (legacy_activity_id
+-- makes this idempotent — safe to re-run). The activities table and its
+-- portal page keep working during the transition; once the portal reads
+-- logs everywhere, activities freezes as legacy and can later be dropped.
+insert into logs (occurred_on, log_type_id, title, description, participants,
+                  source, legacy_activity_id, created_by, created_at)
+select a.activity_date,
+       (select id from log_types where name = a.activity_type),
+       a.title, a.description, a.participants,
+       'manual', a.id, a.created_by, a.created_at
+from activities a
+where not exists (select 1 from logs l where l.legacy_activity_id = a.id);
+
+-- ─── REALTIME FOR LOGS ───────────────────────────────────────
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and tablename = 'logs'
+  ) then
+    alter publication supabase_realtime add table logs;
+  end if;
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and tablename = 'log_types'
+  ) then
+    alter publication supabase_realtime add table log_types;
+  end if;
+end $$;
+
+-- ─── STORAGE POLICIES: LOG FILES ─────────────────────────────
+-- Run AFTER creating the `log-files` bucket (Storage → New bucket, name it
+-- exactly `log-files`, set PUBLIC — see the log_files comment for why).
+drop policy if exists "staff manage log files" on storage.objects;
+create policy "staff manage log files" on storage.objects for all
+  using (bucket_id = 'log-files' and is_staff())
+  with check (bucket_id = 'log-files' and is_staff());
