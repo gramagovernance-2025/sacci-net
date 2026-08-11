@@ -136,6 +136,14 @@
   /* PUBLIC */
   .public-banner{background:var(--teal-pale);padding:16px 20px;border-radius:8px;margin-bottom:24px;display:flex;align-items:center;gap:12px;}
   .public-banner p{font-size:0.88rem;color:var(--teal-deep);}
+  .stats-row-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:28px;}
+  .pub-timeline-entry{padding:12px 16px;border-left:3px solid var(--teal-pale);margin:0 0 12px 6px;background:#fdfcfb;border-radius:0 6px 6px 0;}
+  .pub-timeline-head{font-size:0.78rem;color:var(--ink-muted);font-weight:600;}
+  .pub-timeline-title{font-size:0.92rem;font-weight:600;color:var(--ink);margin-top:2px;}
+  .pub-timeline-desc{font-size:0.85rem;color:var(--ink-light);margin-top:3px;white-space:pre-wrap;}
+  .chk-line{display:flex;align-items:center;gap:8px;font-size:0.84rem;color:var(--ink-light);margin:10px 0;}
+  .chk-line input{width:16px;height:16px;accent-color:var(--teal);}
+  .chk-line label{margin:0;font-weight:500;cursor:pointer;}
 
   .page{display:none;}
   .page.active{display:block;}
@@ -161,6 +169,7 @@
     <li><a href="#" data-page="dues" onclick="navTo('dues',this)" id="nav-dues">⏰ Due Actions</a></li>
     <li><a href="#" data-page="finances" onclick="navTo('finances',this)" id="nav-finances">💰 Finances</a></li>
     <li><a href="#" data-page="quickupdate" onclick="navTo('quickupdate',this)" id="nav-quickupdate">📝 Quick Update</a></li>
+    <li><a href="#" data-page="whatsapp" onclick="navTo('whatsapp',this)" id="nav-whatsapp">💬 WhatsApp Import</a></li>
     <li><a href="#" data-page="public" onclick="navTo('public',this)">🌐 Public View</a></li>
   </ul>
   <div class="sidebar-bottom">
@@ -178,7 +187,7 @@
     <h1 id="dashTitle">Dashboard</h1>
     <div class="topbar-actions" id="dashActions">
       <button class="btn btn-primary" onclick="openAdd()">+ Add Patient</button>
-      <button class="btn btn-secondary" onclick="openActivity()">+ Log Activity</button>
+      <button class="btn btn-secondary" onclick="openActivity()">+ Add Log Entry</button>
     </div>
   </div>
   <div class="stats-row">
@@ -192,7 +201,7 @@
     <div style="overflow-x:auto"><table><thead><tr><th>ID</th><th>Name</th><th>Age/Gender</th><th>Diagnosis</th><th>Status</th><th>Last Visit</th><th>Visit #</th><th>Next Due</th><th>Actions</th></tr></thead><tbody id="dashBody"></tbody></table></div>
   </div>
   <div class="card" style="margin-top:20px">
-    <div class="card-header"><h2>Recent Activities</h2></div>
+    <div class="card-header"><h2>Log — Recent Entries</h2></div>
     <div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Type</th><th>Title / Description</th><th>Participants</th><th>Actions</th></tr></thead><tbody id="activityBody"></tbody></table></div>
   </div>
 </div>
@@ -251,16 +260,40 @@
 <div class="page" id="page-quickupdate">
   <div class="topbar"><h1>Quick Update</h1></div>
   <div class="card">
-    <div class="card-header"><h2>Write updates for any patients</h2></div>
+    <div class="card-header"><h2>Write anything — patient updates, camps, meetings, saathi joinings</h2></div>
     <div style="padding:20px">
       <div class="fg">
-        <label>Write freely — mention patients by name. The system splits this by patient and shows you exactly what it found for each one before anything saves.</label>
+        <label>Write freely — mention patients by name, or describe camps, meetings, and other work. The system splits it into entries and shows you exactly what it found before anything saves.</label>
         <textarea id="bqFreeText" style="min-height:140px" placeholder="e.g. 'Ramesh Kumar's biopsy came back positive, recommended starting chemo, family is hesitant. Gave Sunita Devi 1500 for travel, she's refusing to go to TATA and wants a private hospital instead.'"></textarea>
       </div>
       <button class="btn btn-primary" id="bqParseBtn" onclick="parseBulkUpdate()">🤖 Parse Updates</button>
     </div>
   </div>
   <div id="bqResults"></div>
+</div>
+
+<!-- ═══ WHATSAPP IMPORT (staff only) ═══ -->
+<div class="page" id="page-whatsapp">
+  <div class="topbar"><h1>WhatsApp Import</h1></div>
+  <div class="card">
+    <div class="card-header"><h2>Paste the group chat export</h2></div>
+    <div style="padding:20px">
+      <div class="fg">
+        <label>In WhatsApp: open the group → ⋮ → More → Export chat. Paste the exported text here, or upload the .txt below. Messages imported before are skipped automatically, so overlapping exports are always safe.</label>
+        <textarea id="waText" style="min-height:160px" placeholder="[12:48, 09/08/2026] Sanjay sahni: Munish ji sumitra devi ko aaj bhej rahe hai tata&#10;[08:28, 11/08/2026] Munish RM: Okay 👍 m 9:30 baje k aas pass baat karunga …"></textarea>
+      </div>
+      <div class="fg">
+        <div class="file-area" onclick="document.getElementById('waFileInput').click()">
+          <input type="file" id="waFileInput" accept=".txt,image/*" multiple onchange="waPickFiles(this)">
+          <p><strong>Optional:</strong> upload the exported .txt and/or photos from the export folder — photos are attached to the right entries automatically</p>
+        </div>
+        <p style="font-size:0.78rem;color:var(--ink-muted);margin-top:4px"><span id="waTxtName"></span> <span id="waFileCount"></span></p>
+      </div>
+      <button class="btn btn-primary" id="waImportBtn" onclick="waImport()">🤖 Read &amp; Propose Entries</button>
+    </div>
+  </div>
+  <div id="waSummary"></div>
+  <div id="waResults"></div>
 </div>
 
 <!-- ═══ PUBLIC DASHBOARD ═══ -->
@@ -272,6 +305,11 @@
     <div class="stat-box"><div class="stat-box-number" id="pub-active">0</div><div class="stat-box-label">Currently in Treatment</div></div>
     <div class="stat-box"><div class="stat-box-number" id="pub-screening">0</div><div class="stat-box-label">Under Screening</div></div>
     <div class="stat-box"><div class="stat-box-number" id="pub-completed">0</div><div class="stat-box-label">Treatment Completed</div></div>
+  </div>
+  <div class="stats-row stats-row-auto" id="pubTiles" style="display:none"></div>
+  <div class="card">
+    <div class="card-header"><h2>Activity — Camps, Saathis &amp; More</h2></div>
+    <div id="pubTimeline" style="padding:14px 18px"></div>
   </div>
   <div class="card">
     <div class="card-header"><h2>Patient Overview (Anonymised)</h2></div>
@@ -382,18 +420,34 @@
 </div>
 </div>
 
-<!-- ═══ LOG ACTIVITY MODAL ═══ -->
+<!-- ═══ LOG ENTRY MODAL (was activity — now the universal log) ═══ -->
 <div class="modal-overlay" id="activityModal">
 <div class="modal" style="max-width:520px">
-  <div class="modal-head"><h2 id="activityModalTitle">Log Activity</h2><button class="modal-close" onclick="closeActivity()">&times;</button></div>
+  <div class="modal-head"><h2 id="activityModalTitle">Add Log Entry</h2><button class="modal-close" onclick="closeActivity()">&times;</button></div>
   <div class="modal-body">
     <input type="hidden" id="activityId">
-    <div class="form-row"><div class="fg"><label>Date</label><input type="date" id="aDate"></div><div class="fg"><label>Type</label><select id="aType"><option>Meeting</option><option>Health Camp</option><option>Training</option><option>Other</option></select></div></div>
-    <div class="fg"><label>Title</label><input type="text" id="aTitle" placeholder="e.g. Dr. Vidyasagar & Dr. Ravikant meeting"></div>
+    <div class="form-row"><div class="fg"><label>Date</label><input type="date" id="aDate"></div><div class="fg"><label>Category</label><select id="aType" onchange="onLogTypeChange()"></select></div></div>
+    <div class="fg"><label>Title</label><input type="text" id="aTitle" placeholder="e.g. Health camp in Motipur panchayat"></div>
     <div class="fg"><label>Description</label><textarea id="aDescription" placeholder="What happened, discussed, or was decided..."></textarea></div>
-    <div class="fg"><label>Participants</label><input type="text" id="aParticipants" placeholder="e.g. Dr. Vidyasagar, Dr. Ravikant"></div>
+    <div class="fg"><label>Participants</label><input type="text" id="aParticipants" placeholder="e.g. Dr. Vidyasagar, 3 cancer saathis"></div>
+    <div class="chk-line"><input type="checkbox" id="aPublic"><label for="aPublic">🌐 Show on public dashboard</label></div>
+    <p style="font-size:0.75rem;color:var(--ink-muted)">Need a category that doesn't exist yet? <span class="link" onclick="openCatModal()">+ Add new category</span></p>
   </div>
-  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeActivity()">Cancel</button><button class="btn btn-primary" onclick="saveActivity()">Save Activity</button></div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeActivity()">Cancel</button><button class="btn btn-primary" onclick="saveActivity()">Save Entry</button></div>
+</div>
+</div>
+
+<!-- ═══ NEW CATEGORY MODAL ═══ -->
+<div class="modal-overlay" id="catModal">
+<div class="modal" style="max-width:440px">
+  <div class="modal-head"><h2>New Log Category</h2><button class="modal-close" onclick="closeCatModal()">&times;</button></div>
+  <div class="modal-body">
+    <div class="form-row"><div class="fg"><label>Name *</label><input type="text" id="catName" placeholder="e.g. Blood Donation Drive"></div><div class="fg"><label>Emoji</label><input type="text" id="catEmoji" placeholder="🩸" maxlength="4"></div></div>
+    <div class="chk-line"><input type="checkbox" id="catPublic"><label for="catPublic">Public by default (still confirmed on each entry)</label></div>
+    <div class="chk-line"><input type="checkbox" id="catTile"><label for="catTile">Show a count tile on the public dashboard</label></div>
+    <div class="fg"><label>Tile label (if tile shown)</label><input type="text" id="catTileLabel" placeholder="e.g. Drives Held"></div>
+  </div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeCatModal()">Cancel</button><button class="btn btn-primary" onclick="saveCategory()">Add Category</button></div>
 </div>
 </div>
 
@@ -429,7 +483,8 @@
 var ROLE='public', UNAME='Public View', UUSER='';
 var patients=[];
 var transactions=[];
-var activities=[];
+var logs=[];
+var logTypes=[];
 var tempFiles=[];
 var editingId=null;
 var isExistingPatient=false;
@@ -492,6 +547,7 @@ async function init(){
   if(ROLE!=='staff'){
     document.getElementById('nav-finances').parentElement.style.display='none';
     document.getElementById('nav-quickupdate').parentElement.style.display='none';
+    document.getElementById('nav-whatsapp').parentElement.style.display='none';
   }
   if(ROLE==='advisor'){
     document.getElementById('dashActions').style.display='none';
@@ -500,7 +556,7 @@ async function init(){
 
   await loadPatients();
   if(ROLE==='staff')await loadTransactions();
-  if(ROLE==='staff'||ROLE==='advisor')await loadActivities();
+  if(ROLE==='staff'||ROLE==='advisor'){await loadLogTypes();await loadLogs();}
   if(ROLE==='public'){navTo('public',document.querySelector('[data-page="public"]'));}
   else{renderDash();}
 
@@ -515,8 +571,9 @@ async function init(){
       .subscribe();
   }
   if(ROLE==='staff'||ROLE==='advisor'){
-    sb.channel('activities-changes')
-      .on('postgres_changes',{event:'*',schema:'public',table:'activities'},function(){loadActivities().then(refreshActivePage);})
+    sb.channel('logs-changes')
+      .on('postgres_changes',{event:'*',schema:'public',table:'logs'},function(){loadLogs().then(refreshActivePage);})
+      .on('postgres_changes',{event:'*',schema:'public',table:'log_types'},function(){loadLogTypes().then(refreshActivePage);})
       .subscribe();
   }
 }
@@ -615,13 +672,55 @@ function renderDues(){
   tbody.innerHTML=h;
 }
 
-// RENDER PUBLIC
-function renderPublic(){
+// RENDER PUBLIC — patients (as before) + the human-approved slice of the
+// log: count tiles for tile-enabled categories and a timeline of public
+// entries. All of it reads the anonymised *_public views, so this renders
+// identically for anonymous visitors and logged-in staff previewing it.
+async function renderPublic(){
   var completed=patients.filter(function(p){return p.status==='Completed';}).length;
   document.getElementById('pub-total').textContent=patients.length;
   document.getElementById('pub-active').textContent=patients.filter(function(p){return['Treatment','Admitted','On Medication'].indexOf(p.status)>=0;}).length;
   document.getElementById('pub-screening').textContent=patients.filter(function(p){return['Screening','Under Investigation'].indexOf(p.status)>=0;}).length;
   document.getElementById('pub-completed').textContent=completed;
+
+  var tilesEl=document.getElementById('pubTiles');
+  var tResp=await sb.from('log_tiles_public').select('*').order('sort_order');
+  if(tResp.error)console.error(tResp.error);
+  var tiles=tResp.data||[];
+  tilesEl.innerHTML=tiles.map(function(t){
+    return '<div class="stat-box"><div class="stat-box-number">'+esc(t.emoji||'')+' '+t.n_public+'</div><div class="stat-box-label">'+esc(t.tile_label||t.name)+'</div></div>';
+  }).join('');
+  tilesEl.style.display=tiles.length?'':'none';
+
+  var tl=document.getElementById('pubTimeline');
+  var lResp=await sb.from('logs_public').select('*').order('occurred_on',{ascending:false}).limit(30);
+  if(lResp.error)console.error(lResp.error);
+  var pubLogs=lResp.data||[];
+  var filesByLog={};
+  if(pubLogs.length){
+    var fResp=await sb.from('log_files_public').select('*').in('log_id',pubLogs.map(function(l){return l.id;}));
+    (fResp.data||[]).forEach(function(f){(filesByLog[f.log_id]=filesByLog[f.log_id]||[]).push(f);});
+  }
+  if(!pubLogs.length){
+    tl.innerHTML='<p style="font-size:0.85rem;color:var(--ink-muted);padding:6px 0 12px">Nothing published yet — camps, cancer saathi joinings, and milestones will appear here.</p>';
+  } else {
+    tl.innerHTML=pubLogs.map(function(l){
+      var e='<div class="pub-timeline-entry"><div class="pub-timeline-head">'+esc(l.emoji||'📌')+' '+esc(l.log_type)+' — '+fmtDate(l.occurred_on)+'</div>';
+      if(l.title)e+='<div class="pub-timeline-title">'+esc(l.title)+'</div>';
+      if(l.description)e+='<div class="pub-timeline-desc">'+esc(l.description)+'</div>';
+      if(l.participants)e+='<div class="pub-timeline-head" style="margin-top:4px">👥 '+esc(l.participants)+'</div>';
+      var fs=filesByLog[l.id]||[];
+      if(fs.length){
+        e+='<div class="thumb-row" style="margin-top:8px">'+fs.map(function(f){
+          var u=SUPABASE_URL+'/storage/v1/object/public/log-files/'+f.storage_path;
+          return '<div class="thumb" onclick="window.open(\''+u+'\')"><img src="'+u+'" loading="lazy"></div>';
+        }).join('')+'</div>';
+      }
+      e+='</div>';
+      return e;
+    }).join('');
+  }
+
   var tbody=document.getElementById('pubBody');
   if(!patients.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:36px;color:var(--ink-muted)">No data yet.</td></tr>';return;}
   var h='';patients.forEach(function(p,i){
@@ -722,31 +821,51 @@ async function deleteTxn(id){
   renderFinances();
 }
 
-// ACTIVITIES — org-level log (meetings, health camps, trainings), not tied
-// to any one patient. Same shape as the transactions functions just above:
-// staff-only writes, visible to staff+advisor per the activities RLS policy.
-async function loadActivities(){
-  var resp=await sb.from('activities').select('*');
-  activities=resp.data||[];
+// THE LOG — universal stream (logs table), replacing the old activities
+// table. Camps, saathi joinings, meetings, and (via dual-write from visit
+// updates) patient care all land here. Categories come from log_types —
+// data, not code — so every dropdown below is built at runtime and new
+// categories need no code change. Function names keep the old "activity"
+// wording where HTML onclick attributes are wired to them.
+async function loadLogTypes(){
+  var resp=await sb.from('log_types').select('*').eq('active',true).order('sort_order');
+  logTypes=resp.data||[];
   if(resp.error)console.error(resp.error);
 }
+async function loadLogs(){
+  var resp=await sb.from('logs').select('*').order('occurred_on',{ascending:false}).order('created_at',{ascending:false}).limit(500);
+  logs=resp.data||[];
+  if(resp.error)console.error(resp.error);
+}
+function logTypeById(id){return logTypes.find(function(t){return t.id===id;});}
+function logTypeByName(name){return logTypes.find(function(t){return t.name===name;});}
+function logTypeOptions(selectedId,excludePatient){
+  return logTypes.filter(function(t){return !excludePatient||t.name!=='Patient Update';})
+    .map(function(t){return '<option value="'+t.id+'"'+(t.id===selectedId?' selected':'')+'>'+t.emoji+' '+esc(t.name)+'</option>';}).join('');
+}
 function openActivity(){
-  document.getElementById('activityModalTitle').textContent='Log Activity';
+  document.getElementById('activityModalTitle').textContent='Add Log Entry';
   document.getElementById('activityId').value='';
   document.getElementById('aDate').value=new Date().toISOString().slice(0,10);
-  document.getElementById('aType').value='Meeting';
+  document.getElementById('aType').innerHTML=logTypeOptions(null,true);
+  onLogTypeChange();
   document.getElementById('aTitle').value='';
   document.getElementById('aDescription').value='';
   document.getElementById('aParticipants').value='';
   document.getElementById('activityModal').classList.add('show');
 }
+function onLogTypeChange(){
+  var t=logTypeById(document.getElementById('aType').value);
+  if(t&&!document.getElementById('activityId').value)document.getElementById('aPublic').checked=!!t.public_default;
+}
 function editActivity(id){
-  var a=activities.find(function(x){return x.id===id;});if(!a)return;
+  var a=logs.find(function(x){return x.id===id;});if(!a)return;
   openActivity();
-  document.getElementById('activityModalTitle').textContent='Edit Activity';
+  document.getElementById('activityModalTitle').textContent='Edit Log Entry';
   document.getElementById('activityId').value=id;
-  document.getElementById('aDate').value=a.activity_date;
-  document.getElementById('aType').value=a.activity_type||'Other';
+  document.getElementById('aDate').value=a.occurred_on;
+  document.getElementById('aType').innerHTML=logTypeOptions(a.log_type_id,false);
+  document.getElementById('aPublic').checked=!!a.is_public;
   document.getElementById('aTitle').value=a.title||'';
   document.getElementById('aDescription').value=a.description||'';
   document.getElementById('aParticipants').value=a.participants||'';
@@ -755,33 +874,70 @@ function closeActivity(){document.getElementById('activityModal').classList.remo
 async function saveActivity(){
   var desc=document.getElementById('aDescription').value.trim();if(!desc){alert('Describe what happened');return;}
   var id=document.getElementById('activityId').value;
-  var row={activity_date:document.getElementById('aDate').value||new Date().toISOString().slice(0,10),
-    activity_type:document.getElementById('aType').value,title:document.getElementById('aTitle').value.trim()||null,
-    description:desc,participants:document.getElementById('aParticipants').value.trim()||null,created_by:UNAME};
-  var resp=id?await sb.from('activities').update(row).eq('id',id):await sb.from('activities').insert(row);
+  var row={occurred_on:document.getElementById('aDate').value||new Date().toISOString().slice(0,10),
+    log_type_id:document.getElementById('aType').value,
+    title:document.getElementById('aTitle').value.trim()||null,
+    description:desc,participants:document.getElementById('aParticipants').value.trim()||null,
+    is_public:document.getElementById('aPublic').checked};
+  var resp;
+  if(id){row.updated_by=UNAME;row.updated_at=new Date().toISOString();resp=await sb.from('logs').update(row).eq('id',id);}
+  else{row.source='manual';row.created_by=UNAME;resp=await sb.from('logs').insert(row);}
   if(resp.error){alert('Could not save: '+resp.error.message);return;}
-  await loadActivities();
+  await loadLogs();
   closeActivity();
   refreshActivePage();
 }
 async function deleteActivity(id){
-  if(!confirm('Delete this activity record?'))return;
-  var resp=await sb.from('activities').delete().eq('id',id);
+  if(!confirm('Delete this log entry?'))return;
+  var resp=await sb.from('logs').delete().eq('id',id);
   if(resp.error){alert('Could not delete: '+resp.error.message);return;}
-  await loadActivities();
+  await loadLogs();
   refreshActivePage();
 }
 function renderActivities(){
   var tbody=document.getElementById('activityBody');if(!tbody)return;
-  if(!activities.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:36px;color:var(--ink-muted)">No activities logged yet.</td></tr>';return;}
-  var sorted=activities.slice().sort(function(a,b){return new Date(b.activity_date)-new Date(a.activity_date);});
-  var h='';sorted.forEach(function(a){
+  if(!logs.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:36px;color:var(--ink-muted)">No log entries yet.</td></tr>';return;}
+  var h='';logs.slice(0,25).forEach(function(a){
+    var t=logTypeById(a.log_type_id);
+    var typeLabel=(t?t.emoji+' '+esc(t.name):'—')+(a.is_public?' <span title="Shown on public dashboard">🌐</span>':'');
+    var patientTag=a.patient_id?'<strong>'+esc(patientName(a.patient_id))+'</strong> — ':'';
     var titleLine=a.title?'<strong>'+esc(a.title)+'</strong><br>':'';
-    h+='<tr><td>'+fmtDate(a.activity_date)+'</td><td>'+esc(a.activity_type)+'</td><td>'+titleLine+esc(a.description||'')+'</td><td>'+esc(a.participants||'—')+'</td><td>';
+    var descShort=(a.description||'');if(descShort.length>300)descShort=descShort.slice(0,300)+'…';
+    h+='<tr><td>'+fmtDate(a.occurred_on)+'</td><td>'+typeLabel+'</td><td>'+titleLine+patientTag+esc(descShort)+'</td><td>'+esc(a.participants||'—')+'</td><td>';
     if(ROLE==='staff')h+='<span class="link" onclick="editActivity(\''+a.id+'\')">Edit</span> · <span class="link" onclick="deleteActivity(\''+a.id+'\')">Delete</span>';
     else h+='—';
     h+='</td></tr>';
   });tbody.innerHTML=h;
+}
+
+// CATEGORY MANAGEMENT — staff can add new log categories from the portal
+// (the "categories are data" half of the restructure). A new one appears
+// immediately in every dropdown and, if tile-enabled, on the public page.
+function openCatModal(){
+  document.getElementById('catName').value='';
+  document.getElementById('catEmoji').value='';
+  document.getElementById('catPublic').checked=false;
+  document.getElementById('catTile').checked=false;
+  document.getElementById('catTileLabel').value='';
+  document.getElementById('catModal').classList.add('show');
+}
+function closeCatModal(){document.getElementById('catModal').classList.remove('show');}
+async function saveCategory(){
+  var name=document.getElementById('catName').value.trim();
+  if(!name){alert('Give the category a name');return;}
+  var row={name:name,emoji:document.getElementById('catEmoji').value.trim()||'📌',
+    public_default:document.getElementById('catPublic').checked,
+    show_public_tile:document.getElementById('catTile').checked,
+    tile_label:document.getElementById('catTileLabel').value.trim()||null,
+    sort_order:80};
+  var resp=await sb.from('log_types').insert(row).select().single();
+  if(resp.error){alert('Could not save: '+resp.error.message);return;}
+  await loadLogTypes();
+  var sel=document.getElementById('aType');
+  if(sel&&document.getElementById('activityModal').classList.contains('show')){
+    sel.innerHTML=logTypeOptions(resp.data.id,false);
+  }
+  closeCatModal();
 }
 
 // CLOSE CASE — deliberate, reason-tracked action (not a plain status-dropdown
@@ -994,7 +1150,7 @@ async function removeUpdateFile(idx){
 // Update bulk review cards — same "blank = no change" field logic either
 // way, just a different source for the field values and different
 // post-save UI (closing a modal vs. marking a card saved).
-async function savePatientUpdate(patientId,fields){
+async function savePatientUpdate(patientId,fields,opts){
   var p=patients.find(function(x){return x.id===patientId;});if(!p)return{error:'Patient not found'};
   var notes=(fields.notes||'').trim();if(!notes)return{error:'Please describe what happened at this visit'};
   var visitNum=fields.visitNum;
@@ -1012,6 +1168,19 @@ async function savePatientUpdate(patientId,fields){
   if(fields.committedAmount)updates.committed_amount=fields.committedAmount;
   var resp=await sb.from('patients').update(updates).eq('id',patientId);
   if(resp.error)return{error:resp.error.message};
+  // Dual-write: every visit update is also a row in the universal log, so
+  // the one stream really does hold everything. Private unless a human
+  // explicitly ticked the public box on the review card.
+  var pu=logTypeByName('Patient Update');
+  if(pu){
+    var logRow={occurred_on:(fields.visitDate||new Date().toISOString()).slice(0,10),
+      log_type_id:pu.id,patient_id:patientId,description:'Visit #'+visitNum+': '+notes,
+      is_public:!!(opts&&opts.isPublic),source:(opts&&opts.source)||'manual',
+      source_text:(opts&&opts.sourceText)||null,created_by:UNAME};
+    var logResp=await sb.from('logs').insert(logRow).select().single();
+    if(logResp.error)console.error(logResp.error);
+    else{if(opts)opts.logId=logResp.data.id;await loadLogs();}
+  }
   await loadPatients();
   return{ok:true};
 }
@@ -1106,7 +1275,6 @@ function bulkPatientOptions(selectedId){
   return patients.slice().sort(function(a,b){return a.name.localeCompare(b.name);})
     .map(function(p){return '<option value="'+p.id+'"'+(p.id===selectedId?' selected':'')+'>'+(p.code?p.code+' — ':'')+esc(p.name)+'</option>';}).join('');
 }
-var ACTIVITY_TYPE_OPTIONS=['Meeting','Health Camp','Training','Other'];
 function renderBulkCards(){
   var c=document.getElementById('bqResults');if(!c)return;
   if(!bulkSegments.length){c.innerHTML='';return;}
@@ -1114,15 +1282,15 @@ function renderBulkCards(){
   bulkSegments.forEach(function(seg,i){
     var s=seg.data,dis=seg.saved?'disabled':'';
     var isActivity=s.segment_kind==='activity';
-    h+='<div class="card" style="margin-top:16px"><div class="card-header"><h2>'+(isActivity?'Activity':'Update')+' '+(i+1)+(seg.saved?' — ✓ Saved':'')+'</h2></div><div style="padding:20px">';
+    h+='<div class="card" style="margin-top:16px"><div class="card-header"><h2>'+(isActivity?'Log Entry':'Patient Update')+' '+(i+1)+(seg.saved?' — ✓ Saved':'')+'</h2></div><div style="padding:20px">';
     h+='<div class="fg"><label>Original text</label><div class="ai-box" style="font-style:italic">'+esc(s.segment_text||'')+'</div></div>';
-    h+=isActivity?renderActivityCardFields(i,s,dis):renderPatientCardFields(i,s,dis);
+    h+=isActivity?renderLogCardFields('bq',i,s,dis):renderPatientCardFields('bq',i,s,dis);
     if(!isActivity&&s.payment_amount&&parseFloat(s.payment_amount)>0){
       h+='<div class="ai-box"><div class="ai-box-title">💰 Payment Mentioned</div>₹'+esc(s.payment_amount)+(s.payment_purpose?' — '+esc(s.payment_purpose):'')+(s.payment_notes?' ('+esc(s.payment_notes)+')':'');
       if(!seg.saved)h+='<button type="button" class="btn btn-secondary btn-sm" style="margin-top:6px" onclick="logBulkPayment('+i+')">Log This Payment</button>';
       h+='</div>';
     }
-    if(!seg.saved)h+='<button class="btn btn-primary" style="margin-top:12px" id="bq-'+i+'-savebtn" onclick="'+(isActivity?'saveBulkActivity(':'saveBulkCard(')+i+')">Save This '+(isActivity?'Activity':'Update')+'</button>';
+    if(!seg.saved)h+='<button class="btn btn-primary" style="margin-top:12px" id="bq-'+i+'-savebtn" onclick="'+(isActivity?'saveBulkActivity(':'saveBulkCard(')+i+')">Save This '+(isActivity?'Entry':'Update')+'</button>';
     h+='</div></div>';
   });
   c.innerHTML=h;
@@ -1146,57 +1314,65 @@ function renderBulkCards(){
     document.getElementById('bq-'+i+'-committed').value=s.committed_amount||'';
   });
 }
-function renderPatientCardFields(i,s,dis){
+// Card field renderers shared by Quick Update ('bq') and WhatsApp Import
+// ('wa') — prefix keeps their element ids apart. The `s` object uses the
+// parse-function field names (visit_notes, next_visit_date, ...), which
+// both edge functions emit identically.
+function renderPatientCardFields(prefix,i,s,dis){
   var matched=patients.find(function(p){return p.code===s.matched_patient_code;});
   var pid=matched?matched.id:'';
   var visitNum=matched?(parseInt(matched.visitNum)||0)+1:1;
   var h='';
   if(!matched||s.match_confidence==='low'||s.match_confidence==='none'){
-    h+='<div class="ai-box" style="margin-bottom:10px"><div class="ai-box-title">⚠️ Please confirm the patient</div>'+esc(s.match_notes||'Could not confidently match a patient — please pick one.')+'</div>';
+    h+='<div class="ai-box" style="margin-bottom:10px"><div class="ai-box-title">⚠️ Please confirm the patient</div>'+esc(s.match_notes||'Could not confidently match a patient — please pick one.')+' If the patient isn\'t registered yet, add them from the Dashboard first, then pick them here.</div>';
   }
-  h+='<div class="fg"><label>Patient</label><select id="bq-'+i+'-patient" onchange="onBulkPatientChange('+i+')" '+dis+'><option value="">Select a patient…</option>'+bulkPatientOptions(pid)+'</select></div>';
-  h+='<div class="form-row"><div class="fg"><label>Visit Date</label><input type="date" id="bq-'+i+'-visitdate" value="'+new Date().toISOString().slice(0,10)+'" '+dis+'></div><div class="fg"><label>Visit Number</label><input type="number" id="bq-'+i+'-visitnum" min="1" value="'+visitNum+'" '+dis+'></div></div>';
-  h+='<div class="fg"><label>What happened</label><textarea id="bq-'+i+'-notes" '+dis+'>'+esc(s.visit_notes||s.segment_text||'')+'</textarea></div>';
-  h+='<div class="form-row"><div class="fg"><label>Updated Status</label><select id="bq-'+i+'-status" '+dis+'><option value="">No change</option>'+STATUS_OPTIONS.map(function(o){return '<option'+(o===s.status?' selected':'')+'>'+o+'</option>';}).join('')+'</select></div><div class="fg"><label>Next Visit Date</label><input type="date" id="bq-'+i+'-nextvisit" '+dis+'></div></div>';
-  h+='<div class="fg"><label>Diagnosis (blank = no change)</label><input type="text" id="bq-'+i+'-diagnosis" '+dis+'></div>';
-  h+='<div class="fg"><label>Treatment (blank = no change)</label><textarea id="bq-'+i+'-treatment" '+dis+'>'+esc(s.treatment||'')+'</textarea></div>';
-  h+='<div class="fg"><label>Medication (blank = no change)</label><textarea id="bq-'+i+'-medication" '+dis+'>'+esc(s.medication||'')+'</textarea></div>';
-  h+='<div class="form-row"><div class="fg"><label>Next Test</label><input type="text" id="bq-'+i+'-nexttest" '+dis+'></div><div class="fg"><label>Test Due Date</label><input type="date" id="bq-'+i+'-testdate" '+dis+'></div></div>';
-  h+='<div class="fg"><label>Medicine Refill Due</label><input type="date" id="bq-'+i+'-meddate" '+dis+'></div>';
-  h+='<div class="fg"><label>Committed Amount (₹, blank = no change)</label><input type="number" id="bq-'+i+'-committed" min="0" step="0.01" '+dis+'></div>';
+  h+='<div class="fg"><label>Patient</label><select id="'+prefix+'-'+i+'-patient" onchange="onCardPatientChange(\''+prefix+'\','+i+')" '+dis+'><option value="">Select a patient…</option>'+bulkPatientOptions(pid)+'</select></div>';
+  h+='<div class="form-row"><div class="fg"><label>Visit Date</label><input type="date" id="'+prefix+'-'+i+'-visitdate" value="'+new Date().toISOString().slice(0,10)+'" '+dis+'></div><div class="fg"><label>Visit Number</label><input type="number" id="'+prefix+'-'+i+'-visitnum" min="1" value="'+visitNum+'" '+dis+'></div></div>';
+  h+='<div class="fg"><label>What happened</label><textarea id="'+prefix+'-'+i+'-notes" '+dis+'>'+esc(s.visit_notes||s.segment_text||'')+'</textarea></div>';
+  h+='<div class="form-row"><div class="fg"><label>Updated Status</label><select id="'+prefix+'-'+i+'-status" '+dis+'><option value="">No change</option>'+STATUS_OPTIONS.map(function(o){return '<option'+(o===s.status?' selected':'')+'>'+o+'</option>';}).join('')+'</select></div><div class="fg"><label>Next Visit Date</label><input type="date" id="'+prefix+'-'+i+'-nextvisit" '+dis+'></div></div>';
+  h+='<div class="fg"><label>Diagnosis (blank = no change)</label><input type="text" id="'+prefix+'-'+i+'-diagnosis" '+dis+'></div>';
+  h+='<div class="fg"><label>Treatment (blank = no change)</label><textarea id="'+prefix+'-'+i+'-treatment" '+dis+'>'+esc(s.treatment||'')+'</textarea></div>';
+  h+='<div class="fg"><label>Medication (blank = no change)</label><textarea id="'+prefix+'-'+i+'-medication" '+dis+'>'+esc(s.medication||'')+'</textarea></div>';
+  h+='<div class="form-row"><div class="fg"><label>Next Test</label><input type="text" id="'+prefix+'-'+i+'-nexttest" '+dis+'></div><div class="fg"><label>Test Due Date</label><input type="date" id="'+prefix+'-'+i+'-testdate" '+dis+'></div></div>';
+  h+='<div class="fg"><label>Medicine Refill Due</label><input type="date" id="'+prefix+'-'+i+'-meddate" '+dis+'></div>';
+  h+='<div class="fg"><label>Committed Amount (₹, blank = no change)</label><input type="number" id="'+prefix+'-'+i+'-committed" min="0" step="0.01" '+dis+'></div>';
+  h+='<div class="chk-line"><input type="checkbox" id="'+prefix+'-'+i+'-public" '+dis+'><label for="'+prefix+'-'+i+'-public">🌐 Show on public dashboard (patient entries stay private unless you tick this)</label></div>';
   return h;
 }
-function renderActivityCardFields(i,s,dis){
+function renderLogCardFields(prefix,i,s,dis){
+  var t=logTypeByName(s.log_type||s.activity_type);
   var h='';
-  h+='<div class="form-row"><div class="fg"><label>Date</label><input type="date" id="bq-'+i+'-adate" '+dis+'></div><div class="fg"><label>Type</label><select id="bq-'+i+'-atype" '+dis+'>'+ACTIVITY_TYPE_OPTIONS.map(function(o){return '<option'+(o===s.activity_type?' selected':'')+'>'+o+'</option>';}).join('')+'</select></div></div>';
-  h+='<div class="fg"><label>Title</label><input type="text" id="bq-'+i+'-atitle" '+dis+'></div>';
-  h+='<div class="fg"><label>Description</label><textarea id="bq-'+i+'-adesc" '+dis+'></textarea></div>';
-  h+='<div class="fg"><label>Participants</label><input type="text" id="bq-'+i+'-aparticipants" '+dis+'></div>';
+  h+='<div class="form-row"><div class="fg"><label>Date</label><input type="date" id="'+prefix+'-'+i+'-adate" '+dis+'></div><div class="fg"><label>Category</label><select id="'+prefix+'-'+i+'-atype" onchange="onCardTypeChange(\''+prefix+'\','+i+')" '+dis+'>'+logTypeOptions(t?t.id:null,true)+'</select></div></div>';
+  h+='<div class="fg"><label>Title</label><input type="text" id="'+prefix+'-'+i+'-atitle" '+dis+'></div>';
+  h+='<div class="fg"><label>Description</label><textarea id="'+prefix+'-'+i+'-adesc" '+dis+'></textarea></div>';
+  h+='<div class="fg"><label>Participants</label><input type="text" id="'+prefix+'-'+i+'-aparticipants" '+dis+'></div>';
+  h+='<div class="chk-line"><input type="checkbox" id="'+prefix+'-'+i+'-public" '+(t&&t.public_default?'checked':'')+' '+dis+'><label for="'+prefix+'-'+i+'-public">🌐 Show on public dashboard</label></div>';
   return h;
 }
-function onBulkPatientChange(i){
-  var p=patients.find(function(x){return x.id===document.getElementById('bq-'+i+'-patient').value;});
-  document.getElementById('bq-'+i+'-visitnum').value=p?(parseInt(p.visitNum)||0)+1:1;
+function onCardPatientChange(prefix,i){
+  var p=patients.find(function(x){return x.id===document.getElementById(prefix+'-'+i+'-patient').value;});
+  document.getElementById(prefix+'-'+i+'-visitnum').value=p?(parseInt(p.visitNum)||0)+1:1;
+}
+function onCardTypeChange(prefix,i){
+  var t=logTypeById(document.getElementById(prefix+'-'+i+'-atype').value);
+  document.getElementById(prefix+'-'+i+'-public').checked=!!(t&&t.public_default);
+}
+function collectPatientFields(prefix,i){
+  function v(sfx){var el=document.getElementById(prefix+'-'+i+'-'+sfx);return el?el.value:'';}
+  return{visitDate:v('visitdate'),visitNum:v('visitnum'),notes:v('notes'),status:v('status'),
+    nextVisit:v('nextvisit'),diagnosis:v('diagnosis').trim(),treatment:v('treatment').trim(),
+    medication:v('medication').trim(),nextTest:v('nexttest').trim(),testDate:v('testdate'),
+    medDate:v('meddate'),committedAmount:v('committed')};
 }
 async function saveBulkCard(i){
   var pid=document.getElementById('bq-'+i+'-patient').value;
   if(!pid){alert('Please select a patient for this update first');return;}
   var btn=document.getElementById('bq-'+i+'-savebtn');
   btn.disabled=true;btn.textContent='Saving…';
-  var result=await savePatientUpdate(pid,{
-    visitDate:document.getElementById('bq-'+i+'-visitdate').value,
-    visitNum:document.getElementById('bq-'+i+'-visitnum').value,
-    notes:document.getElementById('bq-'+i+'-notes').value,
-    status:document.getElementById('bq-'+i+'-status').value,
-    nextVisit:document.getElementById('bq-'+i+'-nextvisit').value,
-    diagnosis:document.getElementById('bq-'+i+'-diagnosis').value.trim(),
-    treatment:document.getElementById('bq-'+i+'-treatment').value.trim(),
-    medication:document.getElementById('bq-'+i+'-medication').value.trim(),
-    nextTest:document.getElementById('bq-'+i+'-nexttest').value.trim(),
-    testDate:document.getElementById('bq-'+i+'-testdate').value,
-    medDate:document.getElementById('bq-'+i+'-meddate').value,
-    committedAmount:document.getElementById('bq-'+i+'-committed').value
-  });
+  var s=bulkSegments[i].data;
+  var result=await savePatientUpdate(pid,collectPatientFields('bq',i),
+    {source:'quick-update',sourceText:s.segment_text||null,
+     isPublic:document.getElementById('bq-'+i+'-public').checked});
   if(result.error){
     btn.disabled=false;btn.textContent='Save This Update';
     alert('Could not save update: '+result.error);
@@ -1210,19 +1386,22 @@ async function saveBulkActivity(i){
   if(!desc){alert('Describe what happened');return;}
   var btn=document.getElementById('bq-'+i+'-savebtn');
   btn.disabled=true;btn.textContent='Saving…';
-  var row={activity_date:document.getElementById('bq-'+i+'-adate').value||new Date().toISOString().slice(0,10),
-    activity_type:document.getElementById('bq-'+i+'-atype').value,
+  var s=bulkSegments[i].data;
+  var row={occurred_on:document.getElementById('bq-'+i+'-adate').value||new Date().toISOString().slice(0,10),
+    log_type_id:document.getElementById('bq-'+i+'-atype').value,
     title:document.getElementById('bq-'+i+'-atitle').value.trim()||null,
     description:desc,
     participants:document.getElementById('bq-'+i+'-aparticipants').value.trim()||null,
+    is_public:document.getElementById('bq-'+i+'-public').checked,
+    source:'quick-update',source_text:s.segment_text||null,
     created_by:UNAME};
-  var resp=await sb.from('activities').insert(row);
+  var resp=await sb.from('logs').insert(row);
   if(resp.error){
-    btn.disabled=false;btn.textContent='Save This Activity';
-    alert('Could not save activity: '+resp.error.message);
+    btn.disabled=false;btn.textContent='Save This Entry';
+    alert('Could not save entry: '+resp.error.message);
     return;
   }
-  await loadActivities();
+  await loadLogs();
   bulkSegments[i].saved=true;
   refreshActivePage();
 }
@@ -1236,6 +1415,301 @@ function logBulkPayment(i){
   document.getElementById('txnPurpose').value=s.payment_purpose||'Other';
   document.getElementById('txnDate').value=document.getElementById('bq-'+i+'-visitdate').value||new Date().toISOString().slice(0,10);
   document.getElementById('txnNotes').value=s.payment_notes||'';
+}
+
+// ═══ WHATSAPP IMPORT ═════════════════════════════════════════════
+// Paste (or upload) a WhatsApp chat export; photos from an export-with-media
+// folder can come along. Flow: parse the export format locally → hash every
+// message and drop the ones already in the whatsapp_messages ledger → send
+// only the new ones to the parse-whatsapp function → review cards → saving
+// any card also records the ledger, so re-pasting overlapping exports never
+// double-logs.
+var waParsed=[];      // every message parsed out of the pasted text
+var waNew=[];         // the subset not yet in the ledger (these went to the AI)
+var waEntries=[];     // proposed entries under review
+var waFiles={};       // filename -> File, from the picker
+var waTxtFile=null;
+var waLedgerDone=false;
+
+function waPickFiles(input){
+  Array.from(input.files).forEach(function(f){
+    if(f.name.toLowerCase().slice(-4)==='.txt'){waTxtFile=f;document.getElementById('waTxtName').textContent='Chat file: '+f.name+'.';}
+    else waFiles[f.name]=f;
+  });
+  var n=Object.keys(waFiles).length;
+  document.getElementById('waFileCount').textContent=n?n+' image(s) ready to attach.':'';
+  input.value='';
+}
+
+function parseWhatsAppExport(text){
+  var lines=text.split(/\r?\n/);
+  var msgs=[];var cur=null;
+  function p2(n){return(n<10?'0':'')+n;}
+  function norm(dateStr,timeStr){
+    var dm=dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);if(!dm)return null;
+    var d=parseInt(dm[1],10),mo=parseInt(dm[2],10),y=parseInt(dm[3],10);if(y<100)y+=2000;
+    var tm=timeStr.match(/(\d{1,2}):(\d{2})/);if(!tm)return null;
+    var hh=parseInt(tm[1],10),mm=parseInt(tm[2],10);
+    var ap=timeStr.match(/([ap])\.?\s?m\.?/i);
+    if(ap){var half=ap[1].toLowerCase();if(half==='p'&&hh<12)hh+=12;if(half==='a'&&hh===12)hh=0;}
+    return y+'-'+p2(mo)+'-'+p2(d)+' '+p2(hh)+':'+p2(mm);
+  }
+  function headerParse(line){
+    // "[a, b] Sender: text" where a/b are time and date in either order
+    // (this group's exports put the time first), plus the common Android
+    // form "DD/MM/YYYY, HH:MM - Sender: text".
+    var m=line.match(/^\[([^\],]+),\s*([^\]]+)\]\s*([^:]{1,60}):\s?([\s\S]*)$/);
+    if(m){
+      var a=m[1].trim(),b=m[2].trim();
+      var dateStr=a.indexOf('/')>=0?a:b,timeStr=a.indexOf('/')>=0?b:a;
+      var ts=norm(dateStr,timeStr);
+      if(ts)return{sent_at:ts,sender:m[3].trim(),body:m[4]};
+    }
+    var m2=line.match(/^(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s+(\d{1,2}:\d{2}\s?(?:[apAP]\.?\s?[mM]\.?)?)\s*-\s*([^:]{1,60}):\s?([\s\S]*)$/);
+    if(m2){
+      var ts2=norm(m2[1],m2[2]);
+      if(ts2)return{sent_at:ts2,sender:m2[3].trim(),body:m2[4]};
+    }
+    return null;
+  }
+  function headerLike(line){
+    return /^\[[^\]]*\d{1,2}\/\d{1,2}\/\d{2,4}[^\]]*\]/.test(line)||/^\d{1,2}\/\d{1,2}\/\d{2,4},?\s+\d{1,2}:\d{2}/.test(line);
+  }
+  lines.forEach(function(line){
+    var head=headerParse(line);
+    if(head){cur={sent_at:head.sent_at,sender:head.sender,body:head.body,media:[]};msgs.push(cur);return;}
+    if(headerLike(line)){cur=null;return;} // timestamped system line (no sender) — skip
+    if(cur)cur.body+='\n'+line;
+  });
+  msgs.forEach(function(m){
+    // pull "IMG-xxx.jpg (file attached)" references out of the body
+    m.body=m.body.replace(/([\w\-\.]+\.(?:jpe?g|png|webp|gif|pdf|mp4|opus|m4a))\s*\(file attached\)\s*/gi,function(_,fn){m.media.push(fn);return'';});
+    m.body=m.body.replace(/‎/g,'').trim();
+  });
+  // Strip quoted-reply echoes: WhatsApp text exports prefix a reply with a
+  // copy of the message it quotes — keep only the new text.
+  for(var i=1;i<msgs.length;i++){
+    for(var j=Math.max(0,i-12);j<i;j++){
+      var prev=msgs[j].body;
+      if(prev&&prev.length>=24&&msgs[i].body.length>prev.length&&msgs[i].body.indexOf(prev)===0){
+        msgs[i].body=msgs[i].body.slice(prev.length).replace(/^\s+/,'');
+        break;
+      }
+    }
+  }
+  return msgs.filter(function(m){return m.body||m.media.length;});
+}
+
+async function sha256hex(s){
+  var buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+}
+
+async function waImport(){
+  var text=document.getElementById('waText').value;
+  if(waTxtFile)text=await waTxtFile.text();
+  if(!text.trim()){alert('Paste the exported chat text (or upload the exported .txt file) first');return;}
+  var btn=document.getElementById('waImportBtn');
+  btn.disabled=true;btn.textContent='Reading…';
+  try{
+    waParsed=parseWhatsAppExport(text);
+    if(!waParsed.length){alert('No WhatsApp messages recognized. Expected lines like "[12:48, 09/08/2026] Name: message".');return;}
+    for(var i=0;i<waParsed.length;i++){
+      waParsed[i].msg_hash=await sha256hex(waParsed[i].sender+'|'+waParsed[i].sent_at+'|'+waParsed[i].body);
+    }
+    var known={};
+    for(var c=0;c<waParsed.length;c+=200){
+      var chunk=waParsed.slice(c,c+200).map(function(m){return m.msg_hash;});
+      var resp=await sb.from('whatsapp_messages').select('msg_hash').in('msg_hash',chunk);
+      if(resp.error){alert('Could not check the import ledger: '+resp.error.message);return;}
+      (resp.data||[]).forEach(function(r){known[r.msg_hash]=true;});
+    }
+    waNew=waParsed.filter(function(m){return !known[m.msg_hash];});
+    waLedgerDone=false;
+    var already=waParsed.length-waNew.length;
+    var sum=waParsed.length+' message(s) in the export'+(already?', '+already+' already imported earlier':'')+'.';
+    if(!waNew.length){
+      document.getElementById('waSummary').innerHTML='<div class="ai-box" style="margin-top:16px">'+esc(sum)+' Nothing new to import.</div>';
+      waEntries=[];renderWaCards();return;
+    }
+    document.getElementById('waSummary').innerHTML='<div class="ai-box" style="margin-top:16px">'+esc(sum)+' Reading '+waNew.length+' new message(s)…</div>';
+    var fnResp=await sb.functions.invoke('parse-whatsapp',{body:{messages:waNew.map(function(m){return{sent_at:m.sent_at,sender:m.sender,body:m.body,media:m.media};})}});
+    if(fnResp.error||!fnResp.data||fnResp.data.error){
+      alert('Could not read the messages: '+await edgeErrorMessage(fnResp));
+      document.getElementById('waSummary').innerHTML='';
+      return;
+    }
+    waEntries=(fnResp.data.entries||[]).map(function(e){return{data:e,saved:false};});
+    document.getElementById('waSummary').innerHTML='<div class="ai-box" style="margin-top:16px">'+esc(sum)+' '+waNew.length+' new message(s) read → '+waEntries.length+' proposed entr'+(waEntries.length===1?'y':'ies')+' below. Review each one — nothing saves until you say so.</div>';
+    renderWaCards();
+  } finally {
+    btn.disabled=false;btn.textContent='🤖 Read & Propose Entries';
+  }
+}
+
+function waSourceText(e){
+  return (e.source_message_indexes||[]).map(function(idx){
+    var m=waNew[idx];if(!m)return'';
+    return'['+m.sent_at+'] '+m.sender+': '+m.body+(m.media.length?' ['+m.media.join(', ')+']':'');
+  }).filter(Boolean).join('\n');
+}
+function waEntryFiles(e){
+  var out=[];(e.source_message_indexes||[]).forEach(function(idx){
+    var m=waNew[idx];if(!m)return;
+    m.media.forEach(function(fn){if(waFiles[fn])out.push(waFiles[fn]);});
+  });
+  return out;
+}
+
+function renderWaCards(){
+  var c=document.getElementById('waResults');if(!c)return;
+  if(!waEntries.length){c.innerHTML='';return;}
+  var h='';
+  var unsaved=waEntries.filter(function(e){return !e.saved;}).length;
+  if(unsaved>1)h+='<div style="margin:16px 0 0"><button class="btn btn-primary" id="waAcceptAllBtn" onclick="waAcceptAll()">✓ Accept All Remaining ('+unsaved+')</button></div>';
+  waEntries.forEach(function(en,i){
+    var e=en.data,dis=en.saved?'disabled':'';
+    var isPatient=e.log_type==='Patient Update';
+    var t=logTypeByName(e.log_type);
+    h+='<div class="card" style="margin-top:16px"><div class="card-header"><h2>'+(t?t.emoji+' ':'')+esc(e.log_type)+' — entry '+(i+1)+(en.saved?' — ✓ Saved':'')+'</h2></div><div style="padding:20px">';
+    h+='<div class="fg"><label>From these messages</label><div class="ai-box" style="font-style:italic;white-space:pre-wrap">'+esc(waSourceText(e))+'</div></div>';
+    var nfiles=waEntryFiles(e).length;
+    if(nfiles)h+='<div class="ai-box" style="margin-bottom:10px">📎 '+nfiles+' photo(s) from these messages will be attached on save.</div>';
+    h+=isPatient?renderPatientCardFields('wa',i,e,dis):renderLogCardFields('wa',i,e,dis);
+    if(isPatient&&e.payment_amount&&parseFloat(e.payment_amount)>0){
+      h+='<div class="ai-box"><div class="ai-box-title">💰 Payment Mentioned</div>₹'+esc(e.payment_amount)+(e.payment_purpose?' — '+esc(e.payment_purpose):'')+(e.payment_notes?' ('+esc(e.payment_notes)+')':'');
+      if(!en.saved)h+='<button type="button" class="btn btn-secondary btn-sm" style="margin-top:6px" onclick="waLogPayment('+i+')">Log This Payment</button>';
+      h+='</div>';
+    }
+    if(!en.saved)h+='<button class="btn btn-primary" style="margin-top:12px" id="wa-'+i+'-savebtn" onclick="saveWaCard('+i+')">Save This Entry</button>';
+    h+='</div></div>';
+  });
+  c.innerHTML=h;
+  // Values set here rather than baked into the HTML (same reason as the
+  // Quick Update cards: model output could contain a stray quote).
+  waEntries.forEach(function(en,i){
+    var e=en.data;
+    if(e.log_type==='Patient Update'){
+      document.getElementById('wa-'+i+'-visitdate').value=e.occurred_on||new Date().toISOString().slice(0,10);
+      document.getElementById('wa-'+i+'-nextvisit').value=e.next_visit_date||'';
+      document.getElementById('wa-'+i+'-diagnosis').value=e.diagnosis||'';
+      document.getElementById('wa-'+i+'-nexttest').value=e.next_test||'';
+      document.getElementById('wa-'+i+'-testdate').value=e.test_date||'';
+      document.getElementById('wa-'+i+'-meddate').value=e.med_date||'';
+      document.getElementById('wa-'+i+'-committed').value=e.committed_amount||'';
+    } else {
+      document.getElementById('wa-'+i+'-adate').value=e.occurred_on||new Date().toISOString().slice(0,10);
+      document.getElementById('wa-'+i+'-atitle').value=e.title||'';
+      document.getElementById('wa-'+i+'-adesc').value=e.description||'';
+      document.getElementById('wa-'+i+'-aparticipants').value=e.participants||'';
+    }
+  });
+}
+
+function waLogPayment(i){
+  var e=waEntries[i].data;
+  var pid=document.getElementById('wa-'+i+'-patient').value;
+  if(!pid){alert('Please select the patient for this entry first');return;}
+  openAddTxn();
+  document.getElementById('txnPatient').value=pid;
+  document.getElementById('txnAmount').value=e.payment_amount;
+  document.getElementById('txnPurpose').value=e.payment_purpose||'Other';
+  document.getElementById('txnDate').value=document.getElementById('wa-'+i+'-visitdate').value||new Date().toISOString().slice(0,10);
+  document.getElementById('txnNotes').value=e.payment_notes||'';
+}
+
+// The ledger records every NEW message from this import (entries or not) the
+// first time any card is saved — from then on, re-pasting the same export
+// finds the hashes and skips them.
+async function waEnsureLedger(){
+  if(waLedgerDone)return true;
+  var rows=waNew.map(function(m){return{msg_hash:m.msg_hash,sender:m.sender,sent_at:m.sent_at,body:m.body,imported_by:UNAME};});
+  for(var c=0;c<rows.length;c+=200){
+    var resp=await sb.from('whatsapp_messages').upsert(rows.slice(c,c+200),{onConflict:'msg_hash',ignoreDuplicates:true});
+    if(resp.error){alert('Could not record the import ledger: '+resp.error.message);return false;}
+  }
+  waLedgerDone=true;
+  return true;
+}
+
+// Photos route by sensitivity: patient entries → the private patient-files
+// bucket (they're usually medical reports); everything else → the public
+// log-files bucket (camp photos and similar storytelling material).
+async function waUploadFiles(e,logId,patientId,isPub){
+  var files=waEntryFiles(e);
+  for(var i=0;i<files.length;i++){
+    var f=files[i];
+    if(f.size>4*1024*1024){alert('Skipping too-large file: '+f.name);continue;}
+    if(patientId){
+      var path=patientId+'/'+Date.now()+'_'+f.name;
+      var up=await sb.storage.from('patient-files').upload(path,f);
+      if(up.error){alert('Upload failed for '+f.name+': '+up.error.message);continue;}
+      var ins=await sb.from('patient_files').insert({patient_id:patientId,name:f.name,category:'Latest Report',storage_path:path,uploaded_by:UNAME});
+      if(ins.error)alert('Could not record '+f.name+': '+ins.error.message);
+    } else if(logId){
+      var path2=logId+'/'+Date.now()+'_'+f.name;
+      var up2=await sb.storage.from('log-files').upload(path2,f);
+      if(up2.error){alert('Upload failed for '+f.name+': '+up2.error.message);continue;}
+      var ins2=await sb.from('log_files').insert({log_id:logId,name:f.name,storage_path:path2,is_public:!!isPub,uploaded_by:UNAME});
+      if(ins2.error)alert('Could not record '+f.name+': '+ins2.error.message);
+    }
+  }
+}
+
+function waMarkSaved(i){
+  waEntries[i].saved=true;
+  ['patient','visitdate','visitnum','notes','status','nextvisit','diagnosis','treatment','medication','nexttest','testdate','meddate','committed','adate','atype','atitle','adesc','aparticipants','public'].forEach(function(sfx){
+    var el=document.getElementById('wa-'+i+'-'+sfx);if(el)el.disabled=true;
+  });
+  var btn=document.getElementById('wa-'+i+'-savebtn');
+  if(btn){btn.disabled=true;btn.textContent='✓ Saved';}
+  var remaining=waEntries.filter(function(e){return !e.saved;}).length;
+  var allBtn=document.getElementById('waAcceptAllBtn');
+  if(allBtn){if(remaining>0)allBtn.textContent='✓ Accept All Remaining ('+remaining+')';else allBtn.style.display='none';}
+}
+
+async function saveWaCard(i){
+  var en=waEntries[i];if(!en||en.saved)return true;
+  var e=en.data;
+  var btn=document.getElementById('wa-'+i+'-savebtn');
+  if(btn){btn.disabled=true;btn.textContent='Saving…';}
+  function fail(msg){if(btn){btn.disabled=false;btn.textContent='Save This Entry';}if(msg)alert(msg);return false;}
+  if(!await waEnsureLedger())return fail(null);
+  if(e.log_type==='Patient Update'){
+    var pid=document.getElementById('wa-'+i+'-patient').value;
+    if(!pid)return fail('Pick the patient for entry '+(i+1)+' first — or register them from the Dashboard, then re-select here.');
+    var opts={source:'whatsapp',sourceText:waSourceText(e),
+      isPublic:document.getElementById('wa-'+i+'-public').checked};
+    var result=await savePatientUpdate(pid,collectPatientFields('wa',i),opts);
+    if(result.error)return fail('Could not save: '+result.error);
+    await waUploadFiles(e,opts.logId,pid,false);
+  } else {
+    var isPub=document.getElementById('wa-'+i+'-public').checked;
+    var row={occurred_on:document.getElementById('wa-'+i+'-adate').value||new Date().toISOString().slice(0,10),
+      log_type_id:document.getElementById('wa-'+i+'-atype').value,
+      title:document.getElementById('wa-'+i+'-atitle').value.trim()||null,
+      description:document.getElementById('wa-'+i+'-adesc').value.trim()||waSourceText(e),
+      participants:document.getElementById('wa-'+i+'-aparticipants').value.trim()||null,
+      is_public:isPub,source:'whatsapp',source_text:waSourceText(e),created_by:UNAME};
+    var resp=await sb.from('logs').insert(row).select().single();
+    if(resp.error)return fail('Could not save: '+resp.error.message);
+    await waUploadFiles(e,resp.data.id,null,isPub);
+    await loadLogs();
+  }
+  waMarkSaved(i);
+  return true;
+}
+
+async function waAcceptAll(){
+  var skipped=0;
+  for(var i=0;i<waEntries.length;i++){
+    if(waEntries[i].saved)continue;
+    var e=waEntries[i].data;
+    if(e.log_type==='Patient Update'&&!document.getElementById('wa-'+i+'-patient').value){skipped++;continue;}
+    var ok=await saveWaCard(i);
+    if(!ok)return;
+  }
+  if(skipped)alert(skipped+' patient entr'+(skipped===1?'y still needs':'ies still need')+' a patient selected (register them first if they\'re new) — save those individually.');
 }
 
 // AI: report reading + case summary — staff/advisor only, on-demand.

@@ -467,6 +467,13 @@ grant select on logs_public to anon;
 grant select on log_tiles_public to anon;
 grant select on log_files_public to anon;
 
+-- Logged-in staff/advisors preview the same public page inside the portal,
+-- so the views need to answer for them too (they could read the base tables
+-- anyway — this leaks nothing new).
+grant select on logs_public to authenticated;
+grant select on log_tiles_public to authenticated;
+grant select on log_files_public to authenticated;
+
 -- ─── MIGRATE ACTIVITIES → LOGS ───────────────────────────────
 -- Copies every activities row into logs exactly once (legacy_activity_id
 -- makes this idempotent — safe to re-run). The activities table and its
