@@ -330,11 +330,12 @@ create table if not exists log_types (
   created_at timestamptz default now()
 );
 
+-- Volunteers and cancer saathis are the same people in SACCI's model, so
+-- there is deliberately no separate Volunteer category.
 insert into log_types (name, emoji, public_default, show_public_tile, tile_label, sort_order) values
   ('Patient Update',       '🩺', false, false, null,             10),
   ('Health Camp',          '⛺', true,  true,  'Camps Held',     20),
   ('Cancer Saathi Joined', '🤝', true,  true,  'Cancer Saathis', 30),
-  ('Volunteer Drafted',    '🙋', true,  true,  'Volunteers',     40),
   ('Meeting',              '👥', false, false, null,             50),
   ('Training',             '🎓', false, false, null,             60),
   ('Milestone',            '🏆', true,  false, null,             70),
