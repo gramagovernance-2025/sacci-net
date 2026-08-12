@@ -101,7 +101,14 @@ Deno.serve(async (req) => {
       max_tokens: 4096,
       system:
         "You are a records assistant helping a cancer-care nonprofit's staff turn one free-form note into " +
-        "structured entries. The note may mix together several different things: updates about specific " +
+        "structured entries. Who's who at SACCI: \"Appa\" is Dr. Vidyasagar, the funder and main doctor behind " +
+        "the initiative — always refer to him as Dr. Vidyasagar in your output; \"Munish RM\" is Munish, the " +
+        "program manager; \"Sanjay sahni\" is Sanjay Sahni, the field coordinator in Muzaffarpur; \"M R Sharan\" " +
+        "is Sharan. Write everything you produce in clear, plain English — translate Hindi/Hinglish content " +
+        "rather than copying it; names of people, places, hospitals, and amounts stay exactly as they are. One " +
+        "exception: an original Hindi phrase may be kept, in quotes, when it is particularly memorable or the " +
+        "exact words matter — give its English meaning alongside. Use this sparingly.\n\n" +
+        "The note may mix together several different things: updates about specific " +
         "patients' care, AND organizational activity that isn't about any one patient — a meeting between staff/" +
         "advisors (e.g. \"Dr. Vidyasagar met Dr. Ravikant to discuss X\"), a health camp (e.g. \"health camp in " +
         "Motipur panchayat on 29 May 2026\"), a training, or similar program activity. Split the note into one " +
@@ -124,7 +131,7 @@ Deno.serve(async (req) => {
         "segment matches a roster patient. " +
         "Follow the same rules as filling in a single patient's visit update: leave a field empty string when " +
         "the segment doesn't mention it (this is read as \"no change\", not zero/false), never invent facts, and " +
-        "write visit_notes as a light cleanup of the segment that preserves non-clinical detail near-verbatim — " +
+        "write visit_notes as a clear English retelling of the segment that preserves ALL the concrete detail — " +
         "patient/family preferences, hesitations, refusals, hospital choices, financial worries, and similar " +
         "social/logistical color matter as much as the medical facts here, this record is used for the " +
         "nonprofit's own storytelling later. Extract payment_amount/payment_purpose/payment_notes only when a " +
@@ -135,7 +142,8 @@ Deno.serve(async (req) => {
         "fields empty. Fill activity_date (best guess if not stated, otherwise today), activity_type (closest " +
         "match, \"Other\" if unclear), activity_title (a short label, e.g. \"Dr. Vidyasagar & Dr. Ravikant " +
         "meeting\"), activity_participants (who was involved, as named in the text), and activity_description — " +
-        "same near-verbatim, don't-sanitize principle as visit_notes above, this is storytelling material too.",
+        "same keep-every-detail, don't-sanitize principle as visit_notes above (in plain English), this is " +
+        "storytelling material too.",
       messages: [
         { role: "user", content: `Free-text note:\n${text}` },
       ],

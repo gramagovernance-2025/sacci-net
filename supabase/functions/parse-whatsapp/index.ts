@@ -124,6 +124,15 @@ Deno.serve(async (req) => {
         "reading messages from the staff's WhatsApp coordination group — field coordinators and program staff " +
         "arranging patient care, health camps, and other organizational work, mostly in Hinglish (Hindi written " +
         "in Latin script, mixed with English).\n\n" +
+        "Who's who in this group: \"Appa\" is Dr. Vidyasagar, SACCI's funder and the main doctor behind the " +
+        "initiative — always refer to him as Dr. Vidyasagar in your output. \"Munish RM\" is Munish, the program " +
+        "manager. \"Sanjay sahni\" is Sanjay Sahni, the field coordinator in Muzaffarpur. \"M R Sharan\" is " +
+        "Sharan.\n\n" +
+        "Write everything you produce — visit_notes, title, description, participants, match_notes — in clear, " +
+        "plain English. Translate Hindi/Hinglish content; never copy it. Names of people, places, hospitals, and " +
+        "amounts stay exactly as they are. One exception: an original Hindi phrase may be kept, in quotes, when " +
+        "it is particularly memorable or the exact words matter — give its English meaning alongside. Use this " +
+        "sparingly.\n\n" +
         "Each message is given as: [index] timestamp — sender: body, with attached filenames noted. Export " +
         "quirks to expect: a reply often begins with an echoed copy of the earlier message it quotes — ignore " +
         "the echoed part and read only the new text. Placeholders like \"12 photos\" or \"<Media omitted>\" " +
@@ -153,15 +162,15 @@ Deno.serve(async (req) => {
         "and age/gender/phone/village/block/diagnosis only where actually stated — never guessed. Leave all " +
         "new_patient_* fields empty when the entry matches a roster patient. Leave a field as empty string when the messages don't " +
         "mention it (read as \"no change\", never zero/false), never invent facts, and write visit_notes as a " +
-        "light cleanup of the thread that preserves non-clinical detail near-verbatim — who accompanied the " +
+        "clear English retelling of the thread that preserves ALL the concrete detail — who accompanied the " +
         "patient, family hesitations, hospital choices, money worries, and similar social/logistical color " +
         "matter as much as the medical facts; this record feeds the nonprofit's own storytelling later. Extract " +
         "payment_amount/payment_purpose/payment_notes only when a concrete amount of money is mentioned, and " +
         "committed_amount only for a total estimated/committed cost of care. Leave title and participants empty " +
         "for these entries.\n\n" +
         "For every other log_type: leave all patient fields empty. Fill title (a short label, e.g. \"Health camp " +
-        "in Motipur panchayat\"), participants (who was involved, as named), and description — same " +
-        "near-verbatim, don't-sanitize principle as visit_notes.",
+        "in Motipur panchayat\"), participants (who was involved, by their real names), and description — same " +
+        "keep-every-detail, don't-sanitize principle as visit_notes, in plain English.",
       messages: [
         { role: "user", content: `WhatsApp messages:\n${messagesText}` },
       ],

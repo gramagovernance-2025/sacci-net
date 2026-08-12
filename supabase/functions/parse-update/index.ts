@@ -90,11 +90,15 @@ Deno.serve(async (req) => {
         "read by the caller as \"leave unchanged\", so guessing or repeating the existing value is wrong and would " +
         "get treated as a real edit). Do not invent facts. If a date is ambiguous, leave the date field empty and " +
         "describe the ambiguity in visit_notes instead of guessing. visit_notes should read like a clean version " +
-        "of what happened at this visit, suitable for a permanent record — but this record is used for the " +
-        "nonprofit's own storytelling later, not just clinical tracking, so preserve non-clinical detail " +
-        "near-verbatim rather than compressing it away: patient/family preferences, hesitations, refusals, " +
+        "of what happened at this visit, suitable for a permanent record, written in clear plain English — " +
+        "translate any Hindi/Hinglish in the note rather than copying it (names of people, places, hospitals, " +
+        "and amounts stay exactly as they are; an original Hindi phrase may be kept in quotes only when it is " +
+        "particularly memorable, with its English meaning alongside). This record is used for the " +
+        "nonprofit's own storytelling later, not just clinical tracking, so keep ALL the concrete detail " +
+        "rather than compressing it away: patient/family preferences, hesitations, refusals, " +
         "hospital choices, financial worries, and similar social/logistical color are exactly as important to " +
-        "keep as the medical facts. Separately, if the text mentions money given to or spent for the patient " +
+        "keep as the medical facts. If the note calls Dr. Vidyasagar \"Appa\", write Dr. Vidyasagar. " +
+        "Separately, if the text mentions money given to or spent for the patient " +
         "(e.g. travel fare, a medicine purchase, a hospital deposit), extract payment_amount as a plain number " +
         "string with no currency symbol or commas (e.g. \"2000\"), payment_purpose as the closest matching " +
         "category, and payment_notes with any specifics worth recording. Leave all three payment fields empty if " +

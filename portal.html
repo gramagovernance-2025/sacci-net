@@ -903,11 +903,20 @@ function renderActivities(){
     var patientTag=a.patient_id?'<strong>'+esc(patientName(a.patient_id))+'</strong> — ':'';
     var titleLine=a.title?'<strong>'+esc(a.title)+'</strong><br>':'';
     var descShort=(a.description||'');if(descShort.length>300)descShort=descShort.slice(0,300)+'…';
-    h+='<tr><td>'+fmtDate(a.occurred_on)+'</td><td>'+typeLabel+'</td><td>'+titleLine+patientTag+esc(descShort)+'</td><td>'+esc(a.participants||'—')+'</td><td>';
+    // Entries that came from WhatsApp or Quick Update keep their verbatim
+    // source (often Hinglish) in source_text — English summary on top, the
+    // original one click away. Never crosses to the public views.
+    var srcToggle=a.source_text?'<br><span class="link" style="font-size:0.8rem" onclick="toggleLogSource(\''+a.id+'\')">💬 Original messages</span>':'';
+    h+='<tr><td>'+fmtDate(a.occurred_on)+'</td><td>'+typeLabel+'</td><td>'+titleLine+patientTag+esc(descShort)+srcToggle+'</td><td>'+esc(a.participants||'—')+'</td><td>';
     if(ROLE==='staff')h+='<span class="link" onclick="editActivity(\''+a.id+'\')">Edit</span> · <span class="link" onclick="deleteActivity(\''+a.id+'\')">Delete</span>';
     else h+='—';
     h+='</td></tr>';
+    if(a.source_text)h+='<tr id="src-'+a.id+'" style="display:none"><td colspan="5" style="background:rgba(0,0,0,0.03)"><div style="white-space:pre-wrap;font-size:0.82rem;color:var(--ink-muted);padding:4px 8px">'+esc(a.source_text)+'</div></td></tr>';
   });tbody.innerHTML=h;
+}
+function toggleLogSource(id){
+  var r=document.getElementById('src-'+id);
+  if(r)r.style.display=r.style.display==='none'?'':'none';
 }
 
 // CATEGORY MANAGEMENT — staff can add new log categories from the portal
