@@ -513,3 +513,32 @@ drop policy if exists "staff manage log files" on storage.objects;
 create policy "staff manage log files" on storage.objects for all
   using (bucket_id = 'log-files' and is_staff())
   with check (bucket_id = 'log-files' and is_staff());
+
+-- ─── LOG QUANTITY (2026-08-24) ───────────────────────────────
+-- One entry can represent several people or things — "3 new cancer
+-- saathis inducted" is one log row but three saathis. quantity (default 1)
+-- carries that number, and the public tiles SUM it instead of counting
+-- rows: a camp entry stays 1 camp, a 3-saathi induction counts 3.
+alter table logs add column if not exists quantity int not null default 1;
+
+drop view if exists log_tiles_public;
+create view log_tiles_public
+with (security_invoker = false) as
+  select t.name, t.emoji, coalesce(t.tile_label, t.name) as tile_label,
+         t.sort_order, coalesce(sum(l.quantity) filter (where l.is_public), 0) as n_public
+  from log_types t
+  left join logs l on l.log_type_id = t.id
+  where t.show_public_tile and t.active
+  group by t.id;
+
+drop view if exists logs_public;
+create view logs_public
+with (security_invoker = false) as
+  select l.id, l.occurred_on, t.name as log_type, t.emoji,
+         l.title, l.description, l.participants, l.quantity, l.created_at
+  from logs l
+  join log_types t on t.id = l.log_type_id
+  where l.is_public;
+
+grant select on log_tiles_public to anon;
+grant select on logs_public to anon;

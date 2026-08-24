@@ -430,6 +430,7 @@
     <div class="fg"><label>Title</label><input type="text" id="aTitle" placeholder="e.g. Health camp in Motipur panchayat"></div>
     <div class="fg"><label>Description</label><textarea id="aDescription" placeholder="What happened, discussed, or was decided..."></textarea></div>
     <div class="fg"><label>Participants</label><input type="text" id="aParticipants" placeholder="e.g. Dr. Vidyasagar, 3 cancer saathis"></div>
+    <div class="fg"><label>Count — how many people/things this entry represents</label><input type="number" id="aQuantity" min="1" step="1" value="1"></div>
     <div class="chk-line"><input type="checkbox" id="aPublic"><label for="aPublic">🌐 Show on public dashboard</label></div>
     <p style="font-size:0.75rem;color:var(--ink-muted)">Need a category that doesn't exist yet? <span class="link" onclick="openCatModal()">+ Add new category</span></p>
   </div>
@@ -705,7 +706,7 @@ async function renderPublic(){
     tl.innerHTML='<p style="font-size:0.85rem;color:var(--ink-muted);padding:6px 0 12px">Nothing published yet — camps, cancer saathi joinings, and milestones will appear here.</p>';
   } else {
     tl.innerHTML=pubLogs.map(function(l){
-      var e='<div class="pub-timeline-entry"><div class="pub-timeline-head">'+esc(l.emoji||'📌')+' '+esc(l.log_type)+' — '+fmtDate(l.occurred_on)+'</div>';
+      var e='<div class="pub-timeline-entry"><div class="pub-timeline-head">'+esc(l.emoji||'📌')+' '+esc(l.log_type)+(l.quantity>1?' ×'+l.quantity:'')+' — '+fmtDate(l.occurred_on)+'</div>';
       if(l.title)e+='<div class="pub-timeline-title">'+esc(l.title)+'</div>';
       if(l.description)e+='<div class="pub-timeline-desc">'+esc(l.description)+'</div>';
       if(l.participants)e+='<div class="pub-timeline-head" style="margin-top:4px">👥 '+esc(l.participants)+'</div>';
@@ -852,6 +853,7 @@ function openActivity(){
   document.getElementById('aTitle').value='';
   document.getElementById('aDescription').value='';
   document.getElementById('aParticipants').value='';
+  document.getElementById('aQuantity').value=1;
   document.getElementById('activityModal').classList.add('show');
 }
 function onLogTypeChange(){
@@ -869,6 +871,7 @@ function editActivity(id){
   document.getElementById('aTitle').value=a.title||'';
   document.getElementById('aDescription').value=a.description||'';
   document.getElementById('aParticipants').value=a.participants||'';
+  document.getElementById('aQuantity').value=a.quantity||1;
 }
 function closeActivity(){document.getElementById('activityModal').classList.remove('show');}
 async function saveActivity(){
@@ -878,6 +881,7 @@ async function saveActivity(){
     log_type_id:document.getElementById('aType').value,
     title:document.getElementById('aTitle').value.trim()||null,
     description:desc,participants:document.getElementById('aParticipants').value.trim()||null,
+    quantity:parseInt(document.getElementById('aQuantity').value)||1,
     is_public:document.getElementById('aPublic').checked};
   var resp;
   if(id){row.updated_by=UNAME;row.updated_at=new Date().toISOString();resp=await sb.from('logs').update(row).eq('id',id);}
@@ -899,7 +903,7 @@ function renderActivities(){
   if(!logs.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:36px;color:var(--ink-muted)">No log entries yet.</td></tr>';return;}
   var h='';logs.slice(0,25).forEach(function(a){
     var t=logTypeById(a.log_type_id);
-    var typeLabel=(t?t.emoji+' '+esc(t.name):'—')+(a.is_public?' <span title="Shown on public dashboard">🌐</span>':'');
+    var typeLabel=(t?t.emoji+' '+esc(t.name):'—')+(a.quantity>1?' <strong>×'+a.quantity+'</strong>':'')+(a.is_public?' <span title="Shown on public dashboard">🌐</span>':'');
     var patientTag=a.patient_id?'<strong>'+esc(patientName(a.patient_id))+'</strong> — ':'';
     var titleLine=a.title?'<strong>'+esc(a.title)+'</strong><br>':'';
     var descShort=(a.description||'');if(descShort.length>300)descShort=descShort.slice(0,300)+'…';
@@ -1313,6 +1317,7 @@ function renderBulkCards(){
       document.getElementById('bq-'+i+'-atitle').value=s.activity_title||'';
       document.getElementById('bq-'+i+'-adesc').value=s.activity_description||s.segment_text||'';
       document.getElementById('bq-'+i+'-aparticipants').value=s.activity_participants||'';
+      document.getElementById('bq-'+i+'-aquantity').value=parseInt(s.quantity)||1;
       return;
     }
     document.getElementById('bq-'+i+'-nextvisit').value=s.next_visit_date||'';
@@ -1366,6 +1371,7 @@ function renderLogCardFields(prefix,i,s,dis){
   h+='<div class="fg"><label>Title</label><input type="text" id="'+prefix+'-'+i+'-atitle" '+dis+'></div>';
   h+='<div class="fg"><label>Description</label><textarea id="'+prefix+'-'+i+'-adesc" '+dis+'></textarea></div>';
   h+='<div class="fg"><label>Participants</label><input type="text" id="'+prefix+'-'+i+'-aparticipants" '+dis+'></div>';
+  h+='<div class="fg"><label>Count — how many people/things this entry represents (e.g. 3 saathis)</label><input type="number" id="'+prefix+'-'+i+'-aquantity" min="1" step="1" '+dis+'></div>';
   h+='<div class="chk-line"><input type="checkbox" id="'+prefix+'-'+i+'-public" '+(t&&t.public_default?'checked':'')+' '+dis+'><label for="'+prefix+'-'+i+'-public">🌐 Show on public dashboard</label></div>';
   return h;
 }
@@ -1442,6 +1448,7 @@ async function saveBulkActivity(i){
     title:document.getElementById('bq-'+i+'-atitle').value.trim()||null,
     description:desc,
     participants:document.getElementById('bq-'+i+'-aparticipants').value.trim()||null,
+    quantity:parseInt(document.getElementById('bq-'+i+'-aquantity').value)||1,
     is_public:document.getElementById('bq-'+i+'-public').checked,
     source:'quick-update',source_text:s.segment_text||null,
     created_by:UNAME};
@@ -1676,6 +1683,7 @@ function renderWaCards(){
       document.getElementById('wa-'+i+'-atitle').value=e.title||'';
       document.getElementById('wa-'+i+'-adesc').value=e.description||'';
       document.getElementById('wa-'+i+'-aparticipants').value=e.participants||'';
+      document.getElementById('wa-'+i+'-aquantity').value=parseInt(e.quantity)||1;
     }
   });
 }
@@ -1732,7 +1740,7 @@ async function waUploadFiles(e,logId,patientId,isPub){
 
 function waMarkSaved(i){
   waEntries[i].saved=true;
-  ['patient','visitdate','visitnum','notes','status','nextvisit','diagnosis','treatment','medication','nexttest','testdate','meddate','committed','adate','atype','atitle','adesc','aparticipants','public','np-name','np-age','np-gender','np-phone','np-village','np-block','np-diagnosis','np-btn'].forEach(function(sfx){
+  ['patient','visitdate','visitnum','notes','status','nextvisit','diagnosis','treatment','medication','nexttest','testdate','meddate','committed','adate','atype','atitle','adesc','aparticipants','aquantity','public','np-name','np-age','np-gender','np-phone','np-village','np-block','np-diagnosis','np-btn'].forEach(function(sfx){
     var el=document.getElementById('wa-'+i+'-'+sfx);if(el)el.disabled=true;
   });
   var btn=document.getElementById('wa-'+i+'-savebtn');
@@ -1764,6 +1772,7 @@ async function saveWaCard(i){
       title:document.getElementById('wa-'+i+'-atitle').value.trim()||null,
       description:document.getElementById('wa-'+i+'-adesc').value.trim()||waSourceText(e),
       participants:document.getElementById('wa-'+i+'-aparticipants').value.trim()||null,
+      quantity:parseInt(document.getElementById('wa-'+i+'-aquantity').value)||1,
       is_public:isPub,source:'whatsapp',source_text:waSourceText(e),created_by:UNAME};
     var resp=await sb.from('logs').insert(row).select().single();
     if(resp.error)return fail('Could not save: '+resp.error.message);

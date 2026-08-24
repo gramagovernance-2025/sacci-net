@@ -65,6 +65,7 @@ function buildSchema(activityTypeNames: [string, ...string[]]) {
     activity_title: z.string(),
     activity_description: z.string(),
     activity_participants: z.string(),
+    quantity: z.string(),
   });
   return z.object({ segments: z.array(SegmentSchema) });
 }
@@ -162,7 +163,10 @@ Deno.serve(async (req) => {
         activityNames.join(", ") + " (closest match, \"Other\" if unclear) — activity_title (a short label, " +
         "e.g. \"Dr. Vidyasagar & Dr. Ravikant meeting\"), activity_participants (who was involved, by their " +
         "real names), and activity_description — same keep-every-detail, don't-sanitize principle as " +
-        "visit_notes above (in plain English), this is storytelling material too.",
+        "visit_notes above (in plain English), this is storytelling material too. quantity is how many people " +
+        "or things the entry represents, as a plain number string — \"3\" when three saathis are inducted at " +
+        "once — and empty when it is a single event or person (read as 1). Leave quantity empty on " +
+        "patient_update segments.",
       messages: [
         { role: "user", content: `Free-text note:\n${text}` },
       ],
