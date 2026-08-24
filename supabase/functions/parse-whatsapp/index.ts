@@ -18,7 +18,10 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
 
-const MATCH_CONFIDENCE_VALUES = ["high", "medium", "low", "none"] as const;
+// "" is legal alongside "none" — non-patient entries are told to leave the
+// match fields empty, and an enum without "" turns that into a validation
+// crash ("Failed to parse structured output") instead of a saved entry.
+const MATCH_CONFIDENCE_VALUES = ["", "high", "medium", "low", "none"] as const;
 
 // The entry schema is built per-request because log_type is a dynamic enum —
 // whatever names are active in log_types right now. 'Patient Update' entries

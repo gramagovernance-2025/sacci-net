@@ -15,9 +15,13 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
 
-const MATCH_CONFIDENCE_VALUES = ["high", "medium", "low", "none"] as const;
+// "" is a legal value everywhere the model is told to "leave the field
+// empty" for the other segment kind — an activity segment fills
+// match_confidence with "", a patient segment fills activity_type with "".
+// Omitting "" from these enums is exactly the contradiction that produced
+// "Failed to parse structured output" on pure-activity notes.
+const MATCH_CONFIDENCE_VALUES = ["", "high", "medium", "low", "none"] as const;
 const SEGMENT_KIND_VALUES = ["patient_update", "activity"] as const;
-const ACTIVITY_TYPE_VALUES = ["", "Meeting", "Health Camp", "Training", "Other"] as const;
 
 // Same "empty = not mentioned" convention as parse-update. matched_patient_code
 // is intentionally a patient_code (short, unique, unambiguous) rather than a
@@ -25,44 +29,45 @@ const ACTIVITY_TYPE_VALUES = ["", "Meeting", "Health Camp", "Training", "Other"]
 // match anyone in the roster, and match_notes explains why so staff can
 // resolve it by hand via the patient dropdown. segment_kind splits a segment
 // into either a specific patient's care (the patient_* fields below) or an
-// organizational activity like a meeting or health camp (the activity_*
-// fields) — only the relevant set gets filled in either case.
-const SegmentSchema = z.object({
-  segment_kind: z.enum(SEGMENT_KIND_VALUES),
-  segment_text: z.string(),
-  matched_patient_code: z.string(),
-  match_confidence: z.enum(MATCH_CONFIDENCE_VALUES),
-  match_notes: z.string(),
-  new_patient_name: z.string(),
-  new_patient_age: z.string(),
-  new_patient_gender: z.enum(["", "Male", "Female", "Other"]),
-  new_patient_phone: z.string(),
-  new_patient_village: z.string(),
-  new_patient_block: z.string(),
-  new_patient_diagnosis: z.string(),
-  visit_notes: z.string(),
-  status: z.enum(STATUS_VALUES),
-  next_visit_date: z.string(),
-  treatment: z.string(),
-  medication: z.string(),
-  next_test: z.string(),
-  test_date: z.string(),
-  med_date: z.string(),
-  diagnosis: z.string(),
-  committed_amount: z.string(),
-  payment_amount: z.string(),
-  payment_purpose: z.enum(PURPOSE_VALUES),
-  payment_notes: z.string(),
-  activity_date: z.string(),
-  activity_type: z.enum(ACTIVITY_TYPE_VALUES),
-  activity_title: z.string(),
-  activity_description: z.string(),
-  activity_participants: z.string(),
-});
-
-const BulkSchema = z.object({
-  segments: z.array(SegmentSchema),
-});
+// organizational activity (the activity_* fields) — only the relevant set
+// gets filled in either case. activity_type is a dynamic enum of whatever
+// categories are active in log_types right now, so the schema is built per
+// request (same pattern as parse-whatsapp).
+function buildSchema(activityTypeNames: [string, ...string[]]) {
+  const SegmentSchema = z.object({
+    segment_kind: z.enum(SEGMENT_KIND_VALUES),
+    segment_text: z.string(),
+    matched_patient_code: z.string(),
+    match_confidence: z.enum(MATCH_CONFIDENCE_VALUES),
+    match_notes: z.string(),
+    new_patient_name: z.string(),
+    new_patient_age: z.string(),
+    new_patient_gender: z.enum(["", "Male", "Female", "Other"]),
+    new_patient_phone: z.string(),
+    new_patient_village: z.string(),
+    new_patient_block: z.string(),
+    new_patient_diagnosis: z.string(),
+    visit_notes: z.string(),
+    status: z.enum(STATUS_VALUES),
+    next_visit_date: z.string(),
+    treatment: z.string(),
+    medication: z.string(),
+    next_test: z.string(),
+    test_date: z.string(),
+    med_date: z.string(),
+    diagnosis: z.string(),
+    committed_amount: z.string(),
+    payment_amount: z.string(),
+    payment_purpose: z.enum(PURPOSE_VALUES),
+    payment_notes: z.string(),
+    activity_date: z.string(),
+    activity_type: z.enum(activityTypeNames),
+    activity_title: z.string(),
+    activity_description: z.string(),
+    activity_participants: z.string(),
+  });
+  return z.object({ segments: z.array(SegmentSchema) });
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS_HEADERS });
@@ -92,6 +97,20 @@ Deno.serve(async (req) => {
     const rosterText = roster
       .map((p: any) => `${p.patient_code} | ${p.name} | ${p.village ?? "—"}, ${p.block ?? "—"} | ${p.status ?? "—"}`)
       .join("\n");
+
+    // Live categories for activity segments — 'Patient Update' is excluded
+    // because patient care goes through segment_kind, not activity_type.
+    const { data: logTypes } = await admin
+      .from("log_types")
+      .select("name")
+      .eq("active", true)
+      .neq("name", "Patient Update")
+      .order("sort_order");
+    if (!logTypes || logTypes.length === 0) {
+      return jsonResponse({ error: "Could not load log types" }, 500);
+    }
+    const activityNames = logTypes.map((t: any) => t.name);
+    const activityTypeNames = ["", ...activityNames] as [string, ...string[]];
 
     const todayIso = new Date().toISOString().slice(0, 10);
 
@@ -139,15 +158,15 @@ Deno.serve(async (req) => {
         "estimated/committed cost of care is mentioned (distinct from a single payment) — leave these empty " +
         "rather than estimating. Leave all activity_* fields empty for these segments.\n\n" +
         "For activity segments: leave matched_patient_code/match_confidence/match_notes and all patient_update " +
-        "fields empty. Fill activity_date (best guess if not stated, otherwise today), activity_type (closest " +
-        "match, \"Other\" if unclear), activity_title (a short label, e.g. \"Dr. Vidyasagar & Dr. Ravikant " +
-        "meeting\"), activity_participants (who was involved, as named in the text), and activity_description — " +
-        "same keep-every-detail, don't-sanitize principle as visit_notes above (in plain English), this is " +
-        "storytelling material too.",
+        "fields empty. Fill activity_date (best guess if not stated, otherwise today), activity_type — one of: " +
+        activityNames.join(", ") + " (closest match, \"Other\" if unclear) — activity_title (a short label, " +
+        "e.g. \"Dr. Vidyasagar & Dr. Ravikant meeting\"), activity_participants (who was involved, by their " +
+        "real names), and activity_description — same keep-every-detail, don't-sanitize principle as " +
+        "visit_notes above (in plain English), this is storytelling material too.",
       messages: [
         { role: "user", content: `Free-text note:\n${text}` },
       ],
-      output_config: { format: zodOutputFormat(BulkSchema) },
+      output_config: { format: zodOutputFormat(buildSchema(activityTypeNames)) },
     });
 
     const parsed = response.parsed_output;
