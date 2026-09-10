@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SACCI Staff Portal</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a6b5a">
+<link rel="icon" href="icon-192.png" type="image/png">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -288,6 +291,7 @@
           <p><strong>Upload the exported .zip straight from WhatsApp</strong> — the chat and its photos are unpacked and matched automatically. (A plain .txt or individual photos work too.)</p>
         </div>
         <p style="font-size:0.78rem;color:var(--ink-muted);margin-top:4px"><span id="waTxtName"></span> <span id="waFileCount"></span></p>
+        <p style="font-size:0.78rem;color:var(--ink-muted);margin-top:8px">📲 On an Android phone you can skip the computer entirely: install this portal as an app<span id="waInstallBtn" style="display:none"> — <span class="link" onclick="waPromptInstall()">tap here to install</span> —</span> (or Chrome menu → "Add to Home screen"). After that, WhatsApp → Export chat → Share → <strong>SACCI</strong> delivers the export straight to this page.</p>
       </div>
       <button class="btn btn-primary" id="waImportBtn" onclick="waImport()">🤖 Read &amp; Propose Entries</button>
     </div>
@@ -578,6 +582,48 @@ async function init(){
       .on('postgres_changes',{event:'*',schema:'public',table:'log_types'},function(){loadLogTypes().then(refreshActivePage);})
       .subscribe();
   }
+  if(ROLE==='staff')waConsumeSharedInbox();
+}
+
+// ─── PWA / Android share-sheet plumbing ─────────────────────
+// The service worker (sw.js) makes the portal installable; once installed,
+// WhatsApp's Export chat → Share lists "SACCI" and the worker stashes the
+// shared files in the 'share-inbox' cache. This picks them up on the next
+// portal load — including the load right after logging in, since the inbox
+// survives until a staff session consumes it.
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){});}
+var waDeferredInstall=null;
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();waDeferredInstall=e;
+  var b=document.getElementById('waInstallBtn');if(b)b.style.display='';
+});
+function waPromptInstall(){
+  if(!waDeferredInstall)return;
+  waDeferredInstall.prompt();waDeferredInstall=null;
+  var b=document.getElementById('waInstallBtn');if(b)b.style.display='none';
+}
+async function waConsumeSharedInbox(){
+  if(!('caches' in window))return;
+  try{
+    var cache=await caches.open('share-inbox');
+    var keys=await cache.keys();
+    keys=keys.filter(function(k){return new URL(k.url).pathname.indexOf('/share-inbox/file-')===0;});
+    if(!keys.length)return;
+    var files=[];
+    for(var i=0;i<keys.length;i++){
+      var resp=await cache.match(keys[i]);
+      if(!resp)continue;
+      var name=decodeURIComponent(resp.headers.get('X-Name')||'shared-file');
+      var blob=await resp.blob();
+      files.push(new File([blob],name,{type:blob.type}));
+      await cache.delete(keys[i]);
+    }
+    if(location.search.indexOf('shared=1')>=0)history.replaceState(null,'',location.pathname);
+    if(!files.length)return;
+    navTo('whatsapp',document.querySelector('[data-page="whatsapp"]'));
+    await waAcceptFiles(files);
+    document.getElementById('waSummary').innerHTML='<div class="ai-box" style="margin-top:16px">📲 Received '+files.length+' file(s) shared from WhatsApp — press "Read &amp; Propose Entries" when ready.</div>';
+  }catch(err){console.error(err);}
 }
 
 async function loadPatients(){
@@ -1492,6 +1538,11 @@ var waLedgerDone=false;
 async function waPickFiles(input){
   var files=Array.from(input.files);
   input.value='';
+  await waAcceptFiles(files);
+}
+// Shared intake for picked AND share-sheet files: zips unpack in the
+// browser, .txt becomes the chat source, media queues for attachment.
+async function waAcceptFiles(files){
   for(var fi=0;fi<files.length;fi++){
     var f=files[fi];var low=f.name.toLowerCase();
     if(low.slice(-4)==='.zip'){

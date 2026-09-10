@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Staff Login — SACCI</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a6b5a">
+<link rel="icon" href="icon-192.png" type="image/png">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root { --teal-deep: #0f4c3a; --teal: #1a6b5a; --teal-pale: #e8f4f0; --ink: #1a1a1a; --ink-muted: #7a7a7a; --cream: #FDFCFA; --sand: #e8e4df; --red: #991b1b; --font: 'DM Sans', sans-serif; }
@@ -72,6 +75,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
+<script>
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){});}
+</script>
 <script>
   // Roles (staff: full edit, advisor: read-only) live in the `profiles` table,
   // keyed off the authenticated Supabase user — see supabase/schema.sql.
