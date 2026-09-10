@@ -1571,6 +1571,46 @@ async function waImport(){
   try{
     waParsed=parseWhatsAppExport(text);
     if(!waParsed.length){alert('No WhatsApp messages recognized. Expected lines like "[12:48, 09/08/2026] Name: message".');return;}
+    // WhatsApp stamps an export in the EXPORTING phone's local timezone, so
+    // the same message exported in India and in the US carries times 9h30m
+    // apart — which would defeat the timestamp-based dedup and re-import a
+    // whole group as "new". Before hashing, look for a consistent clock
+    // offset against earlier imports using content fingerprints
+    // (sender+body, no time) on messages unique in both places, and shift
+    // this export onto the ledger's clock when one is found.
+    for(var i=0;i<waParsed.length;i++){
+      waParsed[i].content_key=await sha256hex(waParsed[i].sender+'|'+waParsed[i].body);
+    }
+    var ckCount={};waParsed.forEach(function(m){ckCount[m.content_key]=(ckCount[m.content_key]||0)+1;});
+    var anchors=waParsed.filter(function(m){return m.body.length>=20&&ckCount[m.content_key]===1;});
+    var ledgerByKey={},ledgerDup={};
+    for(var c=0;c<anchors.length;c+=200){
+      var keys=anchors.slice(c,c+200).map(function(m){return m.content_key;});
+      var kresp=await sb.from('whatsapp_messages').select('content_key,sent_at').in('content_key',keys);
+      if(kresp.error)break;
+      (kresp.data||[]).forEach(function(r){
+        if(ledgerByKey[r.content_key])ledgerDup[r.content_key]=true;
+        else ledgerByKey[r.content_key]=r.sent_at;
+      });
+    }
+    function waMin(s){s=s.slice(0,16).replace('T',' ');return Date.UTC(+s.slice(0,4),s.slice(5,7)-1,+s.slice(8,10),+s.slice(11,13),+s.slice(14,16))/60000;}
+    var deltaCount={},nAnchors=0;
+    anchors.forEach(function(m){
+      if(ledgerByKey[m.content_key]&&!ledgerDup[m.content_key]){
+        var d=Math.round(waMin(m.sent_at)-waMin(ledgerByKey[m.content_key]));
+        deltaCount[d]=(deltaCount[d]||0)+1;nAnchors++;
+      }
+    });
+    var offsetMin=0,offsetVotes=0;
+    Object.keys(deltaCount).forEach(function(d){if(deltaCount[d]>offsetVotes){offsetVotes=deltaCount[d];offsetMin=parseInt(d,10);}});
+    var aligned=(offsetMin!==0&&nAnchors>=5&&offsetVotes/nAnchors>=0.8);
+    if(aligned){
+      waParsed.forEach(function(m){
+        var t=new Date((waMin(m.sent_at)-offsetMin)*60000);
+        function p2(n){return (n<10?'0':'')+n;}
+        m.sent_at=t.getUTCFullYear()+'-'+p2(t.getUTCMonth()+1)+'-'+p2(t.getUTCDate())+' '+p2(t.getUTCHours())+':'+p2(t.getUTCMinutes());
+      });
+    }
     for(var i=0;i<waParsed.length;i++){
       waParsed[i].msg_hash=await sha256hex(waParsed[i].sender+'|'+waParsed[i].sent_at+'|'+waParsed[i].body);
     }
@@ -1584,7 +1624,8 @@ async function waImport(){
     waNew=waParsed.filter(function(m){return !known[m.msg_hash];});
     waLedgerDone=false;
     var already=waParsed.length-waNew.length;
-    var sum=waParsed.length+' message(s) in the export'+(already?', '+already+' already imported earlier':'')+'.';
+    var offH=Math.floor(Math.abs(offsetMin)/60),offM=Math.abs(offsetMin)%60;
+    var sum=waParsed.length+' message(s) in the export'+(already?', '+already+' already imported earlier':'')+'.'+(aligned?' This export\'s clock differs from earlier imports by '+offH+'h '+(offM?offM+'m ':'')+'(a different phone\'s timezone) — timestamps were aligned automatically.':'');
     if(!waNew.length){
       document.getElementById('waSummary').innerHTML='<div class="ai-box" style="margin-top:16px">'+esc(sum)+' Nothing new to import.</div>';
       waEntries=[];renderWaCards();return;
@@ -1705,7 +1746,7 @@ function waLogPayment(i){
 // finds the hashes and skips them.
 async function waEnsureLedger(){
   if(waLedgerDone)return true;
-  var rows=waNew.map(function(m){return{msg_hash:m.msg_hash,sender:m.sender,sent_at:m.sent_at,body:m.body,imported_by:UNAME};});
+  var rows=waNew.map(function(m){return{msg_hash:m.msg_hash,content_key:m.content_key,sender:m.sender,sent_at:m.sent_at,body:m.body,imported_by:UNAME};});
   for(var c=0;c<rows.length;c+=200){
     var resp=await sb.from('whatsapp_messages').upsert(rows.slice(c,c+200),{onConflict:'msg_hash',ignoreDuplicates:true});
     if(resp.error){alert('Could not record the import ledger: '+resp.error.message);return false;}

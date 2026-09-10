@@ -542,3 +542,21 @@ with (security_invoker = false) as
 
 grant select on log_tiles_public to anon;
 grant select on logs_public to anon;
+
+-- ─── WHATSAPP TIMEZONE-PROOF DEDUP (2026-09-09) ──────────────
+-- WhatsApp stamps a chat export in the EXPORTING phone's local timezone:
+-- the same message exported in India and in the US carries times 9h30m
+-- apart, so the sender|time|body hash alone re-imports a whole group as
+-- "new" when a different phone does the export. content_key fingerprints
+-- the message without its timestamp (sha-256 of sender|body); the portal
+-- uses it to detect a consistent clock offset against earlier imports and
+-- shift the export onto the ledger's clock before the hash dedup runs.
+create extension if not exists pgcrypto with schema extensions;
+alter table whatsapp_messages add column if not exists content_key text;
+update whatsapp_messages
+  set content_key = encode(extensions.digest(
+    convert_to(coalesce(sender, '') || '|' || coalesce(body, ''), 'UTF8'),
+    'sha256'), 'hex')
+  where content_key is null;
+create index if not exists whatsapp_messages_content_key_idx
+  on whatsapp_messages (content_key);
