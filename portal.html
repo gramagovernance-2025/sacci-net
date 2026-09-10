@@ -279,13 +279,13 @@
     <div class="card-header"><h2>Paste the group chat export</h2></div>
     <div style="padding:20px">
       <div class="fg">
-        <label>In WhatsApp: open the group → ⋮ → More → Export chat. Paste the exported text here, or upload the .txt below. Messages imported before are skipped automatically, so overlapping exports are always safe.</label>
+        <label>In WhatsApp: open the group → ⋮ → More → Export chat (choose "Include media" to bring the photos along). Then upload the exported .zip below exactly as WhatsApp made it — no unzipping needed. Or paste the chat text here. Messages imported before are skipped automatically, so overlapping exports are always safe.</label>
         <textarea id="waText" style="min-height:160px" placeholder="[12:48, 09/08/2026] Sanjay sahni: Munish ji sumitra devi ko aaj bhej rahe hai tata&#10;[08:28, 11/08/2026] Munish RM: Okay 👍 m 9:30 baje k aas pass baat karunga …"></textarea>
       </div>
       <div class="fg">
         <div class="file-area" onclick="document.getElementById('waFileInput').click()">
-          <input type="file" id="waFileInput" accept=".txt,image/*" multiple onchange="waPickFiles(this)">
-          <p><strong>Optional:</strong> upload the exported .txt and/or photos from the export folder — photos are attached to the right entries automatically</p>
+          <input type="file" id="waFileInput" accept=".zip,application/zip,.txt,image/*" multiple onchange="waPickFiles(this)">
+          <p><strong>Upload the exported .zip straight from WhatsApp</strong> — the chat and its photos are unpacked and matched automatically. (A plain .txt or individual photos work too.)</p>
         </div>
         <p style="font-size:0.78rem;color:var(--ink-muted);margin-top:4px"><span id="waTxtName"></span> <span id="waFileCount"></span></p>
       </div>
@@ -476,6 +476,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="config.js"></script>
 <script>
 // AUTH + DATA — backed by Supabase (see supabase/schema.sql). Patient records
@@ -1488,14 +1489,44 @@ var waFiles={};       // filename -> File, from the picker
 var waTxtFile=null;
 var waLedgerDone=false;
 
-function waPickFiles(input){
-  Array.from(input.files).forEach(function(f){
-    if(f.name.toLowerCase().slice(-4)==='.txt'){waTxtFile=f;document.getElementById('waTxtName').textContent='Chat file: '+f.name+'.';}
-    else waFiles[f.name]=f;
-  });
-  var n=Object.keys(waFiles).length;
-  document.getElementById('waFileCount').textContent=n?n+' image(s) ready to attach.':'';
+async function waPickFiles(input){
+  var files=Array.from(input.files);
   input.value='';
+  for(var fi=0;fi<files.length;fi++){
+    var f=files[fi];var low=f.name.toLowerCase();
+    if(low.slice(-4)==='.zip'){
+      // WhatsApp's "export with media" produces one zip — unpack it right
+      // here so nobody has to unzip by hand. The chat .txt (largest, if
+      // several) and every attachable media file are picked out; contact
+      // cards and anything else are skipped.
+      document.getElementById('waTxtName').textContent='Reading '+f.name+'…';
+      try{
+        var zip=await JSZip.loadAsync(f);
+        var names=Object.keys(zip.files);
+        for(var zi=0;zi<names.length;zi++){
+          var entry=zip.files[names[zi]];
+          if(entry.dir)continue;
+          var base=names[zi].split('/').pop();var bl=base.toLowerCase();
+          if(bl.slice(-4)==='.txt'){
+            var tblob=await entry.async('blob');
+            if(!waTxtFile||tblob.size>waTxtFile.size)waTxtFile=new File([tblob],base,{type:'text/plain'});
+          } else if(/\.(jpe?g|png|webp|gif|pdf|mp4|opus|m4a)$/.test(bl)){
+            waFiles[base]=new File([await entry.async('blob')],base);
+          }
+        }
+        document.getElementById('waTxtName').textContent=waTxtFile?'Chat file: '+waTxtFile.name+' (from zip).':'No chat .txt found inside '+f.name+'.';
+      }catch(err){
+        document.getElementById('waTxtName').textContent='';
+        alert('Could not read the zip: '+(err&&err.message?err.message:err));
+      }
+    } else if(low.slice(-4)==='.txt'){
+      waTxtFile=f;document.getElementById('waTxtName').textContent='Chat file: '+f.name+'.';
+    } else {
+      waFiles[f.name]=f;
+    }
+  }
+  var n=Object.keys(waFiles).length;
+  document.getElementById('waFileCount').textContent=n?n+' file(s) ready to attach.':'';
 }
 
 function parseWhatsAppExport(text){
