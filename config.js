@@ -8,10 +8,18 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 // "Remember me on this device" (set on portal-login.html) picks which storage
 // holds the session: localStorage survives a browser restart, sessionStorage
-// clears when the tab/browser closes — for shared/public computers.
+// clears when the tab/browser closes. Defaults to sessionStorage — staff on a
+// shared computer shouldn't stay signed in for days just by leaving a tab open.
 const SACCI_REMEMBER_KEY = 'sacci_remember_device';
+const SACCI_PROJECT_REF = SUPABASE_URL.match(/https:\/\/([^.]+)\./)[1];
+const SACCI_AUTH_STORAGE_KEY = 'sb-' + SACCI_PROJECT_REF + '-auth-token';
 function sacciAuthStorage() {
-  return localStorage.getItem(SACCI_REMEMBER_KEY) === '0' ? window.sessionStorage : window.localStorage;
+  if (localStorage.getItem(SACCI_REMEMBER_KEY) === '1') return window.localStorage;
+  // Not remembered on this device — clear any session persisted from before
+  // this preference existed, or from an earlier "remember me" login, so the
+  // portal doesn't stay silently signed in after the browser closes.
+  try { localStorage.removeItem(SACCI_AUTH_STORAGE_KEY); } catch (e) {}
+  return window.sessionStorage;
 }
 function sacciCreateClient() {
   return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
