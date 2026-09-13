@@ -310,24 +310,26 @@
   <div id="waResults"></div>
 </div>
 
-<!-- ═══ OUR STORY (staff/advisor) — short overview ═══ -->
+<!-- ═══ OUR STORY (staff/advisor) — overview + milestones ═══ -->
 <div class="page" id="page-story">
   <div class="topbar"><h1>Our Story</h1><span class="link" id="storySummaryEditBtn" onclick="openStorySummary()" style="display:none">Edit</span></div>
   <div class="card">
     <div class="story-intro" id="storySummaryBox">Loading…</div>
-    <div style="padding:0 20px 20px"><button class="btn btn-primary" onclick="navTo('story-detail')">📖 Read the Detailed Story</button></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h2>Major Milestones</h2><span class="link" id="storyAddBtn" onclick="openStoryEntry()" style="display:none">+ Add Milestone</span></div>
+    <div class="story-timeline" id="storyTimeline"></div>
+  </div>
+  <div class="card">
+    <div style="padding:20px"><button class="btn btn-primary" onclick="navTo('story-detail')">📖 Story of Building Up</button></div>
   </div>
 </div>
 
 <!-- ═══ OUR STORY — detailed page (not in sidebar) ═══ -->
 <div class="page" id="page-story-detail">
-  <div class="topbar"><h1><span class="link" onclick="navTo('story')" style="margin-right:10px">←</span>The Detailed Story</h1><span class="link" id="storyIntroEditBtn" onclick="openStoryIntro()" style="display:none">Edit</span></div>
+  <div class="topbar"><h1><span class="link" onclick="navTo('story')" style="margin-right:10px">←</span>Story of Building Up</h1><span class="link" id="storyIntroEditBtn" onclick="openStoryIntro()" style="display:none">Edit</span></div>
   <div class="card">
     <div class="story-intro" id="storyIntroBox">Loading…</div>
-  </div>
-  <div class="card">
-    <div class="card-header"><h2>Major Milestones</h2><span class="link" id="storyAddBtn" onclick="openStoryEntry()" style="display:none">+ Add Milestone</span></div>
-    <div class="story-timeline" id="storyTimeline"></div>
   </div>
   <div class="card">
     <div class="card-header"><h2>Recent Updates</h2></div>
@@ -989,9 +991,33 @@ async function loadStory(){
   storyEntries=e.data||[];
   if(e.error)console.error(e.error);
 }
-function renderStorySummary(){
+async function renderStorySummary(){
   document.getElementById('storySummaryEditBtn').style.display=ROLE==='staff'?'':'none';
   document.getElementById('storySummaryBox').innerHTML=storySummary?esc(storySummary):'<span class="story-intro-empty">No overview written yet.</span>';
+  document.getElementById('storyAddBtn').style.display=ROLE==='staff'?'':'none';
+
+  var tl=document.getElementById('storyTimeline');
+  if(!storyEntries.length){
+    tl.innerHTML='<p style="color:var(--ink-muted);padding:0 0 16px">No milestones yet.</p>';
+    return;
+  }
+  var filesResp=await sb.from('story_entry_files').select('*');
+  var filesByEntry={};
+  (filesResp.data||[]).forEach(function(f){(filesByEntry[f.entry_id]=filesByEntry[f.entry_id]||[]).push(f);});
+  var h='';
+  storyEntries.forEach(function(e){
+    h+='<div class="story-item story-cat-'+(e.category||'milestone')+'"><div class="story-dot"></div>';
+    h+='<div class="story-date">'+esc(e.date_label)+' · '+esc(STORY_CATEGORIES[e.category]||'Milestone')+'</div>';
+    h+='<div class="story-title">'+esc(e.title)+'</div>';
+    if(e.description)h+='<div class="story-desc">'+esc(e.description)+'</div>';
+    h+=storyThumbRow('story-files',filesByEntry[e.id]||[]);
+    if(e.history&&e.history.length)h+='<div class="story-desc" style="margin-top:8px">'+e.history.map(function(u){
+      return '<div style="margin-bottom:4px"><strong>'+fmtDate(u.date)+':</strong> '+esc(u.note)+'</div>';
+    }).join('')+'</div>';
+    if(ROLE==='staff')h+='<div class="story-actions"><span class="link" onclick="openStoryEntry(\''+e.id+'\')">Edit</span> · <span class="link" onclick="openStoryUpdate(\''+e.id+'\')">Update</span> · <span class="link" onclick="deleteStoryEntry(\''+e.id+'\')">Delete</span></div>';
+    h+='</div>';
+  });
+  tl.innerHTML=h;
 }
 function storyThumbRow(bucket,files){
   if(!files.length)return'';
@@ -1000,33 +1026,9 @@ function storyThumbRow(bucket,files){
     return '<div class="thumb"><img src="'+url+'" loading="lazy"></div>';
   }).join('')+'</div>';
 }
-async function renderStoryDetail(){
+function renderStoryDetail(){
   document.getElementById('storyIntroEditBtn').style.display=ROLE==='staff'?'':'none';
-  document.getElementById('storyAddBtn').style.display=ROLE==='staff'?'':'none';
   document.getElementById('storyIntroBox').innerHTML=storyIntro?esc(storyIntro):'<span class="story-intro-empty">No story written yet.</span>';
-
-  var tl=document.getElementById('storyTimeline');
-  if(!storyEntries.length){
-    tl.innerHTML='<p style="color:var(--ink-muted);padding:0 0 16px">No milestones yet.</p>';
-  } else {
-    var filesResp=await sb.from('story_entry_files').select('*');
-    var filesByEntry={};
-    (filesResp.data||[]).forEach(function(f){(filesByEntry[f.entry_id]=filesByEntry[f.entry_id]||[]).push(f);});
-    var h='';
-    storyEntries.forEach(function(e){
-      h+='<div class="story-item story-cat-'+(e.category||'milestone')+'"><div class="story-dot"></div>';
-      h+='<div class="story-date">'+esc(e.date_label)+' · '+esc(STORY_CATEGORIES[e.category]||'Milestone')+'</div>';
-      h+='<div class="story-title">'+esc(e.title)+'</div>';
-      if(e.description)h+='<div class="story-desc">'+esc(e.description)+'</div>';
-      h+=storyThumbRow('story-files',filesByEntry[e.id]||[]);
-      if(e.history&&e.history.length)h+='<div class="story-desc" style="margin-top:8px">'+e.history.map(function(u){
-        return '<div style="margin-bottom:4px"><strong>'+fmtDate(u.date)+':</strong> '+esc(u.note)+'</div>';
-      }).join('')+'</div>';
-      if(ROLE==='staff')h+='<div class="story-actions"><span class="link" onclick="openStoryEntry(\''+e.id+'\')">Edit</span> · <span class="link" onclick="openStoryUpdate(\''+e.id+'\')">Update</span> · <span class="link" onclick="deleteStoryEntry(\''+e.id+'\')">Delete</span></div>';
-      h+='</div>';
-    });
-    tl.innerHTML=h;
-  }
   renderStoryLogFeed();
 }
 async function renderStoryLogFeed(){
@@ -1117,7 +1119,7 @@ async function saveStoryEntry(){
     document.getElementById('storyEntrySaveFirstNote').style.display='none';
   }
   await loadStory();
-  renderStoryDetail();
+  renderStorySummary();
 }
 function renderStoryEntryFiles(){
   var c=document.getElementById('storyEntryFileList');
@@ -1139,7 +1141,7 @@ async function handleStoryEntryFiles(input){
   }
   renderStoryEntryFiles();
   input.value='';
-  renderStoryDetail();
+  renderStorySummary();
 }
 async function removeStoryEntryFile(idx){
   var f=storyEntryFiles[idx];if(!f)return;
@@ -1147,7 +1149,7 @@ async function removeStoryEntryFile(idx){
   await sb.from('story_entry_files').delete().eq('id',f.id);
   storyEntryFiles.splice(idx,1);
   renderStoryEntryFiles();
-  renderStoryDetail();
+  renderStorySummary();
 }
 function openStoryUpdate(id){
   document.getElementById('storyUpdateEntryId').value=id;
@@ -1166,7 +1168,7 @@ async function saveStoryUpdate(){
   if(resp.error){alert('Could not save: '+resp.error.message);return;}
   closeStoryUpdateModal();
   await loadStory();
-  renderStoryDetail();
+  renderStorySummary();
 }
 async function deleteStoryEntry(id){
   if(!confirm('Delete this milestone?'))return;
@@ -1176,7 +1178,7 @@ async function deleteStoryEntry(id){
   var resp=await sb.from('story_entries').delete().eq('id',id);
   if(resp.error){alert('Could not delete: '+resp.error.message);return;}
   await loadStory();
-  renderStoryDetail();
+  renderStorySummary();
 }
 function logTypeById(id){return logTypes.find(function(t){return t.id===id;});}
 function logTypeByName(name){return logTypes.find(function(t){return t.name===name;});}
