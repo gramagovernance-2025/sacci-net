@@ -316,7 +316,7 @@
 
 <!-- ═══ OUR STORY (staff/advisor) — overview + milestones ═══ -->
 <div class="page" id="page-story">
-  <div class="topbar"><h1>Our Story</h1><div class="topbar-right"><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div><span class="link" id="storySummaryEditBtn" onclick="openStorySummary()" style="display:none">Edit</span></div></div>
+  <div class="topbar"><h1>Our Story</h1><div class="topbar-right"><button class="btn btn-secondary btn-sm story-last-updated" onclick="goToLastUpdate()">🕐 …</button><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div><span class="link" id="storySummaryEditBtn" onclick="openStorySummary()" style="display:none">Edit</span></div></div>
   <div class="card">
     <div style="padding:20px 20px 0"><button class="btn btn-primary" onclick="navTo('story-detail')">📖 Story in Detail</button></div>
     <div class="story-intro" id="storySummaryBox">Loading…</div>
@@ -329,7 +329,7 @@
 
 <!-- ═══ OUR STORY — detailed page (not in sidebar) ═══ -->
 <div class="page" id="page-story-detail">
-  <div class="topbar"><h1><span class="link" onclick="navTo('story')" style="margin-right:10px">←</span>Building &amp; Learning</h1><div class="topbar-right"><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div><span class="link" id="storyIntroEditBtn" onclick="openStoryIntro()" style="display:none">Edit</span></div></div>
+  <div class="topbar"><h1><span class="link" onclick="navTo('story')" style="margin-right:10px">←</span>Building &amp; Learning</h1><div class="topbar-right"><button class="btn btn-secondary btn-sm story-last-updated" onclick="goToLastUpdate()">🕐 …</button><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div><span class="link" id="storyIntroEditBtn" onclick="openStoryIntro()" style="display:none">Edit</span></div></div>
   <div class="card">
     <div class="story-intro" id="storyIntroBox">Loading…</div>
   </div>
@@ -1006,6 +1006,39 @@ function syncLangToggle(){
   document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.toggle('active',b.dataset.lang===storyLang);});
 }
 function storyPick(en,hi){return(storyLang==='hi'&&hi)?hi:en;}
+// "Last updated" reads straight off the already-loaded `logs` array — the
+// same Quick Update / WhatsApp Import entries the Recent Updates feed shows.
+function storyLastUpdatedAt(){
+  var relevant=logs.filter(function(l){return l.source==='quick-update'||l.source==='whatsapp';});
+  if(!relevant.length)return null;
+  var latest=relevant.reduce(function(a,b){
+    return new Date(b.updated_at||b.created_at)>new Date(a.updated_at||a.created_at)?b:a;
+  });
+  return new Date(latest.updated_at||latest.created_at);
+}
+function relativeTime(d){
+  var mins=Math.floor((new Date()-d)/60000);
+  if(mins<1)return'just now';
+  if(mins<60)return mins+' min ago';
+  var hrs=Math.floor(mins/60);
+  if(hrs<24)return hrs+' hr'+(hrs>1?'s':'')+' ago';
+  var days=Math.floor(hrs/24);
+  if(days<7)return days+' day'+(days>1?'s':'')+' ago';
+  return fmtDate(d.toISOString().slice(0,10));
+}
+function renderStoryLastUpdated(){
+  var d=storyLastUpdatedAt();
+  var label=d?('🕐 Last updated '+relativeTime(d)):'🕐 No updates yet';
+  document.querySelectorAll('.story-last-updated').forEach(function(b){b.textContent=label;});
+}
+function goToLastUpdate(){
+  if(document.getElementById('page-story-detail').classList.contains('active')){
+    document.getElementById('storyLogFeed').scrollIntoView({behavior:'smooth',block:'start'});
+  } else {
+    navTo('story-detail');
+    setTimeout(function(){document.getElementById('storyLogFeed').scrollIntoView({behavior:'smooth',block:'start'});},50);
+  }
+}
 async function loadStory(){
   var s=await sb.from('story_settings').select('summary,summary_hi,intro,intro_hi').eq('id',1).single();
   storySummary=(s.data&&s.data.summary)||'';
@@ -1019,6 +1052,7 @@ async function loadStory(){
 }
 async function renderStorySummary(){
   syncLangToggle();
+  renderStoryLastUpdated();
   document.getElementById('storySummaryEditBtn').style.display=ROLE==='staff'?'':'none';
   var summaryText=storyPick(storySummary,storySummaryHi);
   document.getElementById('storySummaryBox').innerHTML=summaryText?esc(summaryText):'<span class="story-intro-empty">No overview written yet.</span>';
@@ -1059,6 +1093,7 @@ function storyThumbRow(bucket,files){
 }
 function renderStoryDetail(){
   syncLangToggle();
+  renderStoryLastUpdated();
   document.getElementById('storyIntroEditBtn').style.display=ROLE==='staff'?'':'none';
   var introText=storyPick(storyIntro,storyIntroHi);
   document.getElementById('storyIntroBox').innerHTML=introText?esc(introText):'<span class="story-intro-empty">No story written yet.</span>';
