@@ -149,6 +149,24 @@
   .chk-line input{width:16px;height:16px;accent-color:var(--teal);}
   .chk-line label{margin:0;font-weight:500;cursor:pointer;}
 
+  /* OUR STORY */
+  .story-intro{padding:20px;font-size:0.92rem;line-height:1.75;color:var(--ink-light);white-space:pre-wrap;}
+  .story-intro-empty{color:var(--ink-muted);font-style:italic;}
+  .story-timeline{padding:24px 24px 8px;position:relative;}
+  .story-timeline::before{content:'';position:absolute;left:38px;top:6px;bottom:24px;width:2px;background:var(--sand);}
+  .story-item{position:relative;padding-left:56px;margin-bottom:26px;}
+  .story-dot{position:absolute;left:30px;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--teal);z-index:1;}
+  .story-cat-origin .story-dot{border-color:var(--purple);}
+  .story-cat-partnership .story-dot{border-color:var(--blue);}
+  .story-cat-camp .story-dot{border-color:var(--green);}
+  .story-cat-visit .story-dot{border-color:var(--yellow);}
+  .story-cat-program .story-dot{border-color:var(--teal-deep);}
+  .story-cat-system .story-dot{border-color:var(--ink-muted);}
+  .story-date{font-size:0.72rem;font-weight:700;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.06em;}
+  .story-title{font-size:0.98rem;font-weight:700;color:var(--ink);margin:2px 0 5px;}
+  .story-desc{font-size:0.86rem;color:var(--ink-light);line-height:1.6;}
+  .story-actions{margin-top:6px;}
+
   .page{display:none;}
   .page.active{display:block;}
 
@@ -173,6 +191,7 @@
     <li><a href="#" data-page="finances" onclick="navTo('finances',this)" id="nav-finances">💰 Finances</a></li>
     <li><a href="#" data-page="quickupdate" onclick="navTo('quickupdate',this)" id="nav-quickupdate">📝 Quick Update</a></li>
     <li><a href="#" data-page="whatsapp" onclick="navTo('whatsapp',this)" id="nav-whatsapp">💬 WhatsApp Import</a></li>
+    <li><a href="#" data-page="story" onclick="navTo('story',this)">📖 Our Story</a></li>
     <li><a href="#" data-page="public" onclick="navTo('public',this)">🌐 Public View</a></li>
   </ul>
   <div class="sidebar-bottom">
@@ -289,6 +308,19 @@
   </div>
   <div id="waSummary"></div>
   <div id="waResults"></div>
+</div>
+
+<!-- ═══ OUR STORY (staff/advisor) ═══ -->
+<div class="page" id="page-story">
+  <div class="topbar"><h1>Our Story</h1></div>
+  <div class="card">
+    <div class="card-header"><h2>How SACCI started</h2><span class="link" id="storyIntroEditBtn" onclick="openStoryIntro()" style="display:none">Edit</span></div>
+    <div class="story-intro" id="storyIntroBox">Loading…</div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h2>Timeline</h2><span class="link" id="storyAddBtn" onclick="openStoryEntry()" style="display:none">+ Add Milestone</span></div>
+    <div class="story-timeline" id="storyTimeline"></div>
+  </div>
 </div>
 
 <!-- ═══ PUBLIC DASHBOARD ═══ -->
@@ -461,6 +493,32 @@
 </div>
 </div>
 
+<!-- ═══ STORY INTRO MODAL ═══ -->
+<div class="modal-overlay" id="storyIntroModal">
+<div class="modal">
+  <div class="modal-head"><h2>Edit "How SACCI Started"</h2><button class="modal-close" onclick="closeStoryIntroModal()">&times;</button></div>
+  <div class="modal-body">
+    <div class="fg"><label>Narrative</label><textarea id="storyIntroInput" style="min-height:360px"></textarea></div>
+  </div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeStoryIntroModal()">Cancel</button><button class="btn btn-primary" onclick="saveStoryIntro()">Save</button></div>
+</div>
+</div>
+
+<!-- ═══ STORY ENTRY MODAL ═══ -->
+<div class="modal-overlay" id="storyEntryModal">
+<div class="modal" style="max-width:520px">
+  <div class="modal-head"><h2 id="storyEntryTitle">Add Milestone</h2><button class="modal-close" onclick="closeStoryEntryModal()">&times;</button></div>
+  <div class="modal-body">
+    <input type="hidden" id="storyEntryId">
+    <div class="form-row"><div class="fg"><label>Date label *</label><input type="text" id="storyEntryDateLabel" placeholder="e.g. 29 May 2026, or Winter 2025-26"></div><div class="fg"><label>Exact date (optional)</label><input type="date" id="storyEntryDate"></div></div>
+    <div class="fg"><label>Category</label><select id="storyEntryCategory"><option value="origin">Origin</option><option value="partnership">Partnership</option><option value="camp">Health Camp</option><option value="visit">Visit</option><option value="program">Program</option><option value="system" selected>How It Works</option><option value="milestone">Milestone</option></select></div>
+    <div class="fg"><label>Title *</label><input type="text" id="storyEntryTitleInput" placeholder="e.g. First health camp - Ratnauli"></div>
+    <div class="fg"><label>Description</label><textarea id="storyEntryDesc" placeholder="What happened..."></textarea></div>
+  </div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeStoryEntryModal()">Cancel</button><button class="btn btn-primary" onclick="saveStoryEntry()">Save</button></div>
+</div>
+</div>
+
 <!-- ═══ VIEW MODAL ═══ -->
 <div class="modal-overlay" id="viewModal">
 <div class="modal">
@@ -553,7 +611,7 @@ async function init(){
 
   await loadPatients();
   if(ROLE==='staff')await loadTransactions();
-  if(ROLE==='staff'||ROLE==='advisor'){await loadLogTypes();await loadLogs();}
+  if(ROLE==='staff'||ROLE==='advisor'){await loadLogTypes();await loadLogs();await loadStory();}
   if(ROLE==='public'){navTo('public',document.querySelector('[data-page="public"]'));}
   else{renderDash();}
 
@@ -571,6 +629,10 @@ async function init(){
     sb.channel('logs-changes')
       .on('postgres_changes',{event:'*',schema:'public',table:'logs'},function(){loadLogs().then(refreshActivePage);})
       .on('postgres_changes',{event:'*',schema:'public',table:'log_types'},function(){loadLogTypes().then(refreshActivePage);})
+      .subscribe();
+    sb.channel('story-changes')
+      .on('postgres_changes',{event:'*',schema:'public',table:'story_entries'},function(){loadStory().then(refreshActivePage);})
+      .on('postgres_changes',{event:'*',schema:'public',table:'story_settings'},function(){loadStory().then(refreshActivePage);})
       .subscribe();
   }
   if(ROLE==='staff')waConsumeSharedInbox();
@@ -638,6 +700,7 @@ function refreshActivePage(){
   if(name==='finances')renderFinances();
   if(name==='public')renderPublic();
   if(name==='quickupdate')renderBulkCards();
+  if(name==='story')renderStory();
 }
 
 // NAV
@@ -651,6 +714,7 @@ function navTo(name,el){
   if(name==='finances')renderFinances();
   if(name==='public')renderPublic();
   if(name==='quickupdate')renderBulkCards();
+  if(name==='story')renderStory();
 }
 async function logout(){await sb.auth.signOut();window.location.href='portal-login.html';}
 
@@ -857,6 +921,86 @@ async function loadLogs(){
   var resp=await sb.from('logs').select('*').order('occurred_on',{ascending:false}).order('created_at',{ascending:false}).limit(500);
   logs=resp.data||[];
   if(resp.error)console.error(resp.error);
+}
+
+// ─── OUR STORY — narrative + timeline, editable by staff ─────
+var storyIntro='';
+var storyEntries=[];
+var STORY_CATEGORIES={origin:'Origin',partnership:'Partnership',camp:'Health Camp',visit:'Visit',program:'Program',system:'How It Works',milestone:'Milestone'};
+async function loadStory(){
+  var s=await sb.from('story_settings').select('intro').eq('id',1).single();
+  storyIntro=(s.data&&s.data.intro)||'';
+  if(s.error)console.error(s.error);
+  var e=await sb.from('story_entries').select('*').order('sort_order');
+  storyEntries=e.data||[];
+  if(e.error)console.error(e.error);
+}
+function renderStory(){
+  document.getElementById('storyIntroEditBtn').style.display=ROLE==='staff'?'':'none';
+  document.getElementById('storyAddBtn').style.display=ROLE==='staff'?'':'none';
+  var introBox=document.getElementById('storyIntroBox');
+  introBox.innerHTML=storyIntro?esc(storyIntro):'<span class="story-intro-empty">No story written yet.</span>';
+  var tl=document.getElementById('storyTimeline');
+  if(!storyEntries.length){tl.innerHTML='<p style="color:var(--ink-muted);padding:0 0 16px">No milestones yet.</p>';return;}
+  var h='';
+  storyEntries.forEach(function(e){
+    h+='<div class="story-item story-cat-'+(e.category||'milestone')+'"><div class="story-dot"></div>';
+    h+='<div class="story-date">'+esc(e.date_label)+' · '+esc(STORY_CATEGORIES[e.category]||'Milestone')+'</div>';
+    h+='<div class="story-title">'+esc(e.title)+'</div>';
+    if(e.description)h+='<div class="story-desc">'+esc(e.description)+'</div>';
+    if(ROLE==='staff')h+='<div class="story-actions"><span class="link" onclick="openStoryEntry(\''+e.id+'\')">Edit</span> · <span class="link" onclick="deleteStoryEntry(\''+e.id+'\')">Delete</span></div>';
+    h+='</div>';
+  });
+  tl.innerHTML=h;
+}
+function openStoryIntro(){
+  document.getElementById('storyIntroInput').value=storyIntro;
+  document.getElementById('storyIntroModal').classList.add('show');
+}
+function closeStoryIntroModal(){document.getElementById('storyIntroModal').classList.remove('show');}
+async function saveStoryIntro(){
+  var text=document.getElementById('storyIntroInput').value;
+  var resp=await sb.from('story_settings').update({intro:text,updated_by:UNAME}).eq('id',1);
+  if(resp.error){alert('Could not save: '+resp.error.message);return;}
+  closeStoryIntroModal();
+  await loadStory();
+  renderStory();
+}
+function openStoryEntry(id){
+  var e=id?storyEntries.find(function(x){return x.id===id;}):null;
+  document.getElementById('storyEntryTitle').textContent=e?'Edit Milestone':'Add Milestone';
+  document.getElementById('storyEntryId').value=e?e.id:'';
+  document.getElementById('storyEntryDateLabel').value=e?e.date_label:'';
+  document.getElementById('storyEntryDate').value=e&&e.event_date?e.event_date:'';
+  document.getElementById('storyEntryCategory').value=e?e.category:'milestone';
+  document.getElementById('storyEntryTitleInput').value=e?e.title:'';
+  document.getElementById('storyEntryDesc').value=e?(e.description||''):'';
+  document.getElementById('storyEntryModal').classList.add('show');
+}
+function closeStoryEntryModal(){document.getElementById('storyEntryModal').classList.remove('show');}
+async function saveStoryEntry(){
+  var id=document.getElementById('storyEntryId').value;
+  var dateLabel=document.getElementById('storyEntryDateLabel').value.trim();
+  var title=document.getElementById('storyEntryTitleInput').value.trim();
+  if(!dateLabel||!title){alert('Date label and title are required');return;}
+  var row={date_label:dateLabel,event_date:document.getElementById('storyEntryDate').value||null,
+    category:document.getElementById('storyEntryCategory').value,title:title,
+    description:document.getElementById('storyEntryDesc').value.trim()||null,updated_by:UNAME};
+  var resp;
+  if(id){resp=await sb.from('story_entries').update(row).eq('id',id);}
+  else{row.sort_order=storyEntries.length?Math.max.apply(null,storyEntries.map(function(e){return e.sort_order||0;}))+1:1;
+    resp=await sb.from('story_entries').insert(row);}
+  if(resp.error){alert('Could not save: '+resp.error.message);return;}
+  closeStoryEntryModal();
+  await loadStory();
+  renderStory();
+}
+async function deleteStoryEntry(id){
+  if(!confirm('Delete this milestone?'))return;
+  var resp=await sb.from('story_entries').delete().eq('id',id);
+  if(resp.error){alert('Could not delete: '+resp.error.message);return;}
+  await loadStory();
+  renderStory();
 }
 function logTypeById(id){return logTypes.find(function(t){return t.id===id;});}
 function logTypeByName(name){return logTypes.find(function(t){return t.name===name;});}

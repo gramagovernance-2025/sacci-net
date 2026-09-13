@@ -560,3 +560,57 @@ update whatsapp_messages
   where content_key is null;
 create index if not exists whatsapp_messages_content_key_idx
   on whatsapp_messages (content_key);
+
+-- ─── OUR STORY (2026-09-13) ──────────────────────────────────
+-- "Our Story" tab: an editable narrative plus a timeline of key
+-- milestones — how SACCI started, who it connected with, and what
+-- came out of that. Readable by staff and advisors (internal +
+-- funder-facing use), editable by staff only. Not exposed publicly.
+create table if not exists story_settings (
+  id int primary key default 1,
+  intro text,
+  updated_at timestamptz default now(),
+  updated_by text,
+  constraint story_settings_singleton check (id = 1)
+);
+insert into story_settings (id, intro) values (1, '') on conflict (id) do nothing;
+
+create table if not exists story_entries (
+  id uuid primary key default gen_random_uuid(),
+  date_label text not null,
+  event_date date,
+  title text not null,
+  description text,
+  category text not null default 'milestone',
+  sort_order int not null default 0,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  updated_by text
+);
+
+alter table story_settings enable row level security;
+alter table story_entries enable row level security;
+
+drop policy if exists "staff and advisors read story settings" on story_settings;
+create policy "staff and advisors read story settings" on story_settings for select
+  using (has_profile());
+
+drop policy if exists "staff update story settings" on story_settings;
+create policy "staff update story settings" on story_settings for update
+  using (is_staff());
+
+drop policy if exists "staff and advisors read story entries" on story_entries;
+create policy "staff and advisors read story entries" on story_entries for select
+  using (has_profile());
+
+drop policy if exists "staff insert story entries" on story_entries;
+create policy "staff insert story entries" on story_entries for insert
+  with check (is_staff());
+
+drop policy if exists "staff update story entries" on story_entries;
+create policy "staff update story entries" on story_entries for update
+  using (is_staff());
+
+drop policy if exists "staff delete story entries" on story_entries;
+create policy "staff delete story entries" on story_entries for delete
+  using (is_staff());
