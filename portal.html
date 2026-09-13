@@ -1221,20 +1221,28 @@ async function renderStoryLogFeed(){
   var filesByLog={};
   (filesResp.data||[]).forEach(function(f){(filesByLog[f.log_id]=filesByLog[f.log_id]||[]).push(f);});
   var sourceLabel={'quick-update':'via Quick Update','whatsapp':'via WhatsApp Import','manual':'logged manually','system':'system'};
+  function build(){
+    var h='';
+    orgLogs.forEach(function(l){
+      var t=logTypeById(l.log_type_id);
+      h+='<div class="story-item"><div class="story-dot"></div>';
+      h+='<div class="story-date">'+fmtDate(l.occurred_on)+' · '+esc(t?t.emoji+' '+t.name:tr('Log'))+' · '+tr(sourceLabel[l.source]||l.source)+(l.patient_id?' · '+tr('Public Patient Story'):'')+'</div>';
+      h+='<div class="story-title">'+esc(dtr(l.title)||(t?t.name:tr('Update')))+'</div>';
+      if(l.description)h+='<div class="story-desc">'+esc(dtr(l.description))+'</div>';
+      h+=storyThumbRow('log-files',filesByLog[l.id]||[]);
+      h+='</div>';
+    });
+    return h;
+  }
+  // Show it right away (in English, or whatever's already cached) rather
+  // than leaving the section blank while translation is still in flight —
+  // translating ~30 entries in one call can take several seconds on a cold
+  // cache. Swap in the Hindi text once it's ready.
+  feed.innerHTML=build();
   if(storyLang==='hi'){
     await translateBatch(orgLogs.map(function(l){return l.title;}).concat(orgLogs.map(function(l){return l.description;})));
+    if(storyLang==='hi')feed.innerHTML=build();
   }
-  var h='';
-  orgLogs.forEach(function(l){
-    var t=logTypeById(l.log_type_id);
-    h+='<div class="story-item"><div class="story-dot"></div>';
-    h+='<div class="story-date">'+fmtDate(l.occurred_on)+' · '+esc(t?t.emoji+' '+t.name:tr('Log'))+' · '+tr(sourceLabel[l.source]||l.source)+(l.patient_id?' · '+tr('Public Patient Story'):'')+'</div>';
-    h+='<div class="story-title">'+esc(dtr(l.title)||(t?t.name:tr('Update')))+'</div>';
-    if(l.description)h+='<div class="story-desc">'+esc(dtr(l.description))+'</div>';
-    h+=storyThumbRow('log-files',filesByLog[l.id]||[]);
-    h+='</div>';
-  });
-  feed.innerHTML=h;
 }
 function openStorySummary(){
   document.getElementById('storySummaryInput').value=storySummary;
@@ -1433,25 +1441,32 @@ async function renderActivities(){
   var tbody=document.getElementById('activityBody');if(!tbody)return;
   if(!logs.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No log entries yet.')+'</td></tr>';return;}
   var shown=logs.slice(0,25);
+  function build(){
+    var h='';shown.forEach(function(a){
+      var t=logTypeById(a.log_type_id);
+      var typeLabel=(t?t.emoji+' '+esc(t.name):'—')+(a.quantity>1?' <strong>×'+a.quantity+'</strong>':'')+(a.is_public?' <span title="Shown on public dashboard">🌐</span>':'');
+      var patientTag=a.patient_id?'<strong>'+esc(patientName(a.patient_id))+'</strong> — ':'';
+      var titleLine=a.title?'<strong>'+esc(dtr(a.title))+'</strong><br>':'';
+      var descShort=dtr(a.description||'');if(descShort.length>300)descShort=descShort.slice(0,300)+'…';
+      // Entries that came from WhatsApp or Quick Update keep their verbatim
+      // source (often Hinglish) in source_text — English summary on top, the
+      // original one click away. Never crosses to the public views.
+      var srcToggle=a.source_text?'<br><span class="link" style="font-size:0.8rem" onclick="toggleLogSource(\''+a.id+'\')">💬 Original messages</span>':'';
+      h+='<tr><td>'+fmtDate(a.occurred_on)+'</td><td>'+typeLabel+'</td><td>'+titleLine+patientTag+esc(descShort)+srcToggle+'</td><td>'+esc(a.participants||'—')+'</td><td>';
+      if(ROLE==='staff')h+='<span class="link" onclick="editActivity(\''+a.id+'\')">'+tr('Edit')+'</span> · <span class="link" onclick="deleteActivity(\''+a.id+'\')">'+tr('Delete')+'</span>';
+      else h+='—';
+      h+='</td></tr>';
+      if(a.source_text)h+='<tr id="src-'+a.id+'" style="display:none"><td colspan="5" style="background:rgba(0,0,0,0.03)"><div style="white-space:pre-wrap;font-size:0.82rem;color:var(--ink-muted);padding:4px 8px">'+esc(a.source_text)+'</div></td></tr>';
+    });
+    return h;
+  }
+  // Show it immediately rather than leaving the table blank while
+  // translation is in flight — see renderStoryLogFeed for why.
+  tbody.innerHTML=build();
   if(storyLang==='hi'){
     await translateBatch(shown.map(function(a){return a.title;}).concat(shown.map(function(a){return a.description;})));
+    if(storyLang==='hi')tbody.innerHTML=build();
   }
-  var h='';shown.forEach(function(a){
-    var t=logTypeById(a.log_type_id);
-    var typeLabel=(t?t.emoji+' '+esc(t.name):'—')+(a.quantity>1?' <strong>×'+a.quantity+'</strong>':'')+(a.is_public?' <span title="Shown on public dashboard">🌐</span>':'');
-    var patientTag=a.patient_id?'<strong>'+esc(patientName(a.patient_id))+'</strong> — ':'';
-    var titleLine=a.title?'<strong>'+esc(dtr(a.title))+'</strong><br>':'';
-    var descShort=dtr(a.description||'');if(descShort.length>300)descShort=descShort.slice(0,300)+'…';
-    // Entries that came from WhatsApp or Quick Update keep their verbatim
-    // source (often Hinglish) in source_text — English summary on top, the
-    // original one click away. Never crosses to the public views.
-    var srcToggle=a.source_text?'<br><span class="link" style="font-size:0.8rem" onclick="toggleLogSource(\''+a.id+'\')">💬 Original messages</span>':'';
-    h+='<tr><td>'+fmtDate(a.occurred_on)+'</td><td>'+typeLabel+'</td><td>'+titleLine+patientTag+esc(descShort)+srcToggle+'</td><td>'+esc(a.participants||'—')+'</td><td>';
-    if(ROLE==='staff')h+='<span class="link" onclick="editActivity(\''+a.id+'\')">'+tr('Edit')+'</span> · <span class="link" onclick="deleteActivity(\''+a.id+'\')">'+tr('Delete')+'</span>';
-    else h+='—';
-    h+='</td></tr>';
-    if(a.source_text)h+='<tr id="src-'+a.id+'" style="display:none"><td colspan="5" style="background:rgba(0,0,0,0.03)"><div style="white-space:pre-wrap;font-size:0.82rem;color:var(--ink-muted);padding:4px 8px">'+esc(a.source_text)+'</div></td></tr>';
-  });tbody.innerHTML=h;
 }
 function toggleLogSource(id){
   var r=document.getElementById('src-'+id);
@@ -2472,13 +2487,41 @@ async function generateSummary(id){
 async function viewPatient(id){
   var p=patients.find(function(x){return x.id===id;});if(!p)return;
   document.getElementById('viewTitle').textContent=p.name+(p.code?' ('+p.code+')':'');
+  var files=[],urls={};
+  var h=buildViewBody();
+  document.getElementById('viewBody').innerHTML=h;
+  var foot='<button class="btn btn-secondary" onclick="closeView()">'+tr('Close')+'</button>';
+  if(ROLE==='staff'){
+    foot+='<button class="btn btn-primary" onclick="closeView();editPatient(\''+id+'\')">'+tr('Edit')+'</button><button class="btn btn-warn" onclick="closeView();openUpdate(\''+id+'\')">'+tr('Add Visit Update')+'</button>';
+    if(p.status!=='Case Closed')foot+='<button class="btn btn-warn" onclick="openCloseCase(\''+id+'\')">'+tr('Close Case')+'</button>';
+  }
+  document.getElementById('viewFoot').innerHTML=foot;
+  // Show the modal right away with whatever's already cached rather than
+  // waiting on both the file fetch and (in Hindi) a translation call —
+  // either can take a few seconds, and a click that visibly does nothing
+  // for that long looks broken. Re-render in place as each piece lands.
+  document.getElementById('viewModal').classList.add('show');
+
+  var filesResp=await sb.from('patient_files').select('*').eq('patient_id',id);
+  files=filesResp.data||[];
+  if(files.length){
+    for(var i=0;i<files.length;i++){
+      var signedResp=await sb.storage.from('patient-files').createSignedUrl(files[i].storage_path,3600);
+      urls[files[i].id]=signedResp.data?signedResp.data.signedUrl:'';
+    }
+  }
+  if(document.getElementById('viewModal').classList.contains('show'))document.getElementById('viewBody').innerHTML=buildViewBody();
+
   // Diagnosis/treatment/medication/notes are clinical text staff typed
   // themselves, not fixed UI copy, so they're translated on demand here
   // (cached by translateBatch) rather than pre-translated like the labels.
   if(storyLang==='hi'){
     await translateBatch([p.diagnosis,p.treatment,p.medication,p.notes,p.closureReason,p.closureNotes]
       .concat((p.history||[]).map(function(v){return v.note;})));
+    if(storyLang==='hi'&&document.getElementById('viewModal').classList.contains('show'))document.getElementById('viewBody').innerHTML=buildViewBody();
   }
+
+  function buildViewBody(){
   var h='';
   if(ROLE==='staff'||ROLE==='advisor'){
     h+='<div class="detail-section"><h3>'+tr('Case Summary')+'</h3>';
@@ -2540,15 +2583,9 @@ async function viewPatient(id){
     h+='</div>';
   }
 
-  // Files by category — signed URLs since patient-files is a private bucket
-  var filesResp=await sb.from('patient_files').select('*').eq('patient_id',id);
-  var files=filesResp.data||[];
+  // Files by category — signed URLs since patient-files is a private bucket.
+  // files/urls are fetched once by the caller and reused across re-renders.
   if(files.length){
-    var urls={};
-    for(var i=0;i<files.length;i++){
-      var signedResp=await sb.storage.from('patient-files').createSignedUrl(files[i].storage_path,3600);
-      urls[files[i].id]=signedResp.data?signedResp.data.signedUrl:'';
-    }
     var latest=files.filter(function(f){return f.category==='Latest Report';});
     var histFiles=files.filter(function(f){return f.category!=='Latest Report';});
     if(latest.length){
@@ -2570,14 +2607,8 @@ async function viewPatient(id){
     h+='</div>';
   }
 
-  document.getElementById('viewBody').innerHTML=h;
-  var foot='<button class="btn btn-secondary" onclick="closeView()">'+tr('Close')+'</button>';
-  if(ROLE==='staff'){
-    foot+='<button class="btn btn-primary" onclick="closeView();editPatient(\''+id+'\')">'+tr('Edit')+'</button><button class="btn btn-warn" onclick="closeView();openUpdate(\''+id+'\')">'+tr('Add Visit Update')+'</button>';
-    if(p.status!=='Case Closed')foot+='<button class="btn btn-warn" onclick="openCloseCase(\''+id+'\')">'+tr('Close Case')+'</button>';
+  return h;
   }
-  document.getElementById('viewFoot').innerHTML=foot;
-  document.getElementById('viewModal').classList.add('show');
 }
 function closeView(){document.getElementById('viewModal').classList.remove('show');}
 
