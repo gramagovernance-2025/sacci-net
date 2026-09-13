@@ -649,7 +649,19 @@ var T_HI={
   'Nothing published yet — camps, cancer saathi joinings, and milestones will appear here.':'अभी तक कुछ प्रकाशित नहीं हुआ है, कैंप, कैंसर साथी की जॉइनिंग और मील के पत्थर यहां दिखाई देंगे।',
   'No data yet.':'अभी तक कोई डेटा नहीं।','No payments logged yet.':'अभी तक कोई भुगतान दर्ज नहीं हुआ।',
   'No committed amounts or payments logged yet.':'अभी तक कोई प्रतिबद्ध राशि या भुगतान दर्ज नहीं हुआ।',
-  'No log entries yet.':'अभी तक कोई लॉग एंट्री नहीं।'
+  'No log entries yet.':'अभी तक कोई लॉग एंट्री नहीं।',
+  'Case Summary':'केस सारांश','Age / Gender':'उम्र / लिंग','Aadhar':'आधार','Bank':'बैंक','Account':'खाता',
+  'Registered':'पंजीकृत','Medication':'दवा','Schedule':'शेड्यूल','Next Test':'अगली जांच',
+  'Medicine Refill':'दवा रिफिल','Financial Support':'वित्तीय सहायता','Total':'कुल','Full Case History':'पूरा केस इतिहास',
+  'Latest Reports (for Dr. Vidyasagar)':'नवीनतम रिपोर्ट (डॉ. विद्यासागर के लिए)',
+  'History & Other Documents':'इतिहास और अन्य दस्तावेज़',
+  'No summary generated yet — original report photos below are always available too.':'अभी तक कोई सारांश नहीं बना, नीचे मूल रिपोर्ट फ़ोटो हमेशा उपलब्ध हैं।',
+  'No payments logged for this patient yet.':'इस मरीज़ के लिए अभी तक कोई भुगतान दर्ज नहीं हुआ।',
+  'Generated':'बनाया गया','🤖 Regenerate Summary':'🤖 सारांश दोबारा बनाएं','🤖 Generate Summary':'🤖 सारांश बनाएं',
+  'via Quick Update':'त्वरित अपडेट के ज़रिए','via WhatsApp Import':'व्हाट्सएप इम्पोर्ट के ज़रिए',
+  'logged manually':'मैन्युअल रूप से दर्ज','system':'सिस्टम',
+  'Male':'पुरुष','Female':'महिला','Other':'अन्य','Medicine':'दवा','Hospital Stay':'अस्पताल में भर्ती',
+  'Log':'लॉग','Public Patient Story':'सार्वजनिक मरीज़ कहानी'
 };
 // Named `tr`, not `t` — `t` is already used everywhere in this file as a
 // loop variable for transactions/log types, and shadowing it inside those
@@ -659,6 +671,28 @@ function applyI18n(){
   document.querySelectorAll('[data-i18n]').forEach(function(el){el.textContent=tr(el.dataset.i18n);});
   document.querySelectorAll('[data-i18n-ph]').forEach(function(el){el.placeholder=tr(el.dataset.i18nPh);});
 }
+// Live data (diagnosis, notes, log descriptions) — staff type this in
+// English as they work, so it can't be pre-translated like static UI copy.
+// translateBatch asks the translate-text edge function for anything not
+// already in hiCache (which is itself backed by a DB cache keyed by a hash
+// of the source text, so the same sentence never gets sent to Claude twice
+// across all users). dtr() reads that cache; call translateBatch() first
+// and await it before rendering, or dtr() just returns the English text.
+var hiCache={};
+async function translateBatch(texts){
+  var uniq=[];
+  texts.forEach(function(t){if(t&&!(t in hiCache)&&uniq.indexOf(t)<0)uniq.push(t);});
+  if(!uniq.length)return;
+  try{
+    var resp=await sb.functions.invoke('translate-text',{body:{texts:uniq}});
+    if(!resp.error&&resp.data&&Array.isArray(resp.data.translations)){
+      uniq.forEach(function(t,i){hiCache[t]=resp.data.translations[i]||t;});
+    } else {
+      uniq.forEach(function(t){hiCache[t]=t;});
+    }
+  }catch(e){uniq.forEach(function(t){hiCache[t]=t;});}
+}
+function dtr(text){return(text&&storyLang==='hi'&&hiCache[text])?hiCache[text]:text;}
 var patients=[];
 var transactions=[];
 var logs=[];
@@ -1182,13 +1216,16 @@ async function renderStoryLogFeed(){
   var filesByLog={};
   (filesResp.data||[]).forEach(function(f){(filesByLog[f.log_id]=filesByLog[f.log_id]||[]).push(f);});
   var sourceLabel={'quick-update':'via Quick Update','whatsapp':'via WhatsApp Import','manual':'logged manually','system':'system'};
+  if(storyLang==='hi'){
+    await translateBatch(orgLogs.map(function(l){return l.title;}).concat(orgLogs.map(function(l){return l.description;})));
+  }
   var h='';
   orgLogs.forEach(function(l){
     var t=logTypeById(l.log_type_id);
     h+='<div class="story-item"><div class="story-dot"></div>';
-    h+='<div class="story-date">'+fmtDate(l.occurred_on)+' · '+esc(t?t.emoji+' '+t.name:'Log')+' · '+esc(sourceLabel[l.source]||l.source)+(l.patient_id?' · Public Patient Story':'')+'</div>';
-    h+='<div class="story-title">'+esc(l.title||(t?t.name:'Update'))+'</div>';
-    if(l.description)h+='<div class="story-desc">'+esc(l.description)+'</div>';
+    h+='<div class="story-date">'+fmtDate(l.occurred_on)+' · '+esc(t?t.emoji+' '+t.name:tr('Log'))+' · '+tr(sourceLabel[l.source]||l.source)+(l.patient_id?' · '+tr('Public Patient Story'):'')+'</div>';
+    h+='<div class="story-title">'+esc(dtr(l.title)||(t?t.name:tr('Update')))+'</div>';
+    if(l.description)h+='<div class="story-desc">'+esc(dtr(l.description))+'</div>';
     h+=storyThumbRow('log-files',filesByLog[l.id]||[]);
     h+='</div>';
   });
@@ -1387,15 +1424,19 @@ async function deleteActivity(id){
   await loadLogs();
   refreshActivePage();
 }
-function renderActivities(){
+async function renderActivities(){
   var tbody=document.getElementById('activityBody');if(!tbody)return;
   if(!logs.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No log entries yet.')+'</td></tr>';return;}
-  var h='';logs.slice(0,25).forEach(function(a){
+  var shown=logs.slice(0,25);
+  if(storyLang==='hi'){
+    await translateBatch(shown.map(function(a){return a.title;}).concat(shown.map(function(a){return a.description;})));
+  }
+  var h='';shown.forEach(function(a){
     var t=logTypeById(a.log_type_id);
     var typeLabel=(t?t.emoji+' '+esc(t.name):'—')+(a.quantity>1?' <strong>×'+a.quantity+'</strong>':'')+(a.is_public?' <span title="Shown on public dashboard">🌐</span>':'');
     var patientTag=a.patient_id?'<strong>'+esc(patientName(a.patient_id))+'</strong> — ':'';
-    var titleLine=a.title?'<strong>'+esc(a.title)+'</strong><br>':'';
-    var descShort=(a.description||'');if(descShort.length>300)descShort=descShort.slice(0,300)+'…';
+    var titleLine=a.title?'<strong>'+esc(dtr(a.title))+'</strong><br>':'';
+    var descShort=dtr(a.description||'');if(descShort.length>300)descShort=descShort.slice(0,300)+'…';
     // Entries that came from WhatsApp or Quick Update keep their verbatim
     // source (often Hinglish) in source_text — English summary on top, the
     // original one click away. Never crosses to the public views.
@@ -2426,63 +2467,70 @@ async function generateSummary(id){
 async function viewPatient(id){
   var p=patients.find(function(x){return x.id===id;});if(!p)return;
   document.getElementById('viewTitle').textContent=p.name+(p.code?' ('+p.code+')':'');
+  // Diagnosis/treatment/medication/notes are clinical text staff typed
+  // themselves, not fixed UI copy, so they're translated on demand here
+  // (cached by translateBatch) rather than pre-translated like the labels.
+  if(storyLang==='hi'){
+    await translateBatch([p.diagnosis,p.treatment,p.medication,p.notes,p.closureReason,p.closureNotes]
+      .concat((p.history||[]).map(function(v){return v.note;})));
+  }
   var h='';
   if(ROLE==='staff'||ROLE==='advisor'){
-    h+='<div class="detail-section"><h3>Case Summary</h3>';
+    h+='<div class="detail-section"><h3>'+tr('Case Summary')+'</h3>';
     if(p.aiSummary){
       h+='<p style="font-size:0.88rem;color:var(--ink-light);white-space:pre-wrap">'+esc(p.aiSummary)+'</p>';
-      h+='<div style="font-size:0.72rem;color:var(--ink-muted);margin-top:6px">Generated '+fmtDate(p.aiSummaryAt)+'</div>';
-      h+='<button class="btn btn-secondary btn-sm" id="summaryBtn" style="margin-top:8px" onclick="generateSummary(\''+id+'\')">🤖 Regenerate Summary</button>';
+      h+='<div style="font-size:0.72rem;color:var(--ink-muted);margin-top:6px">'+tr('Generated')+' '+fmtDate(p.aiSummaryAt)+'</div>';
+      h+='<button class="btn btn-secondary btn-sm" id="summaryBtn" style="margin-top:8px" onclick="generateSummary(\''+id+'\')">'+tr('🤖 Regenerate Summary')+'</button>';
     } else {
-      h+='<p style="font-size:0.85rem;color:var(--ink-muted)">No summary generated yet — original report photos below are always available too.</p>';
-      h+='<button class="btn btn-secondary btn-sm" id="summaryBtn" onclick="generateSummary(\''+id+'\')">🤖 Generate Summary</button>';
+      h+='<p style="font-size:0.85rem;color:var(--ink-muted)">'+tr('No summary generated yet — original report photos below are always available too.')+'</p>';
+      h+='<button class="btn btn-secondary btn-sm" id="summaryBtn" onclick="generateSummary(\''+id+'\')">'+tr('🤖 Generate Summary')+'</button>';
     }
     h+='</div>';
   }
-  h+='<div class="detail-section"><h3>Patient Information</h3><div class="detail-grid">';
-  h+='<div class="detail-item"><label>Name</label><span>'+esc(p.name)+'</span></div>';
-  h+='<div class="detail-item"><label>Age / Gender</label><span>'+(p.age||'—')+' / '+(p.gender||'—')+'</span></div>';
-  h+='<div class="detail-item"><label>Phone</label><span>'+(p.phone||'—')+'</span></div>';
-  h+='<div class="detail-item"><label>Village</label><span>'+esc(p.village||'—')+'</span></div>';
-  h+='<div class="detail-item"><label>Block</label><span>'+esc(p.block||'—')+'</span></div>';
-  h+='<div class="detail-item"><label>District</label><span>'+esc(p.district||'—')+'</span></div>';
+  h+='<div class="detail-section"><h3>'+tr('Patient Information')+'</h3><div class="detail-grid">';
+  h+='<div class="detail-item"><label>'+tr('Name')+'</label><span>'+esc(p.name)+'</span></div>';
+  h+='<div class="detail-item"><label>'+tr('Age / Gender')+'</label><span>'+(p.age||'—')+' / '+tr(p.gender||'—')+'</span></div>';
+  h+='<div class="detail-item"><label>'+tr('Phone')+'</label><span>'+(p.phone||'—')+'</span></div>';
+  h+='<div class="detail-item"><label>'+tr('Village')+'</label><span>'+esc(p.village||'—')+'</span></div>';
+  h+='<div class="detail-item"><label>'+tr('Block')+'</label><span>'+esc(p.block||'—')+'</span></div>';
+  h+='<div class="detail-item"><label>'+tr('District')+'</label><span>'+esc(p.district||'—')+'</span></div>';
   if(ROLE==='staff'){
-    h+='<div class="detail-item"><label>Aadhar</label><span>'+(p.aadhar||'—')+'</span></div>';
-    h+='<div class="detail-item"><label>Bank</label><span>'+(p.bank||'—')+' / '+(p.ifsc||'—')+'</span></div>';
-    h+='<div class="detail-item"><label>Account</label><span>'+(p.account||'—')+'</span></div>';
+    h+='<div class="detail-item"><label>'+tr('Aadhar')+'</label><span>'+(p.aadhar||'—')+'</span></div>';
+    h+='<div class="detail-item"><label>'+tr('Bank')+'</label><span>'+(p.bank||'—')+' / '+(p.ifsc||'—')+'</span></div>';
+    h+='<div class="detail-item"><label>'+tr('Account')+'</label><span>'+(p.account||'—')+'</span></div>';
   }
   h+='</div></div>';
 
-  h+='<div class="detail-section"><h3>Medical Details</h3><div class="detail-grid">';
-  h+='<div class="detail-item"><label>Diagnosis</label><span>'+esc(p.diagnosis||'—')+'</span></div>';
-  h+='<div class="detail-item"><label>Status</label><span class="badge '+statusCls(p.status)+'">'+p.status+'</span></div>';
-  h+='<div class="detail-item"><label>Admitted</label><span>'+(p.admitted||'No')+'</span></div>';
-  h+='<div class="detail-item"><label>Visit #</label><span>'+(p.visitNum||'—')+'</span></div>';
-  h+='<div class="detail-item"><label>Registered</label><span>'+fmtDate(p.createdAt)+'</span></div>';
+  h+='<div class="detail-section"><h3>'+tr('Medical Details')+'</h3><div class="detail-grid">';
+  h+='<div class="detail-item"><label>'+tr('Diagnosis')+'</label><span>'+esc(dtr(p.diagnosis)||'—')+'</span></div>';
+  h+='<div class="detail-item"><label>'+tr('Status')+'</label><span class="badge '+statusCls(p.status)+'">'+tr(p.status)+'</span></div>';
+  h+='<div class="detail-item"><label>'+tr('Admitted')+'</label><span>'+tr(p.admitted||'No')+'</span></div>';
+  h+='<div class="detail-item"><label>'+tr('Visit #')+'</label><span>'+(p.visitNum||'—')+'</span></div>';
+  h+='<div class="detail-item"><label>'+tr('Registered')+'</label><span>'+fmtDate(p.createdAt)+'</span></div>';
   h+='</div>';
-  if(p.treatment)h+='<div style="margin-top:10px"><label style="font-size:0.72rem;color:var(--ink-muted)">Treatment</label><p style="font-size:0.88rem;margin-top:3px">'+esc(p.treatment)+'</p></div>';
-  if(p.medication)h+='<div style="margin-top:10px"><label style="font-size:0.72rem;color:var(--ink-muted)">Medication</label><p style="font-size:0.88rem;margin-top:3px">'+esc(p.medication)+'</p></div>';
-  if(p.status==='Case Closed')h+='<div class="ai-box" style="margin-top:10px"><div class="ai-box-title">Case Closed</div>'+esc(p.closureReason||'—')+' — '+fmtDate(p.closedAt)+(p.closureNotes?'<br>'+esc(p.closureNotes):'')+'</div>';
+  if(p.treatment)h+='<div style="margin-top:10px"><label style="font-size:0.72rem;color:var(--ink-muted)">'+tr('Treatment')+'</label><p style="font-size:0.88rem;margin-top:3px">'+esc(dtr(p.treatment))+'</p></div>';
+  if(p.medication)h+='<div style="margin-top:10px"><label style="font-size:0.72rem;color:var(--ink-muted)">'+tr('Medication')+'</label><p style="font-size:0.88rem;margin-top:3px">'+esc(dtr(p.medication))+'</p></div>';
+  if(p.status==='Case Closed')h+='<div class="ai-box" style="margin-top:10px"><div class="ai-box-title">'+tr('Case Closed')+'</div>'+esc(dtr(p.closureReason)||'—')+' — '+fmtDate(p.closedAt)+(p.closureNotes?'<br>'+esc(dtr(p.closureNotes)):'')+'</div>';
   h+='</div>';
 
   // Schedule
   var nd=dueStatus(p.nextVisit),td=dueStatus(p.testDate),md=dueStatus(p.medDate);
-  h+='<div class="detail-section"><h3>Schedule</h3><div class="detail-grid">';
-  h+='<div class="detail-item"><label>Next Visit</label><span>'+(nd.c?'<span class="due '+nd.c+'">'+nd.t+'</span>':nd.t)+'</span></div>';
-  h+='<div class="detail-item"><label>Next Test</label><span>'+esc(p.nextTest||'—')+(td.c?' <span class="due '+td.c+'">'+td.t+'</span>':'')+'</span></div>';
-  h+='<div class="detail-item"><label>Medicine Refill</label><span>'+(md.c?'<span class="due '+md.c+'">'+md.t+'</span>':md.t)+'</span></div>';
+  h+='<div class="detail-section"><h3>'+tr('Schedule')+'</h3><div class="detail-grid">';
+  h+='<div class="detail-item"><label>'+tr('Next Visit')+'</label><span>'+(nd.c?'<span class="due '+nd.c+'">'+nd.t+'</span>':nd.t)+'</span></div>';
+  h+='<div class="detail-item"><label>'+tr('Next Test')+'</label><span>'+esc(p.nextTest||'—')+(td.c?' <span class="due '+td.c+'">'+td.t+'</span>':'')+'</span></div>';
+  h+='<div class="detail-item"><label>'+tr('Medicine Refill')+'</label><span>'+(md.c?'<span class="due '+md.c+'">'+md.t+'</span>':md.t)+'</span></div>';
   h+='</div></div>';
 
-  if(p.notes)h+='<div class="detail-section"><h3>Notes</h3><p style="font-size:0.88rem;color:var(--ink-light)">'+esc(p.notes)+'</p></div>';
+  if(p.notes)h+='<div class="detail-section"><h3>'+tr('Notes')+'</h3><p style="font-size:0.88rem;color:var(--ink-light)">'+esc(dtr(p.notes))+'</p></div>';
 
   // Financial support — staff only
   if(ROLE==='staff'){
     var patientTxns=transactions.filter(function(t){return t.patient_id===id;}).sort(function(a,b){return new Date(b.txn_date)-new Date(a.txn_date);});
-    h+='<div class="detail-section"><h3>Financial Support — Total ₹'+patientTotal(id).toLocaleString('en-IN')+'</h3>';
+    h+='<div class="detail-section"><h3>'+tr('Financial Support')+' — '+tr('Total')+' ₹'+patientTotal(id).toLocaleString('en-IN')+'</h3>';
     if(patientTxns.length){
-      patientTxns.forEach(function(t){h+='<div class="visit-entry"><div class="visit-entry-date">'+fmtDate(t.txn_date)+' — ₹'+Number(t.amount).toLocaleString('en-IN')+' ('+esc(t.purpose)+')</div><div class="visit-entry-notes">'+esc(t.notes||'')+'</div></div>';});
+      patientTxns.forEach(function(t){h+='<div class="visit-entry"><div class="visit-entry-date">'+fmtDate(t.txn_date)+' — ₹'+Number(t.amount).toLocaleString('en-IN')+' ('+tr(t.purpose)+')</div><div class="visit-entry-notes">'+esc(t.notes||'')+'</div></div>';});
     } else {
-      h+='<p style="font-size:0.85rem;color:var(--ink-muted)">No payments logged for this patient yet.</p>';
+      h+='<p style="font-size:0.85rem;color:var(--ink-muted)">'+tr('No payments logged for this patient yet.')+'</p>';
     }
     h+='</div>';
   }
@@ -2499,12 +2547,12 @@ async function viewPatient(id){
     var latest=files.filter(function(f){return f.category==='Latest Report';});
     var histFiles=files.filter(function(f){return f.category!=='Latest Report';});
     if(latest.length){
-      h+='<div class="detail-section"><h3>Latest Reports (for Dr. Vidyasagar)</h3><div class="thumb-row">';
+      h+='<div class="detail-section"><h3>'+tr('Latest Reports (for Dr. Vidyasagar)')+'</h3><div class="thumb-row">';
       latest.forEach(function(f){h+=fileThumbHtml(f,urls[f.id],esc(f.name));});
       h+='</div></div>';
     }
     if(histFiles.length){
-      h+='<div class="detail-section"><h3>History &amp; Other Documents</h3><div class="thumb-row">';
+      h+='<div class="detail-section"><h3>'+tr('History & Other Documents')+'</h3><div class="thumb-row">';
       histFiles.forEach(function(f){h+=fileThumbHtml(f,urls[f.id],esc(f.category||'')+': '+esc(f.name));});
       h+='</div></div>';
     }
@@ -2512,8 +2560,8 @@ async function viewPatient(id){
 
   // Visit history
   if(p.history&&p.history.length){
-    h+='<div class="detail-section"><h3>Full Case History</h3>';
-    p.history.slice().reverse().forEach(function(v){h+='<div class="visit-entry"><div class="visit-entry-date">'+fmtDate(v.date)+' — '+esc(v.user)+'</div><div class="visit-entry-notes">'+esc(v.note)+'</div></div>';});
+    h+='<div class="detail-section"><h3>'+tr('Full Case History')+'</h3>';
+    p.history.slice().reverse().forEach(function(v){h+='<div class="visit-entry"><div class="visit-entry-date">'+fmtDate(v.date)+' — '+esc(v.user)+'</div><div class="visit-entry-notes">'+esc(dtr(v.note))+'</div></div>';});
     h+='</div>';
   }
 

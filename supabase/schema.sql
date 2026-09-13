@@ -665,3 +665,23 @@ alter table story_settings add column if not exists summary_hi text;
 alter table story_settings add column if not exists intro_hi text;
 alter table story_entries add column if not exists title_hi text;
 alter table story_entries add column if not exists description_hi text;
+
+-- ─── LIVE DATA HINDI TRANSLATION (2026-09-13) ────────────────
+-- Diagnosis, treatment, notes, log descriptions — staff type this in
+-- English as they work, so unlike Our Story above it can't be
+-- pre-translated. The translate-text edge function translates it lazily
+-- the first time anyone views it in Hindi, caching the result here keyed
+-- by a hash of the source text, so the same sentence is never sent to
+-- Claude twice across all users/patients.
+create table if not exists translations_hi (
+  source_hash text primary key,
+  source_text text not null,
+  hi_text text not null,
+  created_at timestamptz default now()
+);
+alter table translations_hi enable row level security;
+drop policy if exists "staff and advisors read translations" on translations_hi;
+create policy "staff and advisors read translations" on translations_hi for select
+  using (has_profile());
+-- No client insert/update policy: only the translate-text edge function
+-- (service role) writes to this table.
