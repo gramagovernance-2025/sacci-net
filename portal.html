@@ -170,7 +170,6 @@
   <ul class="sidebar-nav" id="sidebarNav">
     <li><a href="#" class="active" data-page="dashboard" onclick="navTo('dashboard',this)">📊 Active Cases</a></li>
     <li><a href="#" data-page="patients" onclick="navTo('patients',this)">👥 All Patients</a></li>
-    <li><a href="#" data-page="dues" onclick="navTo('dues',this)" id="nav-dues">⏰ Due Actions</a></li>
     <li><a href="#" data-page="finances" onclick="navTo('finances',this)" id="nav-finances">💰 Finances</a></li>
     <li><a href="#" data-page="quickupdate" onclick="navTo('quickupdate',this)" id="nav-quickupdate">📝 Quick Update</a></li>
     <li><a href="#" data-page="whatsapp" onclick="navTo('whatsapp',this)" id="nav-whatsapp">💬 WhatsApp Import</a></li>
@@ -224,15 +223,6 @@
     <div style="overflow-x:auto"><table><thead><tr>
       <th>ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Village</th><th>Block</th><th>Diagnosis</th><th>Status</th><th>Admitted</th><th>Last Visit</th><th>Visit #</th><th>Next Visit</th><th>Due Test</th><th>Due Medicine</th><th>Actions</th>
     </tr></thead><tbody id="allBody"></tbody></table></div>
-  </div>
-</div>
-
-<!-- ═══ DUE ACTIONS ═══ -->
-<div class="page" id="page-dues">
-  <div class="topbar"><h1>Due Actions</h1></div>
-  <div class="card">
-    <div class="card-header"><h2>Upcoming &amp; Overdue Items</h2></div>
-    <div style="overflow-x:auto"><table><thead><tr><th>Patient</th><th>Type</th><th>Details</th><th>Due Date</th><th>Status</th></tr></thead><tbody id="duesBody"></tbody></table></div>
   </div>
 </div>
 
@@ -645,7 +635,6 @@ function refreshActivePage(){
   var name=active.id.replace('page-','');
   if(name==='dashboard')renderDash();
   if(name==='patients')renderAll();
-  if(name==='dues')renderDues();
   if(name==='finances')renderFinances();
   if(name==='public')renderPublic();
   if(name==='quickupdate')renderBulkCards();
@@ -659,7 +648,6 @@ function navTo(name,el){
   if(el)el.classList.add('active');
   if(name==='dashboard')renderDash();
   if(name==='patients')renderAll();
-  if(name==='dues')renderDues();
   if(name==='finances')renderFinances();
   if(name==='public')renderPublic();
   if(name==='quickupdate')renderBulkCards();
@@ -703,22 +691,6 @@ function renderAll(q){
     if(ROLE==='staff')acts+=' · <span class="link" onclick="editPatient(\''+p.id+'\')">Edit</span> · <span class="link" onclick="openUpdate(\''+p.id+'\')">Update</span>'+(p.status!=='Case Closed'?' · <span class="link" onclick="openCloseCase(\''+p.id+'\')">Close Case</span>':'');
     h+='<tr><td>'+esc(p.code||'—')+'</td><td><strong>'+esc(p.name)+'</strong></td><td>'+(p.age||'—')+'</td><td>'+(p.gender||'—')+'</td><td>'+esc(p.village||'—')+'</td><td>'+esc(p.block||'—')+'</td><td>'+esc(p.diagnosis||'—')+'</td><td><span class="badge '+statusCls(p.status)+'">'+p.status+'</span></td><td>'+(p.admitted||'No')+'</td><td>'+lastVisit(p)+'</td><td>'+(p.visitNum||'—')+'</td><td>'+(nd.c?'<span class="due '+nd.c+'">'+nd.t+'</span>':nd.t)+'</td><td>'+(td.c?'<span class="due '+td.c+'">'+td.t+'</span>':td.t)+'</td><td>'+(md.c?'<span class="due '+md.c+'">'+md.t+'</span>':md.t)+'</td><td>'+acts+'</td></tr>';
   });tbody.innerHTML=h;
-}
-
-// RENDER DUES
-function renderDues(){
-  var now=new Date(new Date().toDateString());var items=[];
-  patients.forEach(function(p){
-    if(p.status==='Case Closed')return;
-    if(p.nextVisit)items.push({name:p.name,id:p.id,type:'Visit',detail:'Hospital visit',date:p.nextVisit});
-    if(p.testDate)items.push({name:p.name,id:p.id,type:'Test',detail:p.nextTest||'Pending',date:p.testDate});
-    if(p.medDate)items.push({name:p.name,id:p.id,type:'Medicine',detail:'Refill due',date:p.medDate});
-  });
-  items.sort(function(a,b){return new Date(a.date)-new Date(b.date);});
-  var tbody=document.getElementById('duesBody');
-  if(!items.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:36px;color:var(--ink-muted)">No due actions.</td></tr>';return;}
-  var h='';items.forEach(function(i){var d=dueStatus(i.date);h+='<tr><td><strong>'+esc(i.name)+'</strong></td><td>'+i.type+'</td><td>'+esc(i.detail)+'</td><td>'+fmtDate(i.date)+'</td><td><span class="due '+d.c+'">'+d.t+'</span></td></tr>';});
-  tbody.innerHTML=h;
 }
 
 // RENDER PUBLIC — patients (as before) + the human-approved slice of the
