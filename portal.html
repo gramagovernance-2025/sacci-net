@@ -191,7 +191,7 @@
     <li><a href="#" data-page="finances" onclick="navTo('finances',this)" id="nav-finances">💰 Finances</a></li>
     <li><a href="#" data-page="quickupdate" onclick="navTo('quickupdate',this)" id="nav-quickupdate">📝 Quick Update</a></li>
     <li><a href="#" data-page="whatsapp" onclick="navTo('whatsapp',this)" id="nav-whatsapp">💬 WhatsApp Import</a></li>
-    <li><a href="#" data-page="story" onclick="navTo('story',this)">📖 Our Story</a></li>
+    <li><a href="#" data-page="story" onclick="navTo('story',this)" id="nav-story">📖 Our Story</a></li>
     <li><a href="#" data-page="public" onclick="navTo('public',this)">🌐 Public View</a></li>
   </ul>
   <div class="sidebar-bottom">
@@ -310,16 +310,28 @@
   <div id="waResults"></div>
 </div>
 
-<!-- ═══ OUR STORY (staff/advisor) ═══ -->
+<!-- ═══ OUR STORY (staff/advisor) — short overview ═══ -->
 <div class="page" id="page-story">
-  <div class="topbar"><h1>Our Story</h1></div>
+  <div class="topbar"><h1>Our Story</h1><span class="link" id="storySummaryEditBtn" onclick="openStorySummary()" style="display:none">Edit</span></div>
   <div class="card">
-    <div class="card-header"><h2>How SACCI started</h2><span class="link" id="storyIntroEditBtn" onclick="openStoryIntro()" style="display:none">Edit</span></div>
+    <div class="story-intro" id="storySummaryBox">Loading…</div>
+    <div style="padding:0 20px 20px"><button class="btn btn-primary" onclick="navTo('story-detail')">📖 Read the Detailed Story</button></div>
+  </div>
+</div>
+
+<!-- ═══ OUR STORY — detailed page (not in sidebar) ═══ -->
+<div class="page" id="page-story-detail">
+  <div class="topbar"><h1><span class="link" onclick="navTo('story')" style="margin-right:10px">←</span>The Detailed Story</h1><span class="link" id="storyIntroEditBtn" onclick="openStoryIntro()" style="display:none">Edit</span></div>
+  <div class="card">
     <div class="story-intro" id="storyIntroBox">Loading…</div>
   </div>
   <div class="card">
-    <div class="card-header"><h2>Timeline</h2><span class="link" id="storyAddBtn" onclick="openStoryEntry()" style="display:none">+ Add Milestone</span></div>
+    <div class="card-header"><h2>Major Milestones</h2><span class="link" id="storyAddBtn" onclick="openStoryEntry()" style="display:none">+ Add Milestone</span></div>
     <div class="story-timeline" id="storyTimeline"></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h2>Recent Updates</h2></div>
+    <div class="story-timeline" id="storyLogFeed" style="padding-top:16px"></div>
   </div>
 </div>
 
@@ -493,6 +505,17 @@
 </div>
 </div>
 
+<!-- ═══ STORY SUMMARY MODAL ═══ -->
+<div class="modal-overlay" id="storySummaryModal">
+<div class="modal" style="max-width:560px">
+  <div class="modal-head"><h2>Edit Overview</h2><button class="modal-close" onclick="closeStorySummaryModal()">&times;</button></div>
+  <div class="modal-body">
+    <div class="fg"><label>Short overview — shown before the Detailed Story</label><textarea id="storySummaryInput" style="min-height:160px"></textarea></div>
+  </div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeStorySummaryModal()">Cancel</button><button class="btn btn-primary" onclick="saveStorySummary()">Save</button></div>
+</div>
+</div>
+
 <!-- ═══ STORY INTRO MODAL ═══ -->
 <div class="modal-overlay" id="storyIntroModal">
 <div class="modal">
@@ -514,8 +537,29 @@
     <div class="fg"><label>Category</label><select id="storyEntryCategory"><option value="origin">Origin</option><option value="partnership">Partnership</option><option value="camp">Health Camp</option><option value="visit">Visit</option><option value="program">Program</option><option value="system" selected>How It Works</option><option value="milestone">Milestone</option></select></div>
     <div class="fg"><label>Title *</label><input type="text" id="storyEntryTitleInput" placeholder="e.g. First health camp - Ratnauli"></div>
     <div class="fg"><label>Description</label><textarea id="storyEntryDesc" placeholder="What happened..."></textarea></div>
+    <div class="fg" id="storyEntryFilesSection" style="display:none">
+      <label>Photos</label>
+      <div class="file-area" onclick="document.getElementById('storyEntryFileInput').click()">
+        <input type="file" id="storyEntryFileInput" accept="image/*" multiple onchange="handleStoryEntryFiles(this)">
+        <p><strong>Click to upload</strong> photos for this milestone</p>
+      </div>
+      <div class="file-list" id="storyEntryFileList"></div>
+    </div>
+    <p id="storyEntrySaveFirstNote" style="font-size:0.78rem;color:var(--ink-muted)">Save the milestone first, then you can add photos here.</p>
   </div>
-  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeStoryEntryModal()">Cancel</button><button class="btn btn-primary" onclick="saveStoryEntry()">Save</button></div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeStoryEntryModal()">Close</button><button class="btn btn-primary" onclick="saveStoryEntry()">Save</button></div>
+</div>
+</div>
+
+<!-- ═══ STORY UPDATE MODAL ═══ -->
+<div class="modal-overlay" id="storyUpdateModal">
+<div class="modal" style="max-width:460px">
+  <div class="modal-head"><h2>Add Update</h2><button class="modal-close" onclick="closeStoryUpdateModal()">&times;</button></div>
+  <div class="modal-body">
+    <input type="hidden" id="storyUpdateEntryId">
+    <div class="fg"><label>What's new about this milestone?</label><textarea id="storyUpdateNote" placeholder="e.g. Follow-up training completed, two more saathis onboarded..."></textarea></div>
+  </div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeStoryUpdateModal()">Cancel</button><button class="btn btn-primary" onclick="saveStoryUpdate()">Save Update</button></div>
 </div>
 </div>
 
@@ -700,7 +744,8 @@ function refreshActivePage(){
   if(name==='finances')renderFinances();
   if(name==='public')renderPublic();
   if(name==='quickupdate')renderBulkCards();
-  if(name==='story')renderStory();
+  if(name==='story')renderStorySummary();
+  if(name==='story-detail')renderStoryDetail();
 }
 
 // NAV
@@ -709,12 +754,14 @@ function navTo(name,el){
   document.getElementById('page-'+name).classList.add('active');
   document.querySelectorAll('.sidebar-nav a').forEach(function(a){a.classList.remove('active');});
   if(el)el.classList.add('active');
+  else if(name==='story-detail')document.getElementById('nav-story').classList.add('active');
   if(name==='dashboard')renderDash();
   if(name==='patients')renderAll();
   if(name==='finances')renderFinances();
   if(name==='public')renderPublic();
   if(name==='quickupdate')renderBulkCards();
-  if(name==='story')renderStory();
+  if(name==='story')renderStorySummary();
+  if(name==='story-detail')renderStoryDetail();
 }
 async function logout(){await sb.auth.signOut();window.location.href='portal-login.html';}
 
@@ -923,35 +970,98 @@ async function loadLogs(){
   if(resp.error)console.error(resp.error);
 }
 
-// ─── OUR STORY — narrative + timeline, editable by staff ─────
+// ─── OUR STORY — short overview + detailed page with a curated
+// milestone timeline (editable by staff) and a live feed of organisation-
+// wide entries (patient_id is null) pulled straight from Quick Update and
+// WhatsApp Import via the same `logs` table those features already write
+// to — nothing extra to log, it just shows up here too.
+var storySummary='';
 var storyIntro='';
 var storyEntries=[];
+var storyEntryFiles=[]; // files for whichever milestone is open in the modal
 var STORY_CATEGORIES={origin:'Origin',partnership:'Partnership',camp:'Health Camp',visit:'Visit',program:'Program',system:'How It Works',milestone:'Milestone'};
 async function loadStory(){
-  var s=await sb.from('story_settings').select('intro').eq('id',1).single();
+  var s=await sb.from('story_settings').select('summary,intro').eq('id',1).single();
+  storySummary=(s.data&&s.data.summary)||'';
   storyIntro=(s.data&&s.data.intro)||'';
   if(s.error)console.error(s.error);
   var e=await sb.from('story_entries').select('*').order('sort_order');
   storyEntries=e.data||[];
   if(e.error)console.error(e.error);
 }
-function renderStory(){
+function renderStorySummary(){
+  document.getElementById('storySummaryEditBtn').style.display=ROLE==='staff'?'':'none';
+  document.getElementById('storySummaryBox').innerHTML=storySummary?esc(storySummary):'<span class="story-intro-empty">No overview written yet.</span>';
+}
+function storyThumbRow(bucket,files){
+  if(!files.length)return'';
+  return '<div class="thumb-row" style="margin-top:8px">'+files.map(function(f){
+    var url=sb.storage.from(bucket).getPublicUrl(f.storage_path).data.publicUrl;
+    return '<div class="thumb"><img src="'+url+'" loading="lazy"></div>';
+  }).join('')+'</div>';
+}
+async function renderStoryDetail(){
   document.getElementById('storyIntroEditBtn').style.display=ROLE==='staff'?'':'none';
   document.getElementById('storyAddBtn').style.display=ROLE==='staff'?'':'none';
-  var introBox=document.getElementById('storyIntroBox');
-  introBox.innerHTML=storyIntro?esc(storyIntro):'<span class="story-intro-empty">No story written yet.</span>';
+  document.getElementById('storyIntroBox').innerHTML=storyIntro?esc(storyIntro):'<span class="story-intro-empty">No story written yet.</span>';
+
   var tl=document.getElementById('storyTimeline');
-  if(!storyEntries.length){tl.innerHTML='<p style="color:var(--ink-muted);padding:0 0 16px">No milestones yet.</p>';return;}
+  if(!storyEntries.length){
+    tl.innerHTML='<p style="color:var(--ink-muted);padding:0 0 16px">No milestones yet.</p>';
+  } else {
+    var filesResp=await sb.from('story_entry_files').select('*');
+    var filesByEntry={};
+    (filesResp.data||[]).forEach(function(f){(filesByEntry[f.entry_id]=filesByEntry[f.entry_id]||[]).push(f);});
+    var h='';
+    storyEntries.forEach(function(e){
+      h+='<div class="story-item story-cat-'+(e.category||'milestone')+'"><div class="story-dot"></div>';
+      h+='<div class="story-date">'+esc(e.date_label)+' · '+esc(STORY_CATEGORIES[e.category]||'Milestone')+'</div>';
+      h+='<div class="story-title">'+esc(e.title)+'</div>';
+      if(e.description)h+='<div class="story-desc">'+esc(e.description)+'</div>';
+      h+=storyThumbRow('story-files',filesByEntry[e.id]||[]);
+      if(e.history&&e.history.length)h+='<div class="story-desc" style="margin-top:8px">'+e.history.map(function(u){
+        return '<div style="margin-bottom:4px"><strong>'+fmtDate(u.date)+':</strong> '+esc(u.note)+'</div>';
+      }).join('')+'</div>';
+      if(ROLE==='staff')h+='<div class="story-actions"><span class="link" onclick="openStoryEntry(\''+e.id+'\')">Edit</span> · <span class="link" onclick="openStoryUpdate(\''+e.id+'\')">Update</span> · <span class="link" onclick="deleteStoryEntry(\''+e.id+'\')">Delete</span></div>';
+      h+='</div>';
+    });
+    tl.innerHTML=h;
+  }
+  renderStoryLogFeed();
+}
+async function renderStoryLogFeed(){
+  var orgLogs=logs.filter(function(l){return !l.patient_id;})
+    .slice().sort(function(a,b){return new Date(b.occurred_on)-new Date(a.occurred_on);}).slice(0,30);
+  var feed=document.getElementById('storyLogFeed');
+  if(!orgLogs.length){feed.innerHTML='<p style="color:var(--ink-muted);padding:0 0 16px">Nothing yet — camps, meetings, trainings and other entries logged via Quick Update or WhatsApp Import (that aren\'t tied to one patient) will show up here automatically.</p>';return;}
+  var filesResp=await sb.from('log_files').select('*').in('log_id',orgLogs.map(function(l){return l.id;}));
+  var filesByLog={};
+  (filesResp.data||[]).forEach(function(f){(filesByLog[f.log_id]=filesByLog[f.log_id]||[]).push(f);});
+  var sourceLabel={'quick-update':'via Quick Update','whatsapp':'via WhatsApp Import','manual':'logged manually','system':'system'};
   var h='';
-  storyEntries.forEach(function(e){
-    h+='<div class="story-item story-cat-'+(e.category||'milestone')+'"><div class="story-dot"></div>';
-    h+='<div class="story-date">'+esc(e.date_label)+' · '+esc(STORY_CATEGORIES[e.category]||'Milestone')+'</div>';
-    h+='<div class="story-title">'+esc(e.title)+'</div>';
-    if(e.description)h+='<div class="story-desc">'+esc(e.description)+'</div>';
-    if(ROLE==='staff')h+='<div class="story-actions"><span class="link" onclick="openStoryEntry(\''+e.id+'\')">Edit</span> · <span class="link" onclick="deleteStoryEntry(\''+e.id+'\')">Delete</span></div>';
+  orgLogs.forEach(function(l){
+    var t=logTypeById(l.log_type_id);
+    h+='<div class="story-item"><div class="story-dot"></div>';
+    h+='<div class="story-date">'+fmtDate(l.occurred_on)+' · '+esc(t?t.emoji+' '+t.name:'Log')+' · '+esc(sourceLabel[l.source]||l.source)+'</div>';
+    h+='<div class="story-title">'+esc(l.title||(t?t.name:'Update'))+'</div>';
+    if(l.description)h+='<div class="story-desc">'+esc(l.description)+'</div>';
+    h+=storyThumbRow('log-files',filesByLog[l.id]||[]);
     h+='</div>';
   });
-  tl.innerHTML=h;
+  feed.innerHTML=h;
+}
+function openStorySummary(){
+  document.getElementById('storySummaryInput').value=storySummary;
+  document.getElementById('storySummaryModal').classList.add('show');
+}
+function closeStorySummaryModal(){document.getElementById('storySummaryModal').classList.remove('show');}
+async function saveStorySummary(){
+  var text=document.getElementById('storySummaryInput').value;
+  var resp=await sb.from('story_settings').update({summary:text,updated_by:UNAME}).eq('id',1);
+  if(resp.error){alert('Could not save: '+resp.error.message);return;}
+  closeStorySummaryModal();
+  await loadStory();
+  renderStorySummary();
 }
 function openStoryIntro(){
   document.getElementById('storyIntroInput').value=storyIntro;
@@ -964,9 +1074,9 @@ async function saveStoryIntro(){
   if(resp.error){alert('Could not save: '+resp.error.message);return;}
   closeStoryIntroModal();
   await loadStory();
-  renderStory();
+  renderStoryDetail();
 }
-function openStoryEntry(id){
+async function openStoryEntry(id){
   var e=id?storyEntries.find(function(x){return x.id===id;}):null;
   document.getElementById('storyEntryTitle').textContent=e?'Edit Milestone':'Add Milestone';
   document.getElementById('storyEntryId').value=e?e.id:'';
@@ -975,9 +1085,14 @@ function openStoryEntry(id){
   document.getElementById('storyEntryCategory').value=e?e.category:'milestone';
   document.getElementById('storyEntryTitleInput').value=e?e.title:'';
   document.getElementById('storyEntryDesc').value=e?(e.description||''):'';
+  document.getElementById('storyEntryFilesSection').style.display=e?'':'none';
+  document.getElementById('storyEntrySaveFirstNote').style.display=e?'none':'';
+  storyEntryFiles=[];
+  if(e){var f=await sb.from('story_entry_files').select('*').eq('entry_id',e.id);storyEntryFiles=f.data||[];}
+  renderStoryEntryFiles();
   document.getElementById('storyEntryModal').classList.add('show');
 }
-function closeStoryEntryModal(){document.getElementById('storyEntryModal').classList.remove('show');}
+function closeStoryEntryModal(){document.getElementById('storyEntryModal').classList.remove('show');storyEntryFiles=[];}
 async function saveStoryEntry(){
   var id=document.getElementById('storyEntryId').value;
   var dateLabel=document.getElementById('storyEntryDateLabel').value.trim();
@@ -986,21 +1101,79 @@ async function saveStoryEntry(){
   var row={date_label:dateLabel,event_date:document.getElementById('storyEntryDate').value||null,
     category:document.getElementById('storyEntryCategory').value,title:title,
     description:document.getElementById('storyEntryDesc').value.trim()||null,updated_by:UNAME};
-  var resp;
-  if(id){resp=await sb.from('story_entries').update(row).eq('id',id);}
-  else{row.sort_order=storyEntries.length?Math.max.apply(null,storyEntries.map(function(e){return e.sort_order||0;}))+1:1;
-    resp=await sb.from('story_entries').insert(row);}
-  if(resp.error){alert('Could not save: '+resp.error.message);return;}
-  closeStoryEntryModal();
+  if(id){
+    var resp=await sb.from('story_entries').update(row).eq('id',id);
+    if(resp.error){alert('Could not save: '+resp.error.message);return;}
+  } else {
+    row.sort_order=storyEntries.length?Math.max.apply(null,storyEntries.map(function(e){return e.sort_order||0;}))+1:1;
+    var resp2=await sb.from('story_entries').insert(row).select().single();
+    if(resp2.error){alert('Could not save: '+resp2.error.message);return;}
+    document.getElementById('storyEntryId').value=resp2.data.id;
+    document.getElementById('storyEntryTitle').textContent='Edit Milestone';
+    document.getElementById('storyEntryFilesSection').style.display='';
+    document.getElementById('storyEntrySaveFirstNote').style.display='none';
+  }
   await loadStory();
-  renderStory();
+  renderStoryDetail();
+}
+function renderStoryEntryFiles(){
+  var c=document.getElementById('storyEntryFileList');
+  c.innerHTML=storyEntryFiles.map(function(f,i){return '<div class="file-item">'+esc(f.name)+'<button onclick="removeStoryEntryFile('+i+')">&times;</button></div>';}).join('');
+}
+async function handleStoryEntryFiles(input){
+  var id=document.getElementById('storyEntryId').value;
+  if(!id)return;
+  var files=Array.from(input.files);
+  for(var i=0;i<files.length;i++){
+    var f=files[i];
+    if(f.size>4*1024*1024){alert('Too large: '+f.name);continue;}
+    var path=id+'/'+Date.now()+'_'+f.name;
+    var up=await sb.storage.from('story-files').upload(path,f);
+    if(up.error){alert('Upload failed for '+f.name+': '+up.error.message);continue;}
+    var ins=await sb.from('story_entry_files').insert({entry_id:id,name:f.name,storage_path:path,uploaded_by:UNAME}).select().single();
+    if(ins.error){alert('Could not record '+f.name+': '+ins.error.message);continue;}
+    storyEntryFiles.push(ins.data);
+  }
+  renderStoryEntryFiles();
+  input.value='';
+  renderStoryDetail();
+}
+async function removeStoryEntryFile(idx){
+  var f=storyEntryFiles[idx];if(!f)return;
+  await sb.storage.from('story-files').remove([f.storage_path]);
+  await sb.from('story_entry_files').delete().eq('id',f.id);
+  storyEntryFiles.splice(idx,1);
+  renderStoryEntryFiles();
+  renderStoryDetail();
+}
+function openStoryUpdate(id){
+  document.getElementById('storyUpdateEntryId').value=id;
+  document.getElementById('storyUpdateNote').value='';
+  document.getElementById('storyUpdateModal').classList.add('show');
+}
+function closeStoryUpdateModal(){document.getElementById('storyUpdateModal').classList.remove('show');}
+async function saveStoryUpdate(){
+  var id=document.getElementById('storyUpdateEntryId').value;
+  var note=document.getElementById('storyUpdateNote').value.trim();
+  if(!note){alert('Write something first');return;}
+  var e=storyEntries.find(function(x){return x.id===id;});
+  var history=(e&&e.history||[]).slice();
+  history.push({date:new Date().toISOString(),user:UNAME,note:note});
+  var resp=await sb.from('story_entries').update({history:history,updated_by:UNAME}).eq('id',id);
+  if(resp.error){alert('Could not save: '+resp.error.message);return;}
+  closeStoryUpdateModal();
+  await loadStory();
+  renderStoryDetail();
 }
 async function deleteStoryEntry(id){
   if(!confirm('Delete this milestone?'))return;
+  var f=await sb.from('story_entry_files').select('storage_path').eq('entry_id',id);
+  var paths=(f.data||[]).map(function(x){return x.storage_path;});
+  if(paths.length)await sb.storage.from('story-files').remove(paths);
   var resp=await sb.from('story_entries').delete().eq('id',id);
   if(resp.error){alert('Could not delete: '+resp.error.message);return;}
   await loadStory();
-  renderStory();
+  renderStoryDetail();
 }
 function logTypeById(id){return logTypes.find(function(t){return t.id===id;});}
 function logTypeByName(name){return logTypes.find(function(t){return t.name===name;});}

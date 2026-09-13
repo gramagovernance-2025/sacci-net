@@ -614,3 +614,44 @@ create policy "staff update story entries" on story_entries for update
 drop policy if exists "staff delete story entries" on story_entries;
 create policy "staff delete story entries" on story_entries for delete
   using (is_staff());
+
+-- ─── OUR STORY v2 (2026-09-14) ───────────────────────────────
+-- Short overview (summary) shown first, full narrative (intro) on the
+-- Detailed Story page. Milestones get an update history (like patients'
+-- visit history — adds a note without overwriting the original entry)
+-- and their own photos, same pattern as log_files/log-files.
+alter table story_settings add column if not exists summary text;
+alter table story_entries add column if not exists history jsonb not null default '[]'::jsonb;
+
+create table if not exists story_entry_files (
+  id uuid primary key default gen_random_uuid(),
+  entry_id uuid not null references story_entries(id) on delete cascade,
+  name text not null,
+  storage_path text not null,
+  uploaded_at timestamptz default now(),
+  uploaded_by text
+);
+
+alter table story_entry_files enable row level security;
+
+drop policy if exists "staff and advisors read story entry files" on story_entry_files;
+create policy "staff and advisors read story entry files" on story_entry_files for select
+  using (has_profile());
+
+drop policy if exists "staff write story entry files" on story_entry_files;
+create policy "staff write story entry files" on story_entry_files for all
+  using (is_staff()) with check (is_staff());
+
+-- Public, matching log-files: storytelling material, unguessable uuid paths.
+insert into storage.buckets (id, name, public)
+values ('story-files', 'story-files', true)
+on conflict (id) do nothing;
+
+drop policy if exists "staff manage story files" on storage.objects;
+create policy "staff manage story files" on storage.objects for all
+  using (bucket_id = 'story-files' and is_staff())
+  with check (bucket_id = 'story-files' and is_staff());
+
+drop policy if exists "advisors read story files" on storage.objects;
+create policy "advisors read story files" on storage.objects for select
+  using (bucket_id = 'story-files' and has_profile());
