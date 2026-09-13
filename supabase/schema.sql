@@ -655,3 +655,13 @@ create policy "staff manage story files" on storage.objects for all
 drop policy if exists "advisors read story files" on storage.objects;
 create policy "advisors read story files" on storage.objects for select
   using (bucket_id = 'story-files' and has_profile());
+
+-- ─── OUR STORY — HINDI (2026-09-13) ──────────────────────────
+-- Sanjay ji reads Hindi more comfortably than English. Rather than
+-- machine-translate on the fly, each piece of curated story content
+-- carries its own Hindi text alongside the English, filled in by staff
+-- (or left blank, in which case the portal falls back to English).
+alter table story_settings add column if not exists summary_hi text;
+alter table story_settings add column if not exists intro_hi text;
+alter table story_entries add column if not exists title_hi text;
+alter table story_entries add column if not exists description_hi text;

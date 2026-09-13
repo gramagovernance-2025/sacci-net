@@ -166,6 +166,10 @@
   .story-title{font-size:0.98rem;font-weight:700;color:var(--ink);margin:2px 0 5px;}
   .story-desc{font-size:0.86rem;color:var(--ink-light);line-height:1.6;}
   .story-actions{margin-top:6px;}
+  .lang-toggle{display:inline-flex;border:1px solid var(--sand);border-radius:20px;overflow:hidden;}
+  .lang-btn{padding:5px 14px;font-size:0.78rem;font-weight:600;background:#fff;color:var(--ink-muted);border:none;cursor:pointer;font-family:var(--font);}
+  .lang-btn.active{background:var(--teal-deep);color:#fff;}
+  .topbar-right{display:flex;align-items:center;gap:14px;}
 
   .page{display:none;}
   .page.active{display:block;}
@@ -312,7 +316,7 @@
 
 <!-- ═══ OUR STORY (staff/advisor) — overview + milestones ═══ -->
 <div class="page" id="page-story">
-  <div class="topbar"><h1>Our Story</h1><span class="link" id="storySummaryEditBtn" onclick="openStorySummary()" style="display:none">Edit</span></div>
+  <div class="topbar"><h1>Our Story</h1><div class="topbar-right"><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div><span class="link" id="storySummaryEditBtn" onclick="openStorySummary()" style="display:none">Edit</span></div></div>
   <div class="card">
     <div style="padding:20px 20px 0"><button class="btn btn-primary" onclick="navTo('story-detail')">📖 Story in Detail</button></div>
     <div class="story-intro" id="storySummaryBox">Loading…</div>
@@ -325,7 +329,7 @@
 
 <!-- ═══ OUR STORY — detailed page (not in sidebar) ═══ -->
 <div class="page" id="page-story-detail">
-  <div class="topbar"><h1><span class="link" onclick="navTo('story')" style="margin-right:10px">←</span>Building &amp; Learning</h1><span class="link" id="storyIntroEditBtn" onclick="openStoryIntro()" style="display:none">Edit</span></div>
+  <div class="topbar"><h1><span class="link" onclick="navTo('story')" style="margin-right:10px">←</span>Building &amp; Learning</h1><div class="topbar-right"><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div><span class="link" id="storyIntroEditBtn" onclick="openStoryIntro()" style="display:none">Edit</span></div></div>
   <div class="card">
     <div class="story-intro" id="storyIntroBox">Loading…</div>
   </div>
@@ -511,6 +515,7 @@
   <div class="modal-head"><h2>Edit Overview</h2><button class="modal-close" onclick="closeStorySummaryModal()">&times;</button></div>
   <div class="modal-body">
     <div class="fg"><label>Short overview — shown before the Detailed Story</label><textarea id="storySummaryInput" style="min-height:160px"></textarea></div>
+    <div class="fg"><label>हिंदी अनुवाद (optional — leave blank to fall back to English)</label><textarea id="storySummaryHiInput" style="min-height:160px"></textarea></div>
   </div>
   <div class="modal-foot"><button class="btn btn-secondary" onclick="closeStorySummaryModal()">Cancel</button><button class="btn btn-primary" onclick="saveStorySummary()">Save</button></div>
 </div>
@@ -522,6 +527,7 @@
   <div class="modal-head"><h2>Edit "How SACCI Started"</h2><button class="modal-close" onclick="closeStoryIntroModal()">&times;</button></div>
   <div class="modal-body">
     <div class="fg"><label>Narrative</label><textarea id="storyIntroInput" style="min-height:360px"></textarea></div>
+    <div class="fg"><label>हिंदी अनुवाद (optional — leave blank to fall back to English)</label><textarea id="storyIntroHiInput" style="min-height:360px"></textarea></div>
   </div>
   <div class="modal-foot"><button class="btn btn-secondary" onclick="closeStoryIntroModal()">Cancel</button><button class="btn btn-primary" onclick="saveStoryIntro()">Save</button></div>
 </div>
@@ -537,6 +543,8 @@
     <div class="fg"><label>Category</label><select id="storyEntryCategory"><option value="origin">Origin</option><option value="partnership">Partnership</option><option value="camp">Health Camp</option><option value="visit">Visit</option><option value="program">Program</option><option value="system" selected>How It Works</option><option value="milestone">Milestone</option></select></div>
     <div class="fg"><label>Title *</label><input type="text" id="storyEntryTitleInput" placeholder="e.g. First health camp - Ratnauli"></div>
     <div class="fg"><label>Description</label><textarea id="storyEntryDesc" placeholder="What happened..."></textarea></div>
+    <div class="fg"><label>शीर्षक (हिंदी, optional)</label><input type="text" id="storyEntryTitleHiInput" placeholder="जैसे: पहला स्वास्थ्य शिविर - रत्नौली"></div>
+    <div class="fg"><label>विवरण (हिंदी, optional — leave blank to fall back to English)</label><textarea id="storyEntryDescHi" placeholder="क्या हुआ..."></textarea></div>
     <div class="fg" id="storyEntryFilesSection" style="display:none">
       <label>Photos</label>
       <div class="file-area" onclick="document.getElementById('storyEntryFileInput').click()">
@@ -976,22 +984,44 @@ async function loadLogs(){
 // WhatsApp Import via the same `logs` table those features already write
 // to — nothing extra to log, it just shows up here too.
 var storySummary='';
+var storySummaryHi='';
 var storyIntro='';
+var storyIntroHi='';
 var storyEntries=[];
 var storyEntryFiles=[]; // files for whichever milestone is open in the modal
 var STORY_CATEGORIES={origin:'Origin',partnership:'Partnership',camp:'Health Camp',visit:'Visit',program:'Program',system:'How It Works',milestone:'Milestone'};
+var STORY_CATEGORIES_HI={origin:'शुरुआत',partnership:'साझेदारी',camp:'स्वास्थ्य शिविर',visit:'यात्रा',program:'कार्यक्रम',system:'व्यवस्था',milestone:'पड़ाव'};
+// Sanjay ji reads Hindi more comfortably — each piece of curated story
+// content carries its own Hindi text; this just picks which to show.
+// Falls back to English whenever the Hindi field is blank.
+var storyLang=localStorage.getItem('sacci_story_lang')||'en';
+function setStoryLang(lang){
+  storyLang=lang;
+  localStorage.setItem('sacci_story_lang',lang);
+  syncLangToggle();
+  renderStorySummary();
+  renderStoryDetail();
+}
+function syncLangToggle(){
+  document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.toggle('active',b.dataset.lang===storyLang);});
+}
+function storyPick(en,hi){return(storyLang==='hi'&&hi)?hi:en;}
 async function loadStory(){
-  var s=await sb.from('story_settings').select('summary,intro').eq('id',1).single();
+  var s=await sb.from('story_settings').select('summary,summary_hi,intro,intro_hi').eq('id',1).single();
   storySummary=(s.data&&s.data.summary)||'';
+  storySummaryHi=(s.data&&s.data.summary_hi)||'';
   storyIntro=(s.data&&s.data.intro)||'';
+  storyIntroHi=(s.data&&s.data.intro_hi)||'';
   if(s.error)console.error(s.error);
   var e=await sb.from('story_entries').select('*').order('sort_order');
   storyEntries=e.data||[];
   if(e.error)console.error(e.error);
 }
 async function renderStorySummary(){
+  syncLangToggle();
   document.getElementById('storySummaryEditBtn').style.display=ROLE==='staff'?'':'none';
-  document.getElementById('storySummaryBox').innerHTML=storySummary?esc(storySummary):'<span class="story-intro-empty">No overview written yet.</span>';
+  var summaryText=storyPick(storySummary,storySummaryHi);
+  document.getElementById('storySummaryBox').innerHTML=summaryText?esc(summaryText):'<span class="story-intro-empty">No overview written yet.</span>';
   document.getElementById('storyAddBtn').style.display=ROLE==='staff'?'':'none';
 
   var tl=document.getElementById('storyTimeline');
@@ -1002,12 +1032,15 @@ async function renderStorySummary(){
   var filesResp=await sb.from('story_entry_files').select('*');
   var filesByEntry={};
   (filesResp.data||[]).forEach(function(f){(filesByEntry[f.entry_id]=filesByEntry[f.entry_id]||[]).push(f);});
+  var cats=storyLang==='hi'?STORY_CATEGORIES_HI:STORY_CATEGORIES;
   var h='';
   storyEntries.forEach(function(e){
+    var title=storyPick(e.title,e.title_hi);
+    var desc=storyPick(e.description,e.description_hi);
     h+='<div class="story-item story-cat-'+(e.category||'milestone')+'"><div class="story-dot"></div>';
-    h+='<div class="story-date">'+esc(e.date_label)+' · '+esc(STORY_CATEGORIES[e.category]||'Milestone')+'</div>';
-    h+='<div class="story-title">'+esc(e.title)+'</div>';
-    if(e.description)h+='<div class="story-desc">'+esc(e.description)+'</div>';
+    h+='<div class="story-date">'+esc(e.date_label)+' · '+esc(cats[e.category]||'Milestone')+'</div>';
+    h+='<div class="story-title">'+esc(title)+'</div>';
+    if(desc)h+='<div class="story-desc">'+esc(desc)+'</div>';
     h+=storyThumbRow('story-files',filesByEntry[e.id]||[]);
     if(e.history&&e.history.length)h+='<div class="story-desc" style="margin-top:8px">'+e.history.map(function(u){
       return '<div style="margin-bottom:4px"><strong>'+fmtDate(u.date)+':</strong> '+esc(u.note)+'</div>';
@@ -1025,8 +1058,10 @@ function storyThumbRow(bucket,files){
   }).join('')+'</div>';
 }
 function renderStoryDetail(){
+  syncLangToggle();
   document.getElementById('storyIntroEditBtn').style.display=ROLE==='staff'?'':'none';
-  document.getElementById('storyIntroBox').innerHTML=storyIntro?esc(storyIntro):'<span class="story-intro-empty">No story written yet.</span>';
+  var introText=storyPick(storyIntro,storyIntroHi);
+  document.getElementById('storyIntroBox').innerHTML=introText?esc(introText):'<span class="story-intro-empty">No story written yet.</span>';
   renderStoryLogFeed();
 }
 async function renderStoryLogFeed(){
@@ -1055,12 +1090,14 @@ async function renderStoryLogFeed(){
 }
 function openStorySummary(){
   document.getElementById('storySummaryInput').value=storySummary;
+  document.getElementById('storySummaryHiInput').value=storySummaryHi;
   document.getElementById('storySummaryModal').classList.add('show');
 }
 function closeStorySummaryModal(){document.getElementById('storySummaryModal').classList.remove('show');}
 async function saveStorySummary(){
   var text=document.getElementById('storySummaryInput').value;
-  var resp=await sb.from('story_settings').update({summary:text,updated_by:UNAME}).eq('id',1);
+  var textHi=document.getElementById('storySummaryHiInput').value;
+  var resp=await sb.from('story_settings').update({summary:text,summary_hi:textHi||null,updated_by:UNAME}).eq('id',1);
   if(resp.error){alert('Could not save: '+resp.error.message);return;}
   closeStorySummaryModal();
   await loadStory();
@@ -1068,12 +1105,14 @@ async function saveStorySummary(){
 }
 function openStoryIntro(){
   document.getElementById('storyIntroInput').value=storyIntro;
+  document.getElementById('storyIntroHiInput').value=storyIntroHi;
   document.getElementById('storyIntroModal').classList.add('show');
 }
 function closeStoryIntroModal(){document.getElementById('storyIntroModal').classList.remove('show');}
 async function saveStoryIntro(){
   var text=document.getElementById('storyIntroInput').value;
-  var resp=await sb.from('story_settings').update({intro:text,updated_by:UNAME}).eq('id',1);
+  var textHi=document.getElementById('storyIntroHiInput').value;
+  var resp=await sb.from('story_settings').update({intro:text,intro_hi:textHi||null,updated_by:UNAME}).eq('id',1);
   if(resp.error){alert('Could not save: '+resp.error.message);return;}
   closeStoryIntroModal();
   await loadStory();
@@ -1088,6 +1127,8 @@ async function openStoryEntry(id){
   document.getElementById('storyEntryCategory').value=e?e.category:'milestone';
   document.getElementById('storyEntryTitleInput').value=e?e.title:'';
   document.getElementById('storyEntryDesc').value=e?(e.description||''):'';
+  document.getElementById('storyEntryTitleHiInput').value=e?(e.title_hi||''):'';
+  document.getElementById('storyEntryDescHi').value=e?(e.description_hi||''):'';
   document.getElementById('storyEntryFilesSection').style.display=e?'':'none';
   document.getElementById('storyEntrySaveFirstNote').style.display=e?'none':'';
   storyEntryFiles=[];
@@ -1103,7 +1144,9 @@ async function saveStoryEntry(){
   if(!dateLabel||!title){alert('Date label and title are required');return;}
   var row={date_label:dateLabel,event_date:document.getElementById('storyEntryDate').value||null,
     category:document.getElementById('storyEntryCategory').value,title:title,
-    description:document.getElementById('storyEntryDesc').value.trim()||null,updated_by:UNAME};
+    description:document.getElementById('storyEntryDesc').value.trim()||null,
+    title_hi:document.getElementById('storyEntryTitleHiInput').value.trim()||null,
+    description_hi:document.getElementById('storyEntryDescHi').value.trim()||null,updated_by:UNAME};
   if(id){
     var resp=await sb.from('story_entries').update(row).eq('id',id);
     if(resp.error){alert('Could not save: '+resp.error.message);return;}
