@@ -691,9 +691,10 @@ async function translateBatch(texts){
     if(!resp.error&&resp.data&&Array.isArray(resp.data.translations)){
       uniq.forEach(function(t,i){hiCache[t]=resp.data.translations[i]||t;});
     } else {
+      console.error('translate-text call failed, showing English:',await edgeErrorMessage(resp));
       uniq.forEach(function(t){hiCache[t]=t;});
     }
-  }catch(e){uniq.forEach(function(t){hiCache[t]=t;});}
+  }catch(e){console.error('translate-text call threw, showing English:',e);uniq.forEach(function(t){hiCache[t]=t;});}
 }
 function dtr(text){return(text&&storyLang==='hi'&&hiCache[text])?hiCache[text]:text;}
 var patients=[];

@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
       const missingHashes = [...missingByHash.keys()];
       const missingTexts = [...missingByHash.values()];
       const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
-      const Schema = z.object({ translations: z.array(z.string()).length(missingTexts.length) });
+      const Schema = z.object({ translations: z.array(z.string()) });
       const numbered = missingTexts.map((t, i) => `[${i}] ${t}`).join("\n");
       const response = await anthropic.messages.parse({
         model: "claude-opus-4-8",
@@ -105,7 +105,16 @@ Deno.serve(async (req) => {
           hi_text: parsed.translations[i],
         }));
         rows.forEach((r) => { cacheMap[r.source_hash] = r.hi_text; });
-        await admin.from("translations_hi").upsert(rows, { onConflict: "source_hash" });
+        const { error: upsertError } = await admin.from("translations_hi").upsert(rows, { onConflict: "source_hash" });
+        if (upsertError) console.error("translations_hi upsert failed:", upsertError);
+      } else {
+        // Claude didn't return a usable translation set — log why, and fall
+        // through to returning the original English text below rather than
+        // failing the whole request over a handful of untranslated strings.
+        console.error(
+          "translate-text: unusable model output",
+          JSON.stringify({ expected: missingTexts.length, got: parsed?.translations?.length, stopReason: response.stop_reason }),
+        );
       }
     }
 
