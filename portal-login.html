@@ -166,10 +166,15 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch
     showLogin({ preventDefault: function(){} });
   }
 
-  (async function redirectIfLoggedIn() {
+  async function redirectIfLoggedIn() {
     var { data: { session } } = await sb.auth.getSession();
     if (session) window.location.href = 'portal.html';
-  })();
+  }
+  redirectIfLoggedIn();
+  // Pressing Back after a successful login can restore this page from the
+  // browser's bfcache showing the pre-login form, even though the session is
+  // still valid — re-check and bounce forward instead of looking logged out.
+  window.addEventListener('pageshow', function(e) { if (e.persisted) redirectIfLoggedIn(); });
 </script>
 </body>
 </html>
