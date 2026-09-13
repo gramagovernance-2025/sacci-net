@@ -201,7 +201,7 @@
   <div class="sidebar-bottom">
     <div class="sidebar-user" id="dispName">Staff</div>
     <div class="sidebar-role" id="dispRole">staff</div>
-    <button class="logout-btn" onclick="logout()">Logout</button>
+    <button class="logout-btn" onclick="logout()" data-i18n="Logout">Logout</button>
   </div>
 </aside>
 
@@ -286,7 +286,7 @@
     <div class="card-header"><h2 data-i18n="Write anything — patient updates, camps, meetings, saathi joinings">Write anything — patient updates, camps, meetings, saathi joinings</h2></div>
     <div style="padding:20px">
       <div class="fg">
-        <label>Write freely — mention patients by name, or describe camps, meetings, and other work. The system splits it into entries and shows you exactly what it found before anything saves.</label>
+        <label data-i18n="Write freely — mention patients by name, or describe camps, meetings, and other work. The system splits it into entries and shows you exactly what it found before anything saves.">Write freely — mention patients by name, or describe camps, meetings, and other work. The system splits it into entries and shows you exactly what it found before anything saves.</label>
         <textarea id="bqFreeText" style="min-height:140px" placeholder="e.g. 'Ramesh Kumar's biopsy came back positive, recommended starting chemo, family is hesitant. Gave Sunita Devi 1500 for travel, she's refusing to go to TATA and wants a private hospital instead.'"></textarea>
       </div>
       <button class="btn btn-primary" id="bqParseBtn" onclick="parseBulkUpdate()" data-i18n="🤖 Parse Updates">🤖 Parse Updates</button>
@@ -302,7 +302,7 @@
     <div class="card-header"><h2 data-i18n="Paste the group chat export">Paste the group chat export</h2></div>
     <div style="padding:20px">
       <div class="fg">
-        <label>In WhatsApp: open the group → ⋮ → More → Export chat (choose "Include media" to bring the photos along). Then upload the exported .zip below exactly as WhatsApp made it — no unzipping needed. Or paste the chat text here. Messages imported before are skipped automatically, so overlapping exports are always safe.</label>
+        <label data-i18n="In WhatsApp: open the group → ⋮ → More → Export chat (choose &quot;Include media&quot; to bring the photos along). Then upload the exported .zip below exactly as WhatsApp made it — no unzipping needed. Or paste the chat text here. Messages imported before are skipped automatically, so overlapping exports are always safe.">In WhatsApp: open the group → ⋮ → More → Export chat (choose "Include media" to bring the photos along). Then upload the exported .zip below exactly as WhatsApp made it — no unzipping needed. Or paste the chat text here. Messages imported before are skipped automatically, so overlapping exports are always safe.</label>
         <textarea id="waText" style="min-height:160px" placeholder="[12:48, 09/08/2026] Sanjay sahni: Munish ji sumitra devi ko aaj bhej rahe hai tata&#10;[08:28, 11/08/2026] Munish RM: Okay 👍 m 9:30 baje k aas pass baat karunga …"></textarea>
       </div>
       <div class="fg">
@@ -324,11 +324,11 @@
 <div class="page" id="page-story">
   <div class="topbar"><h1 data-i18n="Our Story">Our Story</h1><div class="topbar-right"><button class="btn btn-secondary btn-sm story-last-updated" onclick="goToLastUpdate()">🕐 …</button><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div><span class="link" id="storySummaryEditBtn" onclick="openStorySummary()" style="display:none">Edit</span></div></div>
   <div class="card">
-    <div style="padding:20px 20px 0"><button class="btn btn-primary" onclick="navTo('story-detail')">📖 Story in Detail</button></div>
+    <div style="padding:20px 20px 0"><button class="btn btn-primary" onclick="navTo('story-detail')" data-i18n="📖 Story in Detail">📖 Story in Detail</button></div>
     <div class="story-intro" id="storySummaryBox">Loading…</div>
   </div>
   <div class="card">
-    <div class="card-header"><h2>Major Milestones</h2><span class="link" id="storyAddBtn" onclick="openStoryEntry()" style="display:none">+ Add Milestone</span></div>
+    <div class="card-header"><h2 data-i18n="Major Milestones">Major Milestones</h2><span class="link" id="storyAddBtn" onclick="openStoryEntry()" style="display:none" data-i18n="+ Add Milestone">+ Add Milestone</span></div>
     <div class="story-timeline" id="storyTimeline"></div>
   </div>
 </div>
@@ -340,7 +340,7 @@
     <div class="story-intro" id="storyIntroBox">Loading…</div>
   </div>
   <div class="card">
-    <div class="card-header"><h2>Recent Updates</h2></div>
+    <div class="card-header"><h2 data-i18n="Recent Updates">Recent Updates</h2></div>
     <div class="story-timeline" id="storyLogFeed" style="padding-top:16px"></div>
   </div>
 </div>
@@ -377,7 +377,7 @@
     <input type="hidden" id="editId">
     <div class="form-title" data-i18n="Patient Information">Patient Information</div>
     <div class="form-row"><div class="fg"><label data-i18n="Full Name *">Full Name *</label><input type="text" id="pName"></div><div class="fg"><label data-i18n="Age">Age</label><input type="number" id="pAge" min="0" max="120"></div></div>
-    <div class="form-row"><div class="fg"><label data-i18n="Gender">Gender</label><select id="pGender"><option value="" data-i18n="Select">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div><div class="fg"><label data-i18n="Phone">Phone</label><input type="tel" id="pPhone"></div></div>
+    <div class="form-row"><div class="fg"><label data-i18n="Gender">Gender</label><select id="pGender"><option value="" data-i18n="Select">Select</option><option data-i18n="Male">Male</option><option data-i18n="Female">Female</option><option data-i18n="Other">Other</option></select></div><div class="fg"><label data-i18n="Phone">Phone</label><input type="tel" id="pPhone"></div></div>
     <div class="form-row-3"><div class="fg"><label data-i18n="Village / Panchayat">Village / Panchayat</label><input type="text" id="pVillage"><div class="fg"><label data-i18n="Block">Block</label><input type="text" id="pBlock"></div></div><div class="fg"><label data-i18n="District">District</label><input type="text" id="pDistrict" value="Muzaffarpur"></div></div>
 
     <div class="form-title" data-i18n="Aadhar &amp; Bank Details">Aadhar &amp; Bank Details</div>
@@ -385,7 +385,7 @@
     <div class="form-row"><div class="fg"><label data-i18n="Bank Account Number">Bank Account Number</label><input type="text" id="pAccount"></div><div class="fg"><label data-i18n="IFSC Code">IFSC Code</label><input type="text" id="pIFSC"></div></div>
 
     <div class="form-title" data-i18n="Medical Details">Medical Details</div>
-    <div class="form-row"><div class="fg"><label data-i18n="Diagnosis / Cancer Type">Diagnosis / Cancer Type</label><input type="text" id="pDiagnosis" placeholder="e.g. Oral cancer, Breast cancer"></div><div class="fg"><label data-i18n="Status">Status</label><select id="pStatus"><option value="Screening" data-i18n="Screening">Screening</option><option value="Under Investigation" data-i18n="Under Investigation">Under Investigation</option><option value="Treatment">Treatment (Active)</option><option value="Admitted" data-i18n="Admitted">Admitted</option><option value="On Medication" data-i18n="On Medication">On Medication</option><option value="Follow-up" data-i18n="Follow-up">Follow-up</option><option value="Completed" data-i18n="Completed">Completed</option></select></div></div>
+    <div class="form-row"><div class="fg"><label data-i18n="Diagnosis / Cancer Type">Diagnosis / Cancer Type</label><input type="text" id="pDiagnosis" placeholder="e.g. Oral cancer, Breast cancer"></div><div class="fg"><label data-i18n="Status">Status</label><select id="pStatus"><option value="Screening" data-i18n="Screening">Screening</option><option value="Under Investigation" data-i18n="Under Investigation">Under Investigation</option><option value="Treatment" data-i18n="Treatment (Active)">Treatment (Active)</option><option value="Admitted" data-i18n="Admitted">Admitted</option><option value="On Medication" data-i18n="On Medication">On Medication</option><option value="Follow-up" data-i18n="Follow-up">Follow-up</option><option value="Completed" data-i18n="Completed">Completed</option></select></div></div>
     <div class="form-row"><div class="fg"><label data-i18n="Is Patient Admitted?">Is Patient Admitted?</label><select id="pAdmitted"><option value="No" data-i18n="No">No</option><option value="Yes" data-i18n="Yes">Yes</option></select></div><div class="fg"><label data-i18n="Visit Number">Visit Number</label><input type="number" id="pVisitNum" min="0" value="1"></div></div>
     <div class="fg"><label data-i18n="Current Treatment">Current Treatment</label><textarea id="pTreatment" placeholder="Treatment details..."></textarea></div>
     <div class="fg"><label data-i18n="Current Medication">Current Medication</label><textarea id="pMedication" placeholder="Medicines and dosages..."></textarea></div>
@@ -402,10 +402,10 @@
 
     <div class="form-title" data-i18n="Upload Reports / Images">Upload Reports / Images</div>
     <div class="fg">
-      <div class="form-row"><div class="fg"><label data-i18n="Category">Category</label><select id="fileCategory"><option value="Latest Report">Latest Report</option><option value="History">History</option><option value="Prescription">Prescription</option><option value="Other">Other</option></select></div></div>
+      <div class="form-row"><div class="fg"><label data-i18n="Category">Category</label><select id="fileCategory"><option value="Latest Report" data-i18n="Latest Report">Latest Report</option><option value="History" data-i18n="History">History</option><option value="Prescription" data-i18n="Prescription">Prescription</option><option value="Other" data-i18n="Other">Other</option></select></div></div>
       <div class="file-area" id="fileArea" onclick="if(isExistingPatient)document.getElementById('fileInput').click()">
         <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFiles(this)">
-        <p id="fileAreaHint"><strong>Click to upload</strong> reports, prescriptions, or test results</p>
+        <p id="fileAreaHint"><strong data-i18n="Click to upload">Click to upload</strong> <span data-i18n="reports, prescriptions, or test results">reports, prescriptions, or test results</span></p>
       </div>
       <div class="file-list" id="fileList"></div>
     </div>
@@ -423,11 +423,11 @@
     <div class="fg">
       <label data-i18n="Quick Update (plain English, optional)">Quick Update (plain English, optional)</label>
       <textarea id="uFreeText" placeholder="e.g. 'Started chemo cycle 2, gave tab Paclitaxel 80mg weekly, patient tolerating well, next visit in 3 weeks, blood test due in 10 days. Gave 2000 for travel.'"></textarea>
-      <button type="button" class="btn btn-secondary btn-sm" id="uFillBtn" style="margin-top:6px" onclick="parseUpdateText()">🤖 Fill Form From Text</button>
+      <button type="button" class="btn btn-secondary btn-sm" id="uFillBtn" style="margin-top:6px" onclick="parseUpdateText()" data-i18n="🤖 Fill Form From Text">🤖 Fill Form From Text</button>
       <div id="uPaymentDetected" class="ai-box" style="display:none;margin-top:6px">
-        <div class="ai-box-title">💰 Payment Mentioned</div>
+        <div class="ai-box-title">💰 <span data-i18n="Payment Mentioned">Payment Mentioned</span></div>
         <div id="uPaymentDetectedText"></div>
-        <button type="button" class="btn btn-secondary btn-sm" style="margin-top:6px" onclick="logDetectedPayment()">Log This Payment</button>
+        <button type="button" class="btn btn-secondary btn-sm" style="margin-top:6px" onclick="logDetectedPayment()" data-i18n="Log This Payment">Log This Payment</button>
       </div>
     </div>
     <div class="fg"><label data-i18n="Visit Date">Visit Date</label><input type="date" id="uDate"></div>
@@ -442,10 +442,10 @@
     <div class="fg"><label data-i18n="Committed Amount (₹, leave blank for no change)">Committed Amount (₹, leave blank for no change)</label><input type="number" id="uCommitted" min="0" step="0.01"></div>
     <div class="fg">
       <label data-i18n="Attach Photos (optional)">Attach Photos (optional)</label>
-      <div class="form-row"><div class="fg"><label style="font-weight:400;font-size:0.75rem;" data-i18n="Category">Category</label><select id="uFileCategory"><option value="Latest Report">Latest Report</option><option value="History">History</option><option value="Prescription">Prescription</option><option value="Other">Other</option></select></div></div>
+      <div class="form-row"><div class="fg"><label style="font-weight:400;font-size:0.75rem;" data-i18n="Category">Category</label><select id="uFileCategory"><option value="Latest Report" data-i18n="Latest Report">Latest Report</option><option value="History" data-i18n="History">History</option><option value="Prescription" data-i18n="Prescription">Prescription</option><option value="Other" data-i18n="Other">Other</option></select></div></div>
       <div class="file-area" id="uFileArea" onclick="document.getElementById('uFileInput').click()">
         <input type="file" id="uFileInput" accept="image/*" multiple onchange="handleUpdateFiles(this)">
-        <p><strong>Click to upload</strong> photos from this visit</p>
+        <p><strong data-i18n="Click to upload">Click to upload</strong> <span data-i18n="photos from this visit">photos from this visit</span></p>
       </div>
       <div class="file-list" id="uFileList"></div>
     </div>
@@ -461,7 +461,7 @@
   <div class="modal-body">
     <input type="hidden" id="txnId">
     <div class="fg"><label data-i18n="Patient">Patient</label><select id="txnPatient"></select></div>
-    <div class="form-row"><div class="fg"><label>Amount (₹)</label><input type="number" id="txnAmount" min="0" step="0.01"></div><div class="fg"><label data-i18n="Purpose">Purpose</label><select id="txnPurpose"><option data-i18n="Travel">Travel</option><option data-i18n="Screening">Screening</option><option data-i18n="Treatment">Treatment</option><option>Medicine</option><option>Hospital Stay</option><option>Other</option></select></div></div>
+    <div class="form-row"><div class="fg"><label data-i18n="Amount (₹)">Amount (₹)</label><input type="number" id="txnAmount" min="0" step="0.01"></div><div class="fg"><label data-i18n="Purpose">Purpose</label><select id="txnPurpose"><option data-i18n="Travel">Travel</option><option data-i18n="Screening">Screening</option><option data-i18n="Treatment">Treatment</option><option data-i18n="Medicine">Medicine</option><option data-i18n="Hospital Stay">Hospital Stay</option><option data-i18n="Other">Other</option></select></div></div>
     <div class="fg"><label data-i18n="Date">Date</label><input type="date" id="txnDate"></div>
     <div class="fg"><label data-i18n="Notes">Notes</label><textarea id="txnNotes" placeholder="What was this payment for, specifically?"></textarea></div>
   </div>
@@ -476,12 +476,12 @@
   <div class="modal-body">
     <input type="hidden" id="activityId">
     <div class="form-row"><div class="fg"><label data-i18n="Date">Date</label><input type="date" id="aDate"></div><div class="fg"><label data-i18n="Category">Category</label><select id="aType" onchange="onLogTypeChange()"></select></div></div>
-    <div class="fg"><label>Title</label><input type="text" id="aTitle" placeholder="e.g. Health camp in Motipur panchayat"></div>
-    <div class="fg"><label>Description</label><textarea id="aDescription" placeholder="What happened, discussed, or was decided..."></textarea></div>
+    <div class="fg"><label data-i18n="Title">Title</label><input type="text" id="aTitle" placeholder="e.g. Health camp in Motipur panchayat"></div>
+    <div class="fg"><label data-i18n="Description">Description</label><textarea id="aDescription" placeholder="What happened, discussed, or was decided..."></textarea></div>
     <div class="fg"><label data-i18n="Participants">Participants</label><input type="text" id="aParticipants" placeholder="e.g. Dr. Vidyasagar, 3 cancer saathis"></div>
-    <div class="fg"><label>Count — how many people/things this entry represents</label><input type="number" id="aQuantity" min="1" step="1" value="1"></div>
-    <div class="chk-line"><input type="checkbox" id="aPublic"><label for="aPublic">🌐 Show on public dashboard</label></div>
-    <p style="font-size:0.75rem;color:var(--ink-muted)">Need a category that doesn't exist yet? <span class="link" onclick="openCatModal()">+ Add new category</span></p>
+    <div class="fg"><label data-i18n="Count — how many people/things this entry represents">Count — how many people/things this entry represents</label><input type="number" id="aQuantity" min="1" step="1" value="1"></div>
+    <div class="chk-line"><input type="checkbox" id="aPublic"><label for="aPublic" data-i18n="🌐 Show on public dashboard">🌐 Show on public dashboard</label></div>
+    <p style="font-size:0.75rem;color:var(--ink-muted)"><span data-i18n="Need a category that doesn't exist yet?">Need a category that doesn't exist yet?</span> <span class="link" onclick="openCatModal()" data-i18n="+ Add new category">+ Add new category</span></p>
   </div>
   <div class="modal-foot"><button class="btn btn-secondary" onclick="closeActivity()" data-i18n="Cancel">Cancel</button><button class="btn btn-primary" onclick="saveActivity()" data-i18n="Save Entry">Save Entry</button></div>
 </div>
@@ -492,10 +492,10 @@
 <div class="modal" style="max-width:440px">
   <div class="modal-head"><h2 data-i18n="New Log Category">New Log Category</h2><button class="modal-close" onclick="closeCatModal()">&times;</button></div>
   <div class="modal-body">
-    <div class="form-row"><div class="fg"><label>Name *</label><input type="text" id="catName" placeholder="e.g. Blood Donation Drive"></div><div class="fg"><label>Emoji</label><input type="text" id="catEmoji" placeholder="🩸" maxlength="4"></div></div>
-    <div class="chk-line"><input type="checkbox" id="catPublic"><label for="catPublic">Public by default (still confirmed on each entry)</label></div>
-    <div class="chk-line"><input type="checkbox" id="catTile"><label for="catTile">Show a count tile on the public dashboard</label></div>
-    <div class="fg"><label>Tile label (if tile shown)</label><input type="text" id="catTileLabel" placeholder="e.g. Drives Held"></div>
+    <div class="form-row"><div class="fg"><label data-i18n="Name *">Name *</label><input type="text" id="catName" placeholder="e.g. Blood Donation Drive"></div><div class="fg"><label data-i18n="Emoji">Emoji</label><input type="text" id="catEmoji" placeholder="🩸" maxlength="4"></div></div>
+    <div class="chk-line"><input type="checkbox" id="catPublic"><label for="catPublic" data-i18n="Public by default (still confirmed on each entry)">Public by default (still confirmed on each entry)</label></div>
+    <div class="chk-line"><input type="checkbox" id="catTile"><label for="catTile" data-i18n="Show a count tile on the public dashboard">Show a count tile on the public dashboard</label></div>
+    <div class="fg"><label data-i18n="Tile label (if tile shown)">Tile label (if tile shown)</label><input type="text" id="catTileLabel" placeholder="e.g. Drives Held"></div>
   </div>
   <div class="modal-foot"><button class="btn btn-secondary" onclick="closeCatModal()" data-i18n="Cancel">Cancel</button><button class="btn btn-primary" onclick="saveCategory()" data-i18n="Add Category">Add Category</button></div>
 </div>
@@ -507,9 +507,9 @@
   <div class="modal-head"><h2 data-i18n="Close Case">Close Case</h2><button class="modal-close" onclick="closeCloseCaseModal()">&times;</button></div>
   <div class="modal-body">
     <input type="hidden" id="ccPatientId">
-    <p style="font-size:0.85rem;color:var(--ink-muted);margin-bottom:12px">This marks the case as closed and removes it from active follow-up. It's separate from "Completed" — use this for death, discontinuing treatment, or transferring elsewhere.</p>
-    <div class="fg"><label>Reason</label><select id="ccReason"><option>Deceased</option><option>Discontinued Treatment</option><option>Transferred to Another Hospital</option><option>Other</option></select></div>
-    <div class="fg"><label>Notes (optional)</label><textarea id="ccNotes" placeholder="Any additional detail..."></textarea></div>
+    <p style="font-size:0.85rem;color:var(--ink-muted);margin-bottom:12px" data-i18n="This marks the case as closed and removes it from active follow-up. It's separate from &quot;Completed&quot; — use this for death, discontinuing treatment, or transferring elsewhere.">This marks the case as closed and removes it from active follow-up. It's separate from "Completed" — use this for death, discontinuing treatment, or transferring elsewhere.</p>
+    <div class="fg"><label data-i18n="Reason">Reason</label><select id="ccReason"><option data-i18n="Deceased">Deceased</option><option data-i18n="Discontinued Treatment">Discontinued Treatment</option><option data-i18n="Transferred to Another Hospital">Transferred to Another Hospital</option><option data-i18n="Other">Other</option></select></div>
+    <div class="fg"><label data-i18n="Notes (optional)">Notes (optional)</label><textarea id="ccNotes" placeholder="Any additional detail..."></textarea></div>
   </div>
   <div class="modal-foot"><button class="btn btn-secondary" onclick="closeCloseCaseModal()" data-i18n="Cancel">Cancel</button><button class="btn btn-warn" onclick="confirmCloseCase()" data-i18n="Close Case">Close Case</button></div>
 </div>
@@ -518,24 +518,24 @@
 <!-- ═══ STORY SUMMARY MODAL ═══ -->
 <div class="modal-overlay" id="storySummaryModal">
 <div class="modal" style="max-width:560px">
-  <div class="modal-head"><h2>Edit Overview</h2><button class="modal-close" onclick="closeStorySummaryModal()">&times;</button></div>
+  <div class="modal-head"><h2 data-i18n="Edit Overview">Edit Overview</h2><button class="modal-close" onclick="closeStorySummaryModal()">&times;</button></div>
   <div class="modal-body">
-    <div class="fg"><label>Short overview — shown before the Detailed Story</label><textarea id="storySummaryInput" style="min-height:160px"></textarea></div>
+    <div class="fg"><label data-i18n="Short overview — shown before the Detailed Story">Short overview — shown before the Detailed Story</label><textarea id="storySummaryInput" style="min-height:160px"></textarea></div>
     <div class="fg"><label>हिंदी अनुवाद (optional — leave blank to fall back to English)</label><textarea id="storySummaryHiInput" style="min-height:160px"></textarea></div>
   </div>
-  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeStorySummaryModal()">Cancel</button><button class="btn btn-primary" onclick="saveStorySummary()">Save</button></div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeStorySummaryModal()" data-i18n="Cancel">Cancel</button><button class="btn btn-primary" onclick="saveStorySummary()" data-i18n="Save">Save</button></div>
 </div>
 </div>
 
 <!-- ═══ STORY INTRO MODAL ═══ -->
 <div class="modal-overlay" id="storyIntroModal">
 <div class="modal">
-  <div class="modal-head"><h2>Edit "How SACCI Started"</h2><button class="modal-close" onclick="closeStoryIntroModal()">&times;</button></div>
+  <div class="modal-head"><h2 data-i18n="Edit &quot;How SACCI Started&quot;">Edit "How SACCI Started"</h2><button class="modal-close" onclick="closeStoryIntroModal()">&times;</button></div>
   <div class="modal-body">
-    <div class="fg"><label>Narrative</label><textarea id="storyIntroInput" style="min-height:360px"></textarea></div>
+    <div class="fg"><label data-i18n="Narrative">Narrative</label><textarea id="storyIntroInput" style="min-height:360px"></textarea></div>
     <div class="fg"><label>हिंदी अनुवाद (optional — leave blank to fall back to English)</label><textarea id="storyIntroHiInput" style="min-height:360px"></textarea></div>
   </div>
-  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeStoryIntroModal()">Cancel</button><button class="btn btn-primary" onclick="saveStoryIntro()">Save</button></div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeStoryIntroModal()" data-i18n="Cancel">Cancel</button><button class="btn btn-primary" onclick="saveStoryIntro()" data-i18n="Save">Save</button></div>
 </div>
 </div>
 
@@ -545,35 +545,35 @@
   <div class="modal-head"><h2 id="storyEntryTitle" data-i18n="Add Milestone">Add Milestone</h2><button class="modal-close" onclick="closeStoryEntryModal()">&times;</button></div>
   <div class="modal-body">
     <input type="hidden" id="storyEntryId">
-    <div class="form-row"><div class="fg"><label>Date label *</label><input type="text" id="storyEntryDateLabel" placeholder="e.g. 29 May 2026, or Winter 2025-26"></div><div class="fg"><label>Exact date (optional)</label><input type="date" id="storyEntryDate"></div></div>
-    <div class="fg"><label>Category</label><select id="storyEntryCategory"><option value="origin">Origin</option><option value="partnership">Partnership</option><option value="camp">Health Camp</option><option value="visit">Visit</option><option value="program">Program</option><option value="system" selected>How It Works</option><option value="milestone">Milestone</option></select></div>
-    <div class="fg"><label>Title *</label><input type="text" id="storyEntryTitleInput" placeholder="e.g. First health camp - Ratnauli"></div>
-    <div class="fg"><label>Description</label><textarea id="storyEntryDesc" placeholder="What happened..."></textarea></div>
+    <div class="form-row"><div class="fg"><label data-i18n="Date label *">Date label *</label><input type="text" id="storyEntryDateLabel" placeholder="e.g. 29 May 2026, or Winter 2025-26"></div><div class="fg"><label data-i18n="Exact date (optional)">Exact date (optional)</label><input type="date" id="storyEntryDate"></div></div>
+    <div class="fg"><label data-i18n="Category">Category</label><select id="storyEntryCategory"><option value="origin" data-i18n="Origin">Origin</option><option value="partnership" data-i18n="Partnership">Partnership</option><option value="camp" data-i18n="Health Camp">Health Camp</option><option value="visit" data-i18n="Visit">Visit</option><option value="program" data-i18n="Program">Program</option><option value="system" selected data-i18n="How It Works">How It Works</option><option value="milestone" data-i18n="Milestone">Milestone</option></select></div>
+    <div class="fg"><label data-i18n="Title *">Title *</label><input type="text" id="storyEntryTitleInput" placeholder="e.g. First health camp - Ratnauli"></div>
+    <div class="fg"><label data-i18n="Description">Description</label><textarea id="storyEntryDesc" placeholder="What happened..."></textarea></div>
     <div class="fg"><label>शीर्षक (हिंदी, optional)</label><input type="text" id="storyEntryTitleHiInput" placeholder="जैसे: पहला स्वास्थ्य शिविर - रत्नौली"></div>
     <div class="fg"><label>विवरण (हिंदी, optional — leave blank to fall back to English)</label><textarea id="storyEntryDescHi" placeholder="क्या हुआ..."></textarea></div>
     <div class="fg" id="storyEntryFilesSection" style="display:none">
-      <label>Photos</label>
+      <label data-i18n="Photos">Photos</label>
       <div class="file-area" onclick="document.getElementById('storyEntryFileInput').click()">
         <input type="file" id="storyEntryFileInput" accept="image/*" multiple onchange="handleStoryEntryFiles(this)">
-        <p><strong>Click to upload</strong> photos for this milestone</p>
+        <p><strong data-i18n="Click to upload">Click to upload</strong> <span data-i18n="photos for this milestone">photos for this milestone</span></p>
       </div>
       <div class="file-list" id="storyEntryFileList"></div>
     </div>
-    <p id="storyEntrySaveFirstNote" style="font-size:0.78rem;color:var(--ink-muted)">Save the milestone first, then you can add photos here.</p>
+    <p id="storyEntrySaveFirstNote" style="font-size:0.78rem;color:var(--ink-muted)" data-i18n="Save the milestone first, then you can add photos here.">Save the milestone first, then you can add photos here.</p>
   </div>
-  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeStoryEntryModal()">Close</button><button class="btn btn-primary" onclick="saveStoryEntry()">Save</button></div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeStoryEntryModal()" data-i18n="Close">Close</button><button class="btn btn-primary" onclick="saveStoryEntry()" data-i18n="Save">Save</button></div>
 </div>
 </div>
 
 <!-- ═══ STORY UPDATE MODAL ═══ -->
 <div class="modal-overlay" id="storyUpdateModal">
 <div class="modal" style="max-width:460px">
-  <div class="modal-head"><h2>Add Update</h2><button class="modal-close" onclick="closeStoryUpdateModal()">&times;</button></div>
+  <div class="modal-head"><h2 data-i18n="Add Update">Add Update</h2><button class="modal-close" onclick="closeStoryUpdateModal()">&times;</button></div>
   <div class="modal-body">
     <input type="hidden" id="storyUpdateEntryId">
-    <div class="fg"><label>What's new about this milestone?</label><textarea id="storyUpdateNote" placeholder="e.g. Follow-up training completed, two more saathis onboarded..."></textarea></div>
+    <div class="fg"><label data-i18n="What's new about this milestone?">What's new about this milestone?</label><textarea id="storyUpdateNote" placeholder="e.g. Follow-up training completed, two more saathis onboarded..."></textarea></div>
   </div>
-  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeStoryUpdateModal()">Cancel</button><button class="btn btn-primary" onclick="saveStoryUpdate()">Save Update</button></div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeStoryUpdateModal()" data-i18n="Cancel">Cancel</button><button class="btn btn-primary" onclick="saveStoryUpdate()" data-i18n="Save Update">Save Update</button></div>
 </div>
 </div>
 
@@ -664,7 +664,52 @@ var T_HI={
   'via Quick Update':'त्वरित अपडेट के ज़रिए','via WhatsApp Import':'व्हाट्सएप इम्पोर्ट के ज़रिए',
   'logged manually':'मैन्युअल रूप से दर्ज','system':'सिस्टम',
   'Male':'पुरुष','Female':'महिला','Other':'अन्य','Medicine':'दवा','Hospital Stay':'अस्पताल में भर्ती',
-  'Log':'लॉग','Public Patient Story':'सार्वजनिक मरीज़ कहानी'
+  'Log':'लॉग','Public Patient Story':'सार्वजनिक मरीज़ कहानी',
+  'Major Milestones':'प्रमुख मील के पत्थर','Recent Updates':'हाल के अपडेट','📖 Story in Detail':'📖 विस्तृत कहानी',
+  '+ Add Milestone':'+ मील का पत्थर जोड़ें',
+  'Treatment (Active)':'इलाज (सक्रिय)','Latest Report':'नवीनतम रिपोर्ट','History':'इतिहास','Prescription':'नुस्खा',
+  'Amount (₹)':'राशि (₹)','Title':'शीर्षक','Description':'विवरण',
+  'Count — how many people/things this entry represents':'गिनती, यह एंट्री कितने लोगों/चीज़ों को दर्शाती है',
+  'Count — how many people/things this entry represents (e.g. 3 saathis)':'गिनती, यह एंट्री कितने लोगों/चीज़ों को दर्शाती है (जैसे: 3 साथी)',
+  '🌐 Show on public dashboard':'🌐 सार्वजनिक डैशबोर्ड पर दिखाएं',
+  "Need a category that doesn't exist yet?":'कोई श्रेणी नहीं मिली?','+ Add new category':'+ नई श्रेणी जोड़ें',
+  'Name *':'नाम *','Emoji':'इमोजी',
+  'Public by default (still confirmed on each entry)':'डिफ़ॉल्ट रूप से सार्वजनिक (हर एंट्री पर फिर भी पुष्टि होगी)',
+  'Show a count tile on the public dashboard':'सार्वजनिक डैशबोर्ड पर गिनती टाइल दिखाएं',
+  'Tile label (if tile shown)':'टाइल लेबल (यदि टाइल दिखाई जाए)',
+  'This marks the case as closed and removes it from active follow-up. It\'s separate from "Completed" — use this for death, discontinuing treatment, or transferring elsewhere.':'यह केस को बंद कर देता है और इसे सक्रिय फॉलो-अप से हटा देता है। यह "पूर्ण" से अलग है, इसका उपयोग मृत्यु, इलाज बंद करने या कहीं और स्थानांतरण के लिए करें।',
+  'Reason':'कारण','Deceased':'मृत्यु हो गई','Discontinued Treatment':'इलाज बंद किया गया',
+  'Transferred to Another Hospital':'दूसरे अस्पताल स्थानांतरित','Notes (optional)':'टिप्पणी (वैकल्पिक)',
+  'Edit Overview':'अवलोकन संपादित करें',
+  'Short overview — shown before the Detailed Story':'संक्षिप्त अवलोकन, विस्तृत कहानी से पहले दिखाया जाता है',
+  'Edit "How SACCI Started"':'"SACCI कैसे शुरू हुआ" संपादित करें','Narrative':'कथा',
+  'Date label *':'तारीख़ लेबल *','Exact date (optional)':'सटीक तारीख़ (वैकल्पिक)',
+  'Origin':'शुरुआत','Partnership':'साझेदारी','Health Camp':'स्वास्थ्य शिविर','Visit':'विज़िट','Program':'कार्यक्रम',
+  'How It Works':'यह कैसे काम करता है','Milestone':'मील का पत्थर','Title *':'शीर्षक *','Photos':'फोटो',
+  'Click to upload':'अपलोड करने के लिए क्लिक करें','photos for this milestone':'इस मील के पत्थर के लिए फोटो',
+  'Save the milestone first, then you can add photos here.':'पहले मील का पत्थर सहेजें, फिर यहां फोटो जोड़ सकते हैं।',
+  'Add Update':'अपडेट जोड़ें',"What's new about this milestone?":'इस मील के पत्थर में क्या नया है?',
+  'Write freely — mention patients by name, or describe camps, meetings, and other work. The system splits it into entries and shows you exactly what it found before anything saves.':'खुल कर लिखें, मरीज़ों के नाम बताएं या शिविर, बैठकें और अन्य काम बताएं। सिस्टम इसे अलग-अलग एंट्री में बांट देता है और सहेजने से पहले आपको बिल्कुल दिखाता है कि उसे क्या मिला।',
+  'In WhatsApp: open the group → ⋮ → More → Export chat (choose "Include media" to bring the photos along). Then upload the exported .zip below exactly as WhatsApp made it — no unzipping needed. Or paste the chat text here. Messages imported before are skipped automatically, so overlapping exports are always safe.':'व्हाट्सएप में: ग्रुप खोलें → ⋮ → More → Export chat (फोटो साथ लाने के लिए "Include media" चुनें)। फिर नीचे वही .zip फ़ाइल अपलोड करें जैसी व्हाट्सएप ने बनाई है, अनज़िप करने की ज़रूरत नहीं। या यहां चैट टेक्स्ट पेस्ट करें। पहले इम्पोर्ट किए गए मैसेज अपने आप छूट जाते हैं, इसलिए ओवरलैप होने वाले एक्सपोर्ट भी हमेशा सुरक्षित हैं।',
+  'Log This Payment':'यह भुगतान दर्ज करें','Payment Mentioned':'भुगतान का उल्लेख',
+  'Log Entry':'लॉग एंट्री','Patient Update':'मरीज़ अपडेट','Saved':'सहेजा गया','Original text':'मूल पाठ',
+  'Please confirm the patient':'कृपया मरीज़ की पुष्टि करें',
+  'Could not confidently match a patient — please pick one.':'भरोसे के साथ मरीज़ का मिलान नहीं हो सका, कृपया एक चुनें।',
+  'Not registered yet? Register them here':'अभी तक पंजीकृत नहीं? यहां पंजीकरण करें',
+  'Diagnosis (if known)':'निदान (यदि ज्ञात हो)','Register & Select':'पंजीकरण करें और चुनें',
+  'Select a patient…':'एक मरीज़ चुनें…','What happened':'क्या हुआ',
+  'Diagnosis (blank = no change)':'निदान (खाली = कोई बदलाव नहीं)',
+  'Treatment (blank = no change)':'इलाज (खाली = कोई बदलाव नहीं)',
+  'Medication (blank = no change)':'दवा (खाली = कोई बदलाव नहीं)',
+  'Committed Amount (₹, blank = no change)':'प्रतिबद्ध राशि (₹, खाली = कोई बदलाव नहीं)',
+  'Show on public dashboard (patient entries stay private unless you tick this)':'सार्वजनिक डैशबोर्ड पर दिखाएं (टिक न करने पर मरीज़ एंट्री निजी रहेगी)',
+  'Accept All Remaining':'सभी शेष स्वीकार करें','entry':'एंट्री','From these messages':'इन संदेशों से',
+  'photo(s) from these messages will be attached on save.':'इन संदेशों की फोटो सहेजते समय जोड़ी जाएंगी।',
+  'reports, prescriptions, or test results':'रिपोर्ट, नुस्खे या जांच परिणाम',
+  'photos from this visit':'इस विज़िट की फोटो',
+  'Re-analyze':'फिर से जांचें','Analyze':'जांचें','AI Read':'AI द्वारा पढ़ा गया','confidence':'विश्वास स्तर',
+  'Type:':'प्रकार:','Date:':'तारीख़:','Doctor:':'डॉक्टर:','Diagnosis:':'निदान:','Medicines:':'दवाइयां:',
+  'Findings:':'निष्कर्ष:','🤖 Fill Form From Text':'🤖 टेक्स्ट से फॉर्म भरें','Finance':'वित्त'
 };
 // Named `tr`, not `t` — `t` is already used everywhere in this file as a
 // loop variable for transactions/log types, and shadowing it inside those
@@ -1533,7 +1578,7 @@ async function confirmCloseCase(){
 // ADD/EDIT
 function setFileAreaState(){
   var area=document.getElementById('fileArea'),hint=document.getElementById('fileAreaHint');
-  if(isExistingPatient){area.style.opacity='1';area.style.cursor='pointer';hint.innerHTML='<strong>Click to upload</strong> reports, prescriptions, or test results';}
+  if(isExistingPatient){area.style.opacity='1';area.style.cursor='pointer';hint.innerHTML='<strong>'+tr('Click to upload')+'</strong> '+tr('reports, prescriptions, or test results');}
   else{area.style.opacity='0.5';area.style.cursor='not-allowed';hint.textContent=tr('Save the patient first, then reopen to add files');}
 }
 function openAdd(){
@@ -1773,7 +1818,7 @@ async function parseUpdateText(){
   var btn=document.getElementById('uFillBtn');
   btn.disabled=true;btn.textContent=tr('Reading…');
   var resp=await sb.functions.invoke('parse-update',{body:{patientId:updateTargetId,text:text}});
-  btn.disabled=false;btn.textContent='🤖 Fill Form From Text';
+  btn.disabled=false;btn.textContent=tr('🤖 Fill Form From Text');
   if(resp.error||!resp.data||resp.data.error){
     alert('Could not parse this update: '+await edgeErrorMessage(resp));
     return;
@@ -1845,15 +1890,15 @@ function renderBulkCards(){
   bulkSegments.forEach(function(seg,i){
     var s=seg.data,dis=seg.saved?'disabled':'';
     var isActivity=s.segment_kind==='activity';
-    h+='<div class="card" style="margin-top:16px"><div class="card-header"><h2>'+(isActivity?'Log Entry':'Patient Update')+' '+(i+1)+(seg.saved?' — ✓ Saved':'')+'</h2></div><div style="padding:20px">';
-    h+='<div class="fg"><label>Original text</label><div class="ai-box" style="font-style:italic">'+esc(s.segment_text||'')+'</div></div>';
+    h+='<div class="card" style="margin-top:16px"><div class="card-header"><h2>'+(isActivity?tr('Log Entry'):tr('Patient Update'))+' '+(i+1)+(seg.saved?' — ✓ '+tr('Saved'):'')+'</h2></div><div style="padding:20px">';
+    h+='<div class="fg"><label>'+tr('Original text')+'</label><div class="ai-box" style="font-style:italic">'+esc(s.segment_text||'')+'</div></div>';
     h+=isActivity?renderLogCardFields('bq',i,s,dis):renderPatientCardFields('bq',i,s,dis);
     if(!isActivity&&s.payment_amount&&parseFloat(s.payment_amount)>0){
-      h+='<div class="ai-box"><div class="ai-box-title">💰 Payment Mentioned</div>₹'+esc(s.payment_amount)+(s.payment_purpose?' — '+esc(s.payment_purpose):'')+(s.payment_notes?' ('+esc(s.payment_notes)+')':'');
-      if(!seg.saved)h+='<button type="button" class="btn btn-secondary btn-sm" style="margin-top:6px" onclick="logBulkPayment('+i+')">Log This Payment</button>';
+      h+='<div class="ai-box"><div class="ai-box-title">💰 '+tr('Payment Mentioned')+'</div>₹'+esc(s.payment_amount)+(s.payment_purpose?' — '+tr(s.payment_purpose):'')+(s.payment_notes?' ('+esc(s.payment_notes)+')':'');
+      if(!seg.saved)h+='<button type="button" class="btn btn-secondary btn-sm" style="margin-top:6px" onclick="logBulkPayment('+i+')">'+tr('Log This Payment')+'</button>';
       h+='</div>';
     }
-    if(!seg.saved)h+='<button class="btn btn-primary" style="margin-top:12px" id="bq-'+i+'-savebtn" onclick="'+(isActivity?'saveBulkActivity(':'saveBulkCard(')+i+')">Save This '+(isActivity?'Entry':'Update')+'</button>';
+    if(!seg.saved)h+='<button class="btn btn-primary" style="margin-top:12px" id="bq-'+i+'-savebtn" onclick="'+(isActivity?'saveBulkActivity(':'saveBulkCard(')+i+')">'+(isActivity?tr('Save This Entry'):tr('Save This Update'))+'</button>';
     h+='</div></div>';
   });
   c.innerHTML=h;
@@ -1889,40 +1934,40 @@ function renderPatientCardFields(prefix,i,s,dis){
   var visitNum=matched?(parseInt(matched.visitNum)||0)+1:1;
   var h='';
   if(!matched||s.match_confidence==='low'||s.match_confidence==='none'){
-    h+='<div class="ai-box" style="margin-bottom:10px"><div class="ai-box-title">⚠️ Please confirm the patient</div>'+esc(s.match_notes||'Could not confidently match a patient — please pick one.')+'</div>';
+    h+='<div class="ai-box" style="margin-bottom:10px"><div class="ai-box-title">⚠️ '+tr('Please confirm the patient')+'</div>'+esc(s.match_notes?dtr(s.match_notes):tr('Could not confidently match a patient — please pick one.'))+'</div>';
     // One-click registration for patients the messages mention but the
     // roster doesn't have — fields pre-filled with whatever the parser
     // could read out of the messages, editable before registering.
-    h+='<div class="ai-box" style="margin-bottom:10px"><div class="ai-box-title">➕ Not registered yet? Register them here</div>';
-    h+='<div class="form-row"><div class="fg"><label>Name *</label><input type="text" id="'+prefix+'-'+i+'-np-name" '+dis+'></div><div class="fg"><label>Phone</label><input type="tel" id="'+prefix+'-'+i+'-np-phone" '+dis+'></div></div>';
-    h+='<div class="form-row"><div class="fg"><label>Age</label><input type="number" id="'+prefix+'-'+i+'-np-age" min="0" max="120" '+dis+'></div><div class="fg"><label>Gender</label><select id="'+prefix+'-'+i+'-np-gender" '+dis+'><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div></div>';
-    h+='<div class="form-row"><div class="fg"><label>Village / Panchayat</label><input type="text" id="'+prefix+'-'+i+'-np-village" '+dis+'></div><div class="fg"><label>Block</label><input type="text" id="'+prefix+'-'+i+'-np-block" '+dis+'></div></div>';
-    h+='<div class="fg"><label>Diagnosis (if known)</label><input type="text" id="'+prefix+'-'+i+'-np-diagnosis" '+dis+'></div>';
-    h+='<button type="button" class="btn btn-secondary btn-sm" id="'+prefix+'-'+i+'-np-btn" onclick="registerNewPatient(\''+prefix+'\','+i+')" '+dis+'>➕ Register &amp; Select</button>';
+    h+='<div class="ai-box" style="margin-bottom:10px"><div class="ai-box-title">➕ '+tr('Not registered yet? Register them here')+'</div>';
+    h+='<div class="form-row"><div class="fg"><label>'+tr('Name *')+'</label><input type="text" id="'+prefix+'-'+i+'-np-name" '+dis+'></div><div class="fg"><label>'+tr('Phone')+'</label><input type="tel" id="'+prefix+'-'+i+'-np-phone" '+dis+'></div></div>';
+    h+='<div class="form-row"><div class="fg"><label>'+tr('Age')+'</label><input type="number" id="'+prefix+'-'+i+'-np-age" min="0" max="120" '+dis+'></div><div class="fg"><label>'+tr('Gender')+'</label><select id="'+prefix+'-'+i+'-np-gender" '+dis+'><option value="">'+tr('Select')+'</option><option>'+tr('Male')+'</option><option>'+tr('Female')+'</option><option>'+tr('Other')+'</option></select></div></div>';
+    h+='<div class="form-row"><div class="fg"><label>'+tr('Village / Panchayat')+'</label><input type="text" id="'+prefix+'-'+i+'-np-village" '+dis+'></div><div class="fg"><label>'+tr('Block')+'</label><input type="text" id="'+prefix+'-'+i+'-np-block" '+dis+'></div></div>';
+    h+='<div class="fg"><label>'+tr('Diagnosis (if known)')+'</label><input type="text" id="'+prefix+'-'+i+'-np-diagnosis" '+dis+'></div>';
+    h+='<button type="button" class="btn btn-secondary btn-sm" id="'+prefix+'-'+i+'-np-btn" onclick="registerNewPatient(\''+prefix+'\','+i+')" '+dis+'>➕ '+tr('Register & Select')+'</button>';
     h+='</div>';
   }
-  h+='<div class="fg"><label>Patient</label><select id="'+prefix+'-'+i+'-patient" onchange="onCardPatientChange(\''+prefix+'\','+i+')" '+dis+'><option value="">Select a patient…</option>'+bulkPatientOptions(pid)+'</select></div>';
-  h+='<div class="form-row"><div class="fg"><label>Visit Date</label><input type="date" id="'+prefix+'-'+i+'-visitdate" value="'+new Date().toISOString().slice(0,10)+'" '+dis+'></div><div class="fg"><label>Visit Number</label><input type="number" id="'+prefix+'-'+i+'-visitnum" min="1" value="'+visitNum+'" '+dis+'></div></div>';
-  h+='<div class="fg"><label>What happened</label><textarea id="'+prefix+'-'+i+'-notes" '+dis+'>'+esc(s.visit_notes||s.segment_text||'')+'</textarea></div>';
-  h+='<div class="form-row"><div class="fg"><label>Updated Status</label><select id="'+prefix+'-'+i+'-status" '+dis+'><option value="">No change</option>'+STATUS_OPTIONS.map(function(o){return '<option'+(o===s.status?' selected':'')+'>'+o+'</option>';}).join('')+'</select></div><div class="fg"><label>Next Visit Date</label><input type="date" id="'+prefix+'-'+i+'-nextvisit" '+dis+'></div></div>';
-  h+='<div class="fg"><label>Diagnosis (blank = no change)</label><input type="text" id="'+prefix+'-'+i+'-diagnosis" '+dis+'></div>';
-  h+='<div class="fg"><label>Treatment (blank = no change)</label><textarea id="'+prefix+'-'+i+'-treatment" '+dis+'>'+esc(s.treatment||'')+'</textarea></div>';
-  h+='<div class="fg"><label>Medication (blank = no change)</label><textarea id="'+prefix+'-'+i+'-medication" '+dis+'>'+esc(s.medication||'')+'</textarea></div>';
-  h+='<div class="form-row"><div class="fg"><label>Next Test</label><input type="text" id="'+prefix+'-'+i+'-nexttest" '+dis+'></div><div class="fg"><label>Test Due Date</label><input type="date" id="'+prefix+'-'+i+'-testdate" '+dis+'></div></div>';
-  h+='<div class="fg"><label>Medicine Refill Due</label><input type="date" id="'+prefix+'-'+i+'-meddate" '+dis+'></div>';
-  h+='<div class="fg"><label>Committed Amount (₹, blank = no change)</label><input type="number" id="'+prefix+'-'+i+'-committed" min="0" step="0.01" '+dis+'></div>';
-  h+='<div class="chk-line"><input type="checkbox" id="'+prefix+'-'+i+'-public" '+dis+'><label for="'+prefix+'-'+i+'-public">🌐 Show on public dashboard (patient entries stay private unless you tick this)</label></div>';
+  h+='<div class="fg"><label>'+tr('Patient')+'</label><select id="'+prefix+'-'+i+'-patient" onchange="onCardPatientChange(\''+prefix+'\','+i+')" '+dis+'><option value="">'+tr('Select a patient…')+'</option>'+bulkPatientOptions(pid)+'</select></div>';
+  h+='<div class="form-row"><div class="fg"><label>'+tr('Visit Date')+'</label><input type="date" id="'+prefix+'-'+i+'-visitdate" value="'+new Date().toISOString().slice(0,10)+'" '+dis+'></div><div class="fg"><label>'+tr('Visit Number')+'</label><input type="number" id="'+prefix+'-'+i+'-visitnum" min="1" value="'+visitNum+'" '+dis+'></div></div>';
+  h+='<div class="fg"><label>'+tr('What happened')+'</label><textarea id="'+prefix+'-'+i+'-notes" '+dis+'>'+esc(s.visit_notes||s.segment_text||'')+'</textarea></div>';
+  h+='<div class="form-row"><div class="fg"><label>'+tr('Updated Status')+'</label><select id="'+prefix+'-'+i+'-status" '+dis+'><option value="">'+tr('No change')+'</option>'+STATUS_OPTIONS.map(function(o){return '<option'+(o===s.status?' selected':'')+'>'+tr(o)+'</option>';}).join('')+'</select></div><div class="fg"><label>'+tr('Next Visit Date')+'</label><input type="date" id="'+prefix+'-'+i+'-nextvisit" '+dis+'></div></div>';
+  h+='<div class="fg"><label>'+tr('Diagnosis (blank = no change)')+'</label><input type="text" id="'+prefix+'-'+i+'-diagnosis" '+dis+'></div>';
+  h+='<div class="fg"><label>'+tr('Treatment (blank = no change)')+'</label><textarea id="'+prefix+'-'+i+'-treatment" '+dis+'>'+esc(s.treatment||'')+'</textarea></div>';
+  h+='<div class="fg"><label>'+tr('Medication (blank = no change)')+'</label><textarea id="'+prefix+'-'+i+'-medication" '+dis+'>'+esc(s.medication||'')+'</textarea></div>';
+  h+='<div class="form-row"><div class="fg"><label>'+tr('Next Test')+'</label><input type="text" id="'+prefix+'-'+i+'-nexttest" '+dis+'></div><div class="fg"><label>'+tr('Test Due Date')+'</label><input type="date" id="'+prefix+'-'+i+'-testdate" '+dis+'></div></div>';
+  h+='<div class="fg"><label>'+tr('Medicine Refill Due')+'</label><input type="date" id="'+prefix+'-'+i+'-meddate" '+dis+'></div>';
+  h+='<div class="fg"><label>'+tr('Committed Amount (₹, blank = no change)')+'</label><input type="number" id="'+prefix+'-'+i+'-committed" min="0" step="0.01" '+dis+'></div>';
+  h+='<div class="chk-line"><input type="checkbox" id="'+prefix+'-'+i+'-public" '+dis+'><label for="'+prefix+'-'+i+'-public">🌐 '+tr('Show on public dashboard (patient entries stay private unless you tick this)')+'</label></div>';
   return h;
 }
 function renderLogCardFields(prefix,i,s,dis){
   var t=logTypeByName(s.log_type||s.activity_type);
   var h='';
-  h+='<div class="form-row"><div class="fg"><label>Date</label><input type="date" id="'+prefix+'-'+i+'-adate" '+dis+'></div><div class="fg"><label>Category</label><select id="'+prefix+'-'+i+'-atype" onchange="onCardTypeChange(\''+prefix+'\','+i+')" '+dis+'>'+logTypeOptions(t?t.id:null,true)+'</select></div></div>';
-  h+='<div class="fg"><label>Title</label><input type="text" id="'+prefix+'-'+i+'-atitle" '+dis+'></div>';
-  h+='<div class="fg"><label>Description</label><textarea id="'+prefix+'-'+i+'-adesc" '+dis+'></textarea></div>';
-  h+='<div class="fg"><label>Participants</label><input type="text" id="'+prefix+'-'+i+'-aparticipants" '+dis+'></div>';
-  h+='<div class="fg"><label>Count — how many people/things this entry represents (e.g. 3 saathis)</label><input type="number" id="'+prefix+'-'+i+'-aquantity" min="1" step="1" '+dis+'></div>';
-  h+='<div class="chk-line"><input type="checkbox" id="'+prefix+'-'+i+'-public" '+(t&&t.public_default?'checked':'')+' '+dis+'><label for="'+prefix+'-'+i+'-public">🌐 Show on public dashboard</label></div>';
+  h+='<div class="form-row"><div class="fg"><label>'+tr('Date')+'</label><input type="date" id="'+prefix+'-'+i+'-adate" '+dis+'></div><div class="fg"><label>'+tr('Category')+'</label><select id="'+prefix+'-'+i+'-atype" onchange="onCardTypeChange(\''+prefix+'\','+i+')" '+dis+'>'+logTypeOptions(t?t.id:null,true)+'</select></div></div>';
+  h+='<div class="fg"><label>'+tr('Title')+'</label><input type="text" id="'+prefix+'-'+i+'-atitle" '+dis+'></div>';
+  h+='<div class="fg"><label>'+tr('Description')+'</label><textarea id="'+prefix+'-'+i+'-adesc" '+dis+'></textarea></div>';
+  h+='<div class="fg"><label>'+tr('Participants')+'</label><input type="text" id="'+prefix+'-'+i+'-aparticipants" '+dis+'></div>';
+  h+='<div class="fg"><label>'+tr('Count — how many people/things this entry represents (e.g. 3 saathis)')+'</label><input type="number" id="'+prefix+'-'+i+'-aquantity" min="1" step="1" '+dis+'></div>';
+  h+='<div class="chk-line"><input type="checkbox" id="'+prefix+'-'+i+'-public" '+(t&&t.public_default?'checked':'')+' '+dis+'><label for="'+prefix+'-'+i+'-public">🌐 '+tr('Show on public dashboard')+'</label></div>';
   return h;
 }
 function onCardPatientChange(prefix,i){
@@ -2272,22 +2317,22 @@ function renderWaCards(){
   if(!waEntries.length){c.innerHTML='';return;}
   var h='';
   var unsaved=waEntries.filter(function(e){return !e.saved;}).length;
-  if(unsaved>1)h+='<div style="margin:16px 0 0"><button class="btn btn-primary" id="waAcceptAllBtn" onclick="waAcceptAll()">✓ Accept All Remaining ('+unsaved+')</button></div>';
+  if(unsaved>1)h+='<div style="margin:16px 0 0"><button class="btn btn-primary" id="waAcceptAllBtn" onclick="waAcceptAll()">✓ '+tr('Accept All Remaining')+' ('+unsaved+')</button></div>';
   waEntries.forEach(function(en,i){
     var e=en.data,dis=en.saved?'disabled':'';
     var isPatient=e.log_type==='Patient Update';
     var t=logTypeByName(e.log_type);
-    h+='<div class="card" style="margin-top:16px"><div class="card-header"><h2>'+(t?t.emoji+' ':'')+esc(e.log_type)+' — entry '+(i+1)+(en.saved?' — ✓ Saved':'')+'</h2></div><div style="padding:20px">';
-    h+='<div class="fg"><label>From these messages</label><div class="ai-box" style="font-style:italic;white-space:pre-wrap">'+esc(waSourceText(e))+'</div></div>';
+    h+='<div class="card" style="margin-top:16px"><div class="card-header"><h2>'+(t?t.emoji+' ':'')+tr(e.log_type)+' — '+tr('entry')+' '+(i+1)+(en.saved?' — ✓ '+tr('Saved'):'')+'</h2></div><div style="padding:20px">';
+    h+='<div class="fg"><label>'+tr('From these messages')+'</label><div class="ai-box" style="font-style:italic;white-space:pre-wrap">'+esc(waSourceText(e))+'</div></div>';
     var nfiles=waEntryFiles(e).length;
-    if(nfiles)h+='<div class="ai-box" style="margin-bottom:10px">📎 '+nfiles+' photo(s) from these messages will be attached on save.</div>';
+    if(nfiles)h+='<div class="ai-box" style="margin-bottom:10px">📎 '+nfiles+' '+tr('photo(s) from these messages will be attached on save.')+'</div>';
     h+=isPatient?renderPatientCardFields('wa',i,e,dis):renderLogCardFields('wa',i,e,dis);
     if(isPatient&&e.payment_amount&&parseFloat(e.payment_amount)>0){
-      h+='<div class="ai-box"><div class="ai-box-title">💰 Payment Mentioned</div>₹'+esc(e.payment_amount)+(e.payment_purpose?' — '+esc(e.payment_purpose):'')+(e.payment_notes?' ('+esc(e.payment_notes)+')':'');
-      if(!en.saved)h+='<button type="button" class="btn btn-secondary btn-sm" style="margin-top:6px" onclick="waLogPayment('+i+')">Log This Payment</button>';
+      h+='<div class="ai-box"><div class="ai-box-title">💰 '+tr('Payment Mentioned')+'</div>₹'+esc(e.payment_amount)+(e.payment_purpose?' — '+tr(e.payment_purpose):'')+(e.payment_notes?' ('+esc(e.payment_notes)+')':'');
+      if(!en.saved)h+='<button type="button" class="btn btn-secondary btn-sm" style="margin-top:6px" onclick="waLogPayment('+i+')">'+tr('Log This Payment')+'</button>';
       h+='</div>';
     }
-    if(!en.saved)h+='<button class="btn btn-primary" style="margin-top:12px" id="wa-'+i+'-savebtn" onclick="saveWaCard('+i+')">Save This Entry</button>';
+    if(!en.saved)h+='<button class="btn btn-primary" style="margin-top:12px" id="wa-'+i+'-savebtn" onclick="saveWaCard('+i+')">'+tr('Save This Entry')+'</button>';
     h+='</div></div>';
   });
   c.innerHTML=h;
@@ -2426,7 +2471,7 @@ function fileThumbHtml(f,url,labelHtml){
   var canAnalyze=(ROLE==='staff'||ROLE==='advisor');
   var h='<div class="thumb-item"><div class="thumb" onclick="window.open(\''+url+'\')"><img src="'+url+'"></div><div class="thumb-label">'+labelHtml+'</div>';
   if(canAnalyze){
-    h+='<button class="btn btn-secondary btn-sm ai-analyze-btn" id="aiBtn-'+f.id+'" onclick="analyzeFile(\''+f.id+'\')">🤖 '+(f.ai_analysis?'Re-analyze':'Analyze')+'</button>';
+    h+='<button class="btn btn-secondary btn-sm ai-analyze-btn" id="aiBtn-'+f.id+'" onclick="analyzeFile(\''+f.id+'\')">🤖 '+(f.ai_analysis?tr('Re-analyze'):tr('Analyze'))+'</button>';
     h+='<div id="aiBox-'+f.id+'">'+(f.ai_analysis?renderAnalysis(f.ai_analysis):'')+'</div>';
   }
   h+='</div>';
@@ -2435,13 +2480,13 @@ function fileThumbHtml(f,url,labelHtml){
 function renderAnalysis(a){
   if(!a)return'';
   var meds=(a.medicines||[]).map(function(m){return esc(m.name)+(m.dosage?' — '+esc(m.dosage):'')+(m.frequency?' ('+esc(m.frequency)+')':'');}).join('<br>');
-  var h='<div class="ai-box"><div class="ai-box-title">🤖 AI Read'+(a.confidence?' — '+esc(a.confidence)+' confidence':'')+'</div>';
-  if(a.document_type)h+='<div><b>Type:</b> '+esc(a.document_type)+'</div>';
-  if(a.date_on_document)h+='<div><b>Date:</b> '+esc(a.date_on_document)+'</div>';
-  if(a.doctor_name)h+='<div><b>Doctor:</b> '+esc(a.doctor_name)+'</div>';
-  if(a.diagnosis_mentioned)h+='<div><b>Diagnosis:</b> '+esc(a.diagnosis_mentioned)+'</div>';
-  if(meds)h+='<div><b>Medicines:</b><br>'+meds+'</div>';
-  if(a.key_findings)h+='<div><b>Findings:</b> '+esc(a.key_findings)+'</div>';
+  var h='<div class="ai-box"><div class="ai-box-title">🤖 '+tr('AI Read')+(a.confidence?' — '+tr(a.confidence)+' '+tr('confidence'):'')+'</div>';
+  if(a.document_type)h+='<div><b>'+tr('Type:')+'</b> '+esc(dtr(a.document_type))+'</div>';
+  if(a.date_on_document)h+='<div><b>'+tr('Date:')+'</b> '+esc(a.date_on_document)+'</div>';
+  if(a.doctor_name)h+='<div><b>'+tr('Doctor:')+'</b> '+esc(a.doctor_name)+'</div>';
+  if(a.diagnosis_mentioned)h+='<div><b>'+tr('Diagnosis:')+'</b> '+esc(dtr(a.diagnosis_mentioned))+'</div>';
+  if(meds)h+='<div><b>'+tr('Medicines:')+'</b><br>'+meds+'</div>';
+  if(a.key_findings)h+='<div><b>'+tr('Findings:')+'</b> '+esc(dtr(a.key_findings))+'</div>';
   h+='</div>';
   return h;
 }
