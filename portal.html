@@ -162,7 +162,6 @@
   .story-cat-visit .story-dot{border-color:var(--yellow);}
   .story-cat-program .story-dot{border-color:var(--teal-deep);}
   .story-cat-system .story-dot{border-color:var(--ink-muted);}
-  .story-stock-img{width:100%;max-width:320px;height:150px;object-fit:cover;border-radius:8px;margin-bottom:10px;display:block;}
   .story-date{font-size:0.72rem;font-weight:700;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.06em;}
   .story-title{font-size:0.98rem;font-weight:700;color:var(--ink);margin:2px 0 5px;}
   .story-desc{font-size:0.86rem;color:var(--ink-light);line-height:1.6;}
@@ -981,10 +980,6 @@ var storyIntro='';
 var storyEntries=[];
 var storyEntryFiles=[]; // files for whichever milestone is open in the modal
 var STORY_CATEGORIES={origin:'Origin',partnership:'Partnership',camp:'Health Camp',visit:'Visit',program:'Program',system:'How It Works',milestone:'Milestone'};
-// Simple placeholder art (no external dependency, no unrelated branding)
-// shown until a milestone has its own uploaded photos — swapped out
-// automatically once it does.
-var STORY_STOCK_IMAGE='data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22320%22%20height%3D%22150%22%20viewBox%3D%220%200%20320%20150%22%3E%0A%3Crect%20width%3D%22320%22%20height%3D%22150%22%20rx%3D%2210%22%20fill%3D%22%23e8f4f0%22/%3E%0A%3Cg%20transform%3D%22translate%28160%2C78%29%22%3E%0A%3Cpath%20d%3D%22M0%2C34%20L0%2C-6%22%20stroke%3D%22%230f4c3a%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22/%3E%0A%3Cpath%20d%3D%22M0%2C-6%20C-20%2C-6%20-30%2C-24%20-25%2C-40%20C-8%2C-37%200%2C-24%200%2C-6%20Z%22%20fill%3D%22%232d8a73%22/%3E%0A%3Cpath%20d%3D%22M0%2C4%20C20%2C4%2030%2C-14%2025%2C-30%20C8%2C-27%200%2C-14%200%2C4%20Z%22%20fill%3D%22%231a6b5a%22/%3E%0A%3Cellipse%20cx%3D%220%22%20cy%3D%2240%22%20rx%3D%2234%22%20ry%3D%228%22%20fill%3D%22%23d5ede5%22/%3E%0A%3Cpath%20d%3D%22M-26%2C34%20L26%2C34%20L20%2C56%20C20%2C62%20-20%2C62%20-20%2C56%20Z%22%20fill%3D%22%230f4c3a%22/%3E%0A%3C/g%3E%0A%3C/svg%3E';
 async function loadStory(){
   var s=await sb.from('story_settings').select('summary,intro').eq('id',1).single();
   storySummary=(s.data&&s.data.summary)||'';
@@ -1009,9 +1004,7 @@ async function renderStorySummary(){
   (filesResp.data||[]).forEach(function(f){(filesByEntry[f.entry_id]=filesByEntry[f.entry_id]||[]).push(f);});
   var h='';
   storyEntries.forEach(function(e){
-    var hasOwnPhotos=(filesByEntry[e.id]||[]).length>0;
     h+='<div class="story-item story-cat-'+(e.category||'milestone')+'"><div class="story-dot"></div>';
-    if(!hasOwnPhotos)h+='<img class="story-stock-img" src="'+STORY_STOCK_IMAGE+'" loading="lazy" alt="">';
     h+='<div class="story-date">'+esc(e.date_label)+' · '+esc(STORY_CATEGORIES[e.category]||'Milestone')+'</div>';
     h+='<div class="story-title">'+esc(e.title)+'</div>';
     if(e.description)h+='<div class="story-desc">'+esc(e.description)+'</div>';
