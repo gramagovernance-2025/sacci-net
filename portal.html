@@ -162,6 +162,7 @@
   .story-cat-visit .story-dot{border-color:var(--yellow);}
   .story-cat-program .story-dot{border-color:var(--teal-deep);}
   .story-cat-system .story-dot{border-color:var(--ink-muted);}
+  .story-stock-img{width:100%;max-width:320px;height:150px;object-fit:cover;border-radius:8px;margin-bottom:10px;display:block;}
   .story-date{font-size:0.72rem;font-weight:700;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.06em;}
   .story-title{font-size:0.98rem;font-weight:700;color:var(--ink);margin:2px 0 5px;}
   .story-desc{font-size:0.86rem;color:var(--ink-light);line-height:1.6;}
@@ -980,6 +981,17 @@ var storyIntro='';
 var storyEntries=[];
 var storyEntryFiles=[]; // files for whichever milestone is open in the modal
 var STORY_CATEGORIES={origin:'Origin',partnership:'Partnership',camp:'Health Camp',visit:'Visit',program:'Program',system:'How It Works',milestone:'Milestone'};
+// Placeholder stock photos (Wikimedia Commons, freely licensed) shown until a
+// milestone has its own uploaded photos — swapped out automatically once it does.
+var STORY_STOCK_IMAGES={
+  origin:'https://commons.wikimedia.org/wiki/Special:FilePath/India_village_peoples_dirary_18.jpg?width=320',
+  partnership:'https://commons.wikimedia.org/wiki/Special:FilePath/CHC_Periye_OP_Section.jpg?width=320',
+  camp:'https://commons.wikimedia.org/wiki/Special:FilePath/Medical_camp_by_sudheekshan_foundation.jpg?width=320',
+  visit:'https://commons.wikimedia.org/wiki/Special:FilePath/A_Gramsabha_in_a_rural_village_of_Madhyapradesh.jpg?width=320',
+  program:'https://commons.wikimedia.org/wiki/Special:FilePath/Health_and_Family_welfare_training_centre,_Kozhikode.jpg?width=320',
+  system:'https://commons.wikimedia.org/wiki/Special:FilePath/Eye_checkup.jpg?width=320',
+  milestone:'https://commons.wikimedia.org/wiki/Special:FilePath/Eye_checkup.jpg?width=320'
+};
 async function loadStory(){
   var s=await sb.from('story_settings').select('summary,intro').eq('id',1).single();
   storySummary=(s.data&&s.data.summary)||'';
@@ -1004,7 +1016,12 @@ async function renderStorySummary(){
   (filesResp.data||[]).forEach(function(f){(filesByEntry[f.entry_id]=filesByEntry[f.entry_id]||[]).push(f);});
   var h='';
   storyEntries.forEach(function(e){
+    var hasOwnPhotos=(filesByEntry[e.id]||[]).length>0;
     h+='<div class="story-item story-cat-'+(e.category||'milestone')+'"><div class="story-dot"></div>';
+    if(!hasOwnPhotos){
+      var stockUrl=STORY_STOCK_IMAGES[e.category]||STORY_STOCK_IMAGES.milestone;
+      h+='<img class="story-stock-img" src="'+stockUrl+'" loading="lazy" alt="">';
+    }
     h+='<div class="story-date">'+esc(e.date_label)+' · '+esc(STORY_CATEGORIES[e.category]||'Milestone')+'</div>';
     h+='<div class="story-title">'+esc(e.title)+'</div>';
     if(e.description)h+='<div class="story-desc">'+esc(e.description)+'</div>';
