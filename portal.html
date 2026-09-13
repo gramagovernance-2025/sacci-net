@@ -168,7 +168,7 @@
   <div class="sidebar-logo"><a href="index.html" class="sidebar-brand">SACCI</a></div>
   <div class="sidebar-label">Sita Anandam Cancer Care Portal</div>
   <ul class="sidebar-nav" id="sidebarNav">
-    <li><a href="#" class="active" data-page="dashboard" onclick="navTo('dashboard',this)">📊 Dashboard</a></li>
+    <li><a href="#" class="active" data-page="dashboard" onclick="navTo('dashboard',this)">📊 Active Cases</a></li>
     <li><a href="#" data-page="patients" onclick="navTo('patients',this)">👥 All Patients</a></li>
     <li><a href="#" data-page="dues" onclick="navTo('dues',this)" id="nav-dues">⏰ Due Actions</a></li>
     <li><a href="#" data-page="finances" onclick="navTo('finances',this)" id="nav-finances">💰 Finances</a></li>
@@ -188,7 +188,7 @@
 <!-- ═══ DASHBOARD ═══ -->
 <div class="page active" id="page-dashboard">
   <div class="topbar">
-    <h1 id="dashTitle">Dashboard</h1>
+    <h1 id="dashTitle">Active Cases</h1>
     <div class="topbar-actions" id="dashActions">
       <button class="btn btn-primary" onclick="openAdd()">+ Add Patient</button>
       <button class="btn btn-secondary" onclick="openActivity()">+ Add Log Entry</button>
@@ -201,7 +201,7 @@
     <div class="stat-box"><div class="stat-box-number" id="s-dues">0</div><div class="stat-box-label">Actions Due</div></div>
   </div>
   <div class="card">
-    <div class="card-header"><h2>Recent Patients</h2><input type="text" class="search-input" placeholder="Search..." oninput="renderDash(this.value)"></div>
+    <div class="card-header"><h2>Active Cases</h2><input type="text" class="search-input" placeholder="Search..." oninput="renderDash(this.value)"></div>
     <div style="overflow-x:auto"><table><thead><tr><th>ID</th><th>Name</th><th>Age/Gender</th><th>Diagnosis</th><th>Status</th><th>Last Visit</th><th>Visit #</th><th>Next Due</th><th>Actions</th></tr></thead><tbody id="dashBody"></tbody></table></div>
   </div>
   <div class="card" style="margin-top:20px">
@@ -681,8 +681,8 @@ function renderDash(q){
   if(ROLE==='staff'||ROLE==='advisor')renderActivities();
 
   var tbody=document.getElementById('dashBody');
-  var recent=list.slice(-10).reverse();
-  if(!recent.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:36px;color:var(--ink-muted)">No patients yet.</td></tr>';return;}
+  var recent=list.filter(function(p){return p.status!=='Case Closed'&&p.status!=='Completed';}).reverse();
+  if(!recent.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:36px;color:var(--ink-muted)">No active cases.</td></tr>';return;}
   var h='';recent.forEach(function(p){
     var nd=dueStatus(p.nextVisit);
     var acts='<span class="link" onclick="viewPatient(\''+p.id+'\')">View</span>';
