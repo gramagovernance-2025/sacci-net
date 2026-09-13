@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
 
     const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
     const response = await anthropic.messages.parse({
-      model: "claude-opus-5",
+      model: "claude-opus-4-8",
       max_tokens: 16000,
       system:
         "You are a records assistant for SACCI, a cancer-care nonprofit in Muzaffarpur, Bihar. You are " +
