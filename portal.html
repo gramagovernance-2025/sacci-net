@@ -214,6 +214,7 @@
     <div class="topbar-actions" id="dashActions">
       <button class="btn btn-primary" onclick="openAdd()" data-i18n="+ Add Patient">+ Add Patient</button>
       <button class="btn btn-secondary" onclick="openActivity()" data-i18n="+ Add Log Entry">+ Add Log Entry</button>
+      <button class="btn btn-secondary btn-sm story-last-updated" onclick="goToLastUpdate()">🕐 …</button>
       <div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div>
     </div>
   </div>
@@ -240,6 +241,7 @@
     <div class="topbar-actions" id="patActions">
       <button class="btn btn-primary" onclick="openAdd()" data-i18n="+ Add Patient">+ Add Patient</button>
       <button class="btn btn-secondary" onclick="exportCSV()" data-i18n="Export CSV">Export CSV</button>
+      <button class="btn btn-secondary btn-sm story-last-updated" onclick="goToLastUpdate()">🕐 …</button>
       <div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div>
     </div>
   </div>
@@ -257,6 +259,7 @@
     <h1 data-i18n="Finances">Finances</h1>
     <div class="topbar-actions">
       <button class="btn btn-primary" onclick="openAddTxn()" data-i18n="+ Log Payment">+ Log Payment</button>
+      <button class="btn btn-secondary btn-sm story-last-updated" onclick="goToLastUpdate()">🕐 …</button>
       <div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div>
     </div>
   </div>
@@ -278,7 +281,7 @@
 
 <!-- ═══ QUICK UPDATE (staff only) ═══ -->
 <div class="page" id="page-quickupdate">
-  <div class="topbar"><h1 data-i18n="Quick Update">Quick Update</h1><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div></div>
+  <div class="topbar"><h1 data-i18n="Quick Update">Quick Update</h1><div class="topbar-right"><button class="btn btn-secondary btn-sm story-last-updated" onclick="goToLastUpdate()">🕐 …</button><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div></div></div>
   <div class="card">
     <div class="card-header"><h2 data-i18n="Write anything — patient updates, camps, meetings, saathi joinings">Write anything — patient updates, camps, meetings, saathi joinings</h2></div>
     <div style="padding:20px">
@@ -294,7 +297,7 @@
 
 <!-- ═══ WHATSAPP IMPORT (staff only) ═══ -->
 <div class="page" id="page-whatsapp">
-  <div class="topbar"><h1 data-i18n="WhatsApp Import">WhatsApp Import</h1><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div></div>
+  <div class="topbar"><h1 data-i18n="WhatsApp Import">WhatsApp Import</h1><div class="topbar-right"><button class="btn btn-secondary btn-sm story-last-updated" onclick="goToLastUpdate()">🕐 …</button><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div></div></div>
   <div class="card">
     <div class="card-header"><h2 data-i18n="Paste the group chat export">Paste the group chat export</h2></div>
     <div style="padding:20px">
@@ -1081,6 +1084,7 @@ async function loadLogs(){
   var resp=await sb.from('logs').select('*').order('occurred_on',{ascending:false}).order('created_at',{ascending:false}).limit(500);
   logs=resp.data||[];
   if(resp.error)console.error(resp.error);
+  renderStoryLastUpdated();
 }
 
 // ─── OUR STORY — short overview + detailed page with a curated
