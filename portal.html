@@ -1030,10 +1030,13 @@ async function renderStoryDetail(){
   renderStoryLogFeed();
 }
 async function renderStoryLogFeed(){
-  var orgLogs=logs.filter(function(l){return !l.patient_id;})
+  // Org-wide entries (camps, meetings, trainings...) always show. Patient-linked
+  // entries only show once a human has marked them public — routine private
+  // visit notes shouldn't flood the organisation's story.
+  var orgLogs=logs.filter(function(l){return !l.patient_id||l.is_public;})
     .slice().sort(function(a,b){return new Date(b.occurred_on)-new Date(a.occurred_on);}).slice(0,30);
   var feed=document.getElementById('storyLogFeed');
-  if(!orgLogs.length){feed.innerHTML='<p style="color:var(--ink-muted);padding:0 0 16px">Nothing yet — camps, meetings, trainings and other entries logged via Quick Update or WhatsApp Import (that aren\'t tied to one patient) will show up here automatically.</p>';return;}
+  if(!orgLogs.length){feed.innerHTML='<p style="color:var(--ink-muted);padding:0 0 16px">Nothing yet — camps, meetings, trainings and other entries logged via Quick Update or WhatsApp Import (plus any patient update marked public) will show up here automatically.</p>';return;}
   var filesResp=await sb.from('log_files').select('*').in('log_id',orgLogs.map(function(l){return l.id;}));
   var filesByLog={};
   (filesResp.data||[]).forEach(function(f){(filesByLog[f.log_id]=filesByLog[f.log_id]||[]).push(f);});
@@ -1042,7 +1045,7 @@ async function renderStoryLogFeed(){
   orgLogs.forEach(function(l){
     var t=logTypeById(l.log_type_id);
     h+='<div class="story-item"><div class="story-dot"></div>';
-    h+='<div class="story-date">'+fmtDate(l.occurred_on)+' · '+esc(t?t.emoji+' '+t.name:'Log')+' · '+esc(sourceLabel[l.source]||l.source)+'</div>';
+    h+='<div class="story-date">'+fmtDate(l.occurred_on)+' · '+esc(t?t.emoji+' '+t.name:'Log')+' · '+esc(sourceLabel[l.source]||l.source)+(l.patient_id?' · Public Patient Story':'')+'</div>';
     h+='<div class="story-title">'+esc(l.title||(t?t.name:'Update'))+'</div>';
     if(l.description)h+='<div class="story-desc">'+esc(l.description)+'</div>';
     h+=storyThumbRow('log-files',filesByLog[l.id]||[]);
