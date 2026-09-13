@@ -210,41 +210,43 @@
 <!-- ═══ DASHBOARD ═══ -->
 <div class="page active" id="page-dashboard">
   <div class="topbar">
-    <h1 id="dashTitle">Active Cases</h1>
+    <h1 id="dashTitle" data-i18n="Active Cases">Active Cases</h1>
     <div class="topbar-actions" id="dashActions">
-      <button class="btn btn-primary" onclick="openAdd()">+ Add Patient</button>
-      <button class="btn btn-secondary" onclick="openActivity()">+ Add Log Entry</button>
+      <button class="btn btn-primary" onclick="openAdd()" data-i18n="+ Add Patient">+ Add Patient</button>
+      <button class="btn btn-secondary" onclick="openActivity()" data-i18n="+ Add Log Entry">+ Add Log Entry</button>
+      <div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div>
     </div>
   </div>
   <div class="stats-row">
-    <div class="stat-box"><div class="stat-box-number" id="s-total">0</div><div class="stat-box-label">Total Patients</div></div>
-    <div class="stat-box"><div class="stat-box-number" id="s-active">0</div><div class="stat-box-label">Active Treatment</div></div>
-    <div class="stat-box"><div class="stat-box-number" id="s-screening">0</div><div class="stat-box-label">In Screening</div></div>
-    <div class="stat-box"><div class="stat-box-number" id="s-dues">0</div><div class="stat-box-label">Actions Due</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="s-total">0</div><div class="stat-box-label" data-i18n="Total Patients">Total Patients</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="s-active">0</div><div class="stat-box-label" data-i18n="Active Treatment">Active Treatment</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="s-screening">0</div><div class="stat-box-label" data-i18n="In Screening">In Screening</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="s-dues">0</div><div class="stat-box-label" data-i18n="Actions Due">Actions Due</div></div>
   </div>
   <div class="card">
-    <div class="card-header"><h2>Active Cases</h2><input type="text" class="search-input" placeholder="Search..." oninput="renderDash(this.value)"></div>
-    <div style="overflow-x:auto"><table><thead><tr><th>ID</th><th>Name</th><th>Age/Gender</th><th>Diagnosis</th><th>Status</th><th>Last Visit</th><th>Visit #</th><th>Next Due</th><th>Actions</th></tr></thead><tbody id="dashBody"></tbody></table></div>
+    <div class="card-header"><h2 data-i18n="Active Cases">Active Cases</h2><input type="text" class="search-input" placeholder="Search..." data-i18n-ph="Search..." oninput="renderDash(this.value)"></div>
+    <div style="overflow-x:auto"><table><thead><tr><th data-i18n="ID">ID</th><th data-i18n="Name">Name</th><th data-i18n="Age/Gender">Age/Gender</th><th data-i18n="Diagnosis">Diagnosis</th><th data-i18n="Status">Status</th><th data-i18n="Last Visit">Last Visit</th><th data-i18n="Visit #">Visit #</th><th data-i18n="Next Due">Next Due</th><th data-i18n="Actions">Actions</th></tr></thead><tbody id="dashBody"></tbody></table></div>
   </div>
   <div class="card" style="margin-top:20px">
-    <div class="card-header"><h2>Log — Recent Entries</h2></div>
-    <div style="overflow-x:auto"><table><thead><tr><th>Date</th><th>Type</th><th>Title / Description</th><th>Participants</th><th>Actions</th></tr></thead><tbody id="activityBody"></tbody></table></div>
+    <div class="card-header"><h2 data-i18n="Log — Recent Entries">Log — Recent Entries</h2></div>
+    <div style="overflow-x:auto"><table><thead><tr><th data-i18n="Date">Date</th><th data-i18n="Type">Type</th><th data-i18n="Title / Description">Title / Description</th><th data-i18n="Participants">Participants</th><th data-i18n="Actions">Actions</th></tr></thead><tbody id="activityBody"></tbody></table></div>
   </div>
 </div>
 
 <!-- ═══ ALL PATIENTS ═══ -->
 <div class="page" id="page-patients">
   <div class="topbar">
-    <h1>All Patients — Detailed View</h1>
+    <h1 data-i18n="All Patients — Detailed View">All Patients — Detailed View</h1>
     <div class="topbar-actions" id="patActions">
-      <button class="btn btn-primary" onclick="openAdd()">+ Add Patient</button>
-      <button class="btn btn-secondary" onclick="exportCSV()">Export CSV</button>
+      <button class="btn btn-primary" onclick="openAdd()" data-i18n="+ Add Patient">+ Add Patient</button>
+      <button class="btn btn-secondary" onclick="exportCSV()" data-i18n="Export CSV">Export CSV</button>
+      <div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div>
     </div>
   </div>
   <div class="card">
-    <div class="card-header"><h2>Complete Patient Records</h2><input type="text" class="search-input" placeholder="Search..." oninput="renderAll(this.value)"></div>
+    <div class="card-header"><h2 data-i18n="Complete Patient Records">Complete Patient Records</h2><input type="text" class="search-input" placeholder="Search..." data-i18n-ph="Search..." oninput="renderAll(this.value)"></div>
     <div style="overflow-x:auto"><table><thead><tr>
-      <th>ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Village</th><th>Block</th><th>Diagnosis</th><th>Status</th><th>Admitted</th><th>Last Visit</th><th>Visit #</th><th>Next Visit</th><th>Due Test</th><th>Due Medicine</th><th>Actions</th>
+      <th data-i18n="ID">ID</th><th data-i18n="Name">Name</th><th data-i18n="Age">Age</th><th data-i18n="Gender">Gender</th><th data-i18n="Village">Village</th><th data-i18n="Block">Block</th><th data-i18n="Diagnosis">Diagnosis</th><th data-i18n="Status">Status</th><th data-i18n="Admitted">Admitted</th><th data-i18n="Last Visit">Last Visit</th><th data-i18n="Visit #">Visit #</th><th data-i18n="Next Visit">Next Visit</th><th data-i18n="Due Test">Due Test</th><th data-i18n="Due Medicine">Due Medicine</th><th data-i18n="Actions">Actions</th>
     </tr></thead><tbody id="allBody"></tbody></table></div>
   </div>
 </div>
@@ -252,38 +254,39 @@
 <!-- ═══ FINANCES (staff only) ═══ -->
 <div class="page" id="page-finances">
   <div class="topbar">
-    <h1>Finances</h1>
+    <h1 data-i18n="Finances">Finances</h1>
     <div class="topbar-actions">
-      <button class="btn btn-primary" onclick="openAddTxn()">+ Log Payment</button>
+      <button class="btn btn-primary" onclick="openAddTxn()" data-i18n="+ Log Payment">+ Log Payment</button>
+      <div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div>
     </div>
   </div>
   <div class="stats-row">
-    <div class="stat-box"><div class="stat-box-number" id="f-total">₹0</div><div class="stat-box-label">Total Disbursed</div></div>
-    <div class="stat-box"><div class="stat-box-number" id="f-travel">₹0</div><div class="stat-box-label">Travel</div></div>
-    <div class="stat-box"><div class="stat-box-number" id="f-treatment">₹0</div><div class="stat-box-label">Treatment</div></div>
-    <div class="stat-box"><div class="stat-box-number" id="f-other">₹0</div><div class="stat-box-label">Screening / Medicine / Other</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="f-total">₹0</div><div class="stat-box-label" data-i18n="Total Disbursed">Total Disbursed</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="f-travel">₹0</div><div class="stat-box-label" data-i18n="Travel">Travel</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="f-treatment">₹0</div><div class="stat-box-label" data-i18n="Treatment">Treatment</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="f-other">₹0</div><div class="stat-box-label" data-i18n="Screening / Medicine / Other">Screening / Medicine / Other</div></div>
   </div>
   <div class="card">
-    <div class="card-header"><h2>Patient Balances</h2></div>
-    <div style="overflow-x:auto"><table><thead><tr><th>ID</th><th>Patient</th><th>Committed Amount</th><th>Advance Given</th><th>Pending / Balance Left</th></tr></thead><tbody id="balanceBody"></tbody></table></div>
+    <div class="card-header"><h2 data-i18n="Patient Balances">Patient Balances</h2></div>
+    <div style="overflow-x:auto"><table><thead><tr><th data-i18n="ID">ID</th><th data-i18n="Patient">Patient</th><th data-i18n="Committed Amount">Committed Amount</th><th data-i18n="Advance Given">Advance Given</th><th data-i18n="Pending / Balance Left">Pending / Balance Left</th></tr></thead><tbody id="balanceBody"></tbody></table></div>
   </div>
   <div class="card">
-    <div class="card-header"><h2>All Payments</h2><input type="text" class="search-input" placeholder="Search by patient..." oninput="renderFinances(this.value)"></div>
-    <div style="overflow-x:auto"><table><thead><tr><th>ID</th><th>Patient</th><th>Amount</th><th>Purpose</th><th>Date</th><th>Notes</th><th>Recorded By</th><th>Actions</th></tr></thead><tbody id="txnBody"></tbody></table></div>
+    <div class="card-header"><h2 data-i18n="All Payments">All Payments</h2><input type="text" class="search-input" placeholder="Search by patient..." data-i18n-ph="Search by patient..." oninput="renderFinances(this.value)"></div>
+    <div style="overflow-x:auto"><table><thead><tr><th data-i18n="ID">ID</th><th data-i18n="Patient">Patient</th><th data-i18n="Amount">Amount</th><th data-i18n="Purpose">Purpose</th><th data-i18n="Date">Date</th><th data-i18n="Notes">Notes</th><th data-i18n="Recorded By">Recorded By</th><th data-i18n="Actions">Actions</th></tr></thead><tbody id="txnBody"></tbody></table></div>
   </div>
 </div>
 
 <!-- ═══ QUICK UPDATE (staff only) ═══ -->
 <div class="page" id="page-quickupdate">
-  <div class="topbar"><h1>Quick Update</h1></div>
+  <div class="topbar"><h1 data-i18n="Quick Update">Quick Update</h1><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div></div>
   <div class="card">
-    <div class="card-header"><h2>Write anything — patient updates, camps, meetings, saathi joinings</h2></div>
+    <div class="card-header"><h2 data-i18n="Write anything — patient updates, camps, meetings, saathi joinings">Write anything — patient updates, camps, meetings, saathi joinings</h2></div>
     <div style="padding:20px">
       <div class="fg">
         <label>Write freely — mention patients by name, or describe camps, meetings, and other work. The system splits it into entries and shows you exactly what it found before anything saves.</label>
         <textarea id="bqFreeText" style="min-height:140px" placeholder="e.g. 'Ramesh Kumar's biopsy came back positive, recommended starting chemo, family is hesitant. Gave Sunita Devi 1500 for travel, she's refusing to go to TATA and wants a private hospital instead.'"></textarea>
       </div>
-      <button class="btn btn-primary" id="bqParseBtn" onclick="parseBulkUpdate()">🤖 Parse Updates</button>
+      <button class="btn btn-primary" id="bqParseBtn" onclick="parseBulkUpdate()" data-i18n="🤖 Parse Updates">🤖 Parse Updates</button>
     </div>
   </div>
   <div id="bqResults"></div>
@@ -291,9 +294,9 @@
 
 <!-- ═══ WHATSAPP IMPORT (staff only) ═══ -->
 <div class="page" id="page-whatsapp">
-  <div class="topbar"><h1>WhatsApp Import</h1></div>
+  <div class="topbar"><h1 data-i18n="WhatsApp Import">WhatsApp Import</h1><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div></div>
   <div class="card">
-    <div class="card-header"><h2>Paste the group chat export</h2></div>
+    <div class="card-header"><h2 data-i18n="Paste the group chat export">Paste the group chat export</h2></div>
     <div style="padding:20px">
       <div class="fg">
         <label>In WhatsApp: open the group → ⋮ → More → Export chat (choose "Include media" to bring the photos along). Then upload the exported .zip below exactly as WhatsApp made it — no unzipping needed. Or paste the chat text here. Messages imported before are skipped automatically, so overlapping exports are always safe.</label>
@@ -307,7 +310,7 @@
         <p style="font-size:0.78rem;color:var(--ink-muted);margin-top:4px"><span id="waTxtName"></span> <span id="waFileCount"></span></p>
         <p style="font-size:0.78rem;color:var(--ink-muted);margin-top:8px">📲 On an Android phone you can skip the computer entirely: install this portal as an app<span id="waInstallBtn" style="display:none"> — <span class="link" onclick="waPromptInstall()">tap here to install</span> —</span> (or Chrome menu → "Add to Home screen"). After that, WhatsApp → Export chat → Share → <strong>SACCI</strong> delivers the export straight to this page.</p>
       </div>
-      <button class="btn btn-primary" id="waImportBtn" onclick="waImport()">🤖 Read &amp; Propose Entries</button>
+      <button class="btn btn-primary" id="waImportBtn" onclick="waImport()" data-i18n="🤖 Read &amp; Propose Entries">🤖 Read &amp; Propose Entries</button>
     </div>
   </div>
   <div id="waSummary"></div>
@@ -316,7 +319,7 @@
 
 <!-- ═══ OUR STORY (staff/advisor) — overview + milestones ═══ -->
 <div class="page" id="page-story">
-  <div class="topbar"><h1>Our Story</h1><div class="topbar-right"><button class="btn btn-secondary btn-sm story-last-updated" onclick="goToLastUpdate()">🕐 …</button><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div><span class="link" id="storySummaryEditBtn" onclick="openStorySummary()" style="display:none">Edit</span></div></div>
+  <div class="topbar"><h1 data-i18n="Our Story">Our Story</h1><div class="topbar-right"><button class="btn btn-secondary btn-sm story-last-updated" onclick="goToLastUpdate()">🕐 …</button><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div><span class="link" id="storySummaryEditBtn" onclick="openStorySummary()" style="display:none">Edit</span></div></div>
   <div class="card">
     <div style="padding:20px 20px 0"><button class="btn btn-primary" onclick="navTo('story-detail')">📖 Story in Detail</button></div>
     <div class="story-intro" id="storySummaryBox">Loading…</div>
@@ -341,22 +344,22 @@
 
 <!-- ═══ PUBLIC DASHBOARD ═══ -->
 <div class="page" id="page-public">
-  <div class="topbar"><h1>Public Dashboard</h1></div>
+  <div class="topbar"><h1 data-i18n="Public Dashboard">Public Dashboard</h1><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div></div>
   <div class="public-banner"><p>📊 This is an anonymised view of the Sita Anandam Cancer Care Initiative's impact. Patient identities and personal details are not shown.</p></div>
   <div class="stats-row">
-    <div class="stat-box"><div class="stat-box-number" id="pub-total">0</div><div class="stat-box-label">Patients Supported</div></div>
-    <div class="stat-box"><div class="stat-box-number" id="pub-active">0</div><div class="stat-box-label">Currently in Treatment</div></div>
-    <div class="stat-box"><div class="stat-box-number" id="pub-screening">0</div><div class="stat-box-label">Under Screening</div></div>
-    <div class="stat-box"><div class="stat-box-number" id="pub-completed">0</div><div class="stat-box-label">Treatment Completed</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="pub-total">0</div><div class="stat-box-label" data-i18n="Patients Supported">Patients Supported</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="pub-active">0</div><div class="stat-box-label" data-i18n="Currently in Treatment">Currently in Treatment</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="pub-screening">0</div><div class="stat-box-label" data-i18n="Under Screening">Under Screening</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="pub-completed">0</div><div class="stat-box-label" data-i18n="Treatment Completed">Treatment Completed</div></div>
   </div>
   <div class="stats-row stats-row-auto" id="pubTiles" style="display:none"></div>
   <div class="card">
-    <div class="card-header"><h2>Activity — Camps, Saathis &amp; More</h2></div>
+    <div class="card-header"><h2 data-i18n="Activity — Camps, Saathis &amp; More">Activity — Camps, Saathis &amp; More</h2></div>
     <div id="pubTimeline" style="padding:14px 18px"></div>
   </div>
   <div class="card">
-    <div class="card-header"><h2>Patient Overview (Anonymised)</h2></div>
-    <div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Age</th><th>Gender</th><th>Block</th><th>Diagnosis</th><th>Status</th><th>Visits</th></tr></thead><tbody id="pubBody"></tbody></table></div>
+    <div class="card-header"><h2 data-i18n="Patient Overview (Anonymised)">Patient Overview (Anonymised)</h2></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>#</th><th data-i18n="Age">Age</th><th data-i18n="Gender">Gender</th><th data-i18n="Block">Block</th><th data-i18n="Diagnosis">Diagnosis</th><th data-i18n="Status">Status</th><th data-i18n="Visits">Visits</th></tr></thead><tbody id="pubBody"></tbody></table></div>
   </div>
 </div>
 
@@ -366,37 +369,37 @@
 <!-- ═══ ADD/EDIT MODAL ═══ -->
 <div class="modal-overlay" id="patientModal">
 <div class="modal">
-  <div class="modal-head"><h2 id="modalTitle">Add New Patient</h2><button class="modal-close" onclick="closeModal()">&times;</button></div>
+  <div class="modal-head"><h2 id="modalTitle" data-i18n="Add New Patient">Add New Patient</h2><button class="modal-close" onclick="closeModal()">&times;</button></div>
   <div class="modal-body">
     <input type="hidden" id="editId">
-    <div class="form-title">Patient Information</div>
-    <div class="form-row"><div class="fg"><label>Full Name *</label><input type="text" id="pName"></div><div class="fg"><label>Age</label><input type="number" id="pAge" min="0" max="120"></div></div>
-    <div class="form-row"><div class="fg"><label>Gender</label><select id="pGender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div><div class="fg"><label>Phone</label><input type="tel" id="pPhone"></div></div>
-    <div class="form-row-3"><div class="fg"><label>Village / Panchayat</label><input type="text" id="pVillage"><div class="fg"><label>Block</label><input type="text" id="pBlock"></div></div><div class="fg"><label>District</label><input type="text" id="pDistrict" value="Muzaffarpur"></div></div>
+    <div class="form-title" data-i18n="Patient Information">Patient Information</div>
+    <div class="form-row"><div class="fg"><label data-i18n="Full Name *">Full Name *</label><input type="text" id="pName"></div><div class="fg"><label data-i18n="Age">Age</label><input type="number" id="pAge" min="0" max="120"></div></div>
+    <div class="form-row"><div class="fg"><label data-i18n="Gender">Gender</label><select id="pGender"><option value="" data-i18n="Select">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div><div class="fg"><label data-i18n="Phone">Phone</label><input type="tel" id="pPhone"></div></div>
+    <div class="form-row-3"><div class="fg"><label data-i18n="Village / Panchayat">Village / Panchayat</label><input type="text" id="pVillage"><div class="fg"><label data-i18n="Block">Block</label><input type="text" id="pBlock"></div></div><div class="fg"><label data-i18n="District">District</label><input type="text" id="pDistrict" value="Muzaffarpur"></div></div>
 
-    <div class="form-title">Aadhar &amp; Bank Details</div>
-    <div class="form-row"><div class="fg"><label>Aadhar Card Number</label><input type="text" id="pAadhar" placeholder="12 digit number" maxlength="14"></div><div class="fg"><label>Bank Name</label><input type="text" id="pBank"></div></div>
-    <div class="form-row"><div class="fg"><label>Bank Account Number</label><input type="text" id="pAccount"></div><div class="fg"><label>IFSC Code</label><input type="text" id="pIFSC"></div></div>
+    <div class="form-title" data-i18n="Aadhar &amp; Bank Details">Aadhar &amp; Bank Details</div>
+    <div class="form-row"><div class="fg"><label data-i18n="Aadhar Card Number">Aadhar Card Number</label><input type="text" id="pAadhar" placeholder="12 digit number" maxlength="14"></div><div class="fg"><label data-i18n="Bank Name">Bank Name</label><input type="text" id="pBank"></div></div>
+    <div class="form-row"><div class="fg"><label data-i18n="Bank Account Number">Bank Account Number</label><input type="text" id="pAccount"></div><div class="fg"><label data-i18n="IFSC Code">IFSC Code</label><input type="text" id="pIFSC"></div></div>
 
-    <div class="form-title">Medical Details</div>
-    <div class="form-row"><div class="fg"><label>Diagnosis / Cancer Type</label><input type="text" id="pDiagnosis" placeholder="e.g. Oral cancer, Breast cancer"></div><div class="fg"><label>Status</label><select id="pStatus"><option value="Screening">Screening</option><option value="Under Investigation">Under Investigation</option><option value="Treatment">Treatment (Active)</option><option value="Admitted">Admitted</option><option value="On Medication">On Medication</option><option value="Follow-up">Follow-up</option><option value="Completed">Completed</option></select></div></div>
-    <div class="form-row"><div class="fg"><label>Is Patient Admitted?</label><select id="pAdmitted"><option value="No">No</option><option value="Yes">Yes</option></select></div><div class="fg"><label>Visit Number</label><input type="number" id="pVisitNum" min="0" value="1"></div></div>
-    <div class="fg"><label>Current Treatment</label><textarea id="pTreatment" placeholder="Treatment details..."></textarea></div>
-    <div class="fg"><label>Current Medication</label><textarea id="pMedication" placeholder="Medicines and dosages..."></textarea></div>
+    <div class="form-title" data-i18n="Medical Details">Medical Details</div>
+    <div class="form-row"><div class="fg"><label data-i18n="Diagnosis / Cancer Type">Diagnosis / Cancer Type</label><input type="text" id="pDiagnosis" placeholder="e.g. Oral cancer, Breast cancer"></div><div class="fg"><label data-i18n="Status">Status</label><select id="pStatus"><option value="Screening" data-i18n="Screening">Screening</option><option value="Under Investigation" data-i18n="Under Investigation">Under Investigation</option><option value="Treatment">Treatment (Active)</option><option value="Admitted" data-i18n="Admitted">Admitted</option><option value="On Medication" data-i18n="On Medication">On Medication</option><option value="Follow-up" data-i18n="Follow-up">Follow-up</option><option value="Completed" data-i18n="Completed">Completed</option></select></div></div>
+    <div class="form-row"><div class="fg"><label data-i18n="Is Patient Admitted?">Is Patient Admitted?</label><select id="pAdmitted"><option value="No" data-i18n="No">No</option><option value="Yes" data-i18n="Yes">Yes</option></select></div><div class="fg"><label data-i18n="Visit Number">Visit Number</label><input type="number" id="pVisitNum" min="0" value="1"></div></div>
+    <div class="fg"><label data-i18n="Current Treatment">Current Treatment</label><textarea id="pTreatment" placeholder="Treatment details..."></textarea></div>
+    <div class="fg"><label data-i18n="Current Medication">Current Medication</label><textarea id="pMedication" placeholder="Medicines and dosages..."></textarea></div>
 
-    <div class="form-title">Upcoming Schedule</div>
-    <div class="form-row"><div class="fg"><label>Next Visit Date</label><input type="date" id="pNextVisit"></div><div class="fg"><label>Next Medical Test</label><input type="text" id="pNextTest"></div></div>
-    <div class="form-row"><div class="fg"><label>Test Due Date</label><input type="date" id="pTestDate"></div><div class="fg"><label>Medicine Refill Due</label><input type="date" id="pMedDate"></div></div>
+    <div class="form-title" data-i18n="Upcoming Schedule">Upcoming Schedule</div>
+    <div class="form-row"><div class="fg"><label data-i18n="Next Visit Date">Next Visit Date</label><input type="date" id="pNextVisit"></div><div class="fg"><label data-i18n="Next Medical Test">Next Medical Test</label><input type="text" id="pNextTest"></div></div>
+    <div class="form-row"><div class="fg"><label data-i18n="Test Due Date">Test Due Date</label><input type="date" id="pTestDate"></div><div class="fg"><label data-i18n="Medicine Refill Due">Medicine Refill Due</label><input type="date" id="pMedDate"></div></div>
 
-    <div class="form-title">Finance</div>
-    <div class="fg"><label>Committed Amount (₹) — total estimated/committed cost of care</label><input type="number" id="pCommitted" min="0" step="0.01"></div>
+    <div class="form-title" data-i18n="Finance">Finance</div>
+    <div class="fg"><label data-i18n="Committed Amount (₹) — total estimated/committed cost of care">Committed Amount (₹) — total estimated/committed cost of care</label><input type="number" id="pCommitted" min="0" step="0.01"></div>
 
-    <div class="form-title">Notes</div>
-    <div class="fg"><label>Latest Notes</label><textarea id="pNotes" placeholder="Observations, doctor remarks..."></textarea></div>
+    <div class="form-title" data-i18n="Notes">Notes</div>
+    <div class="fg"><label data-i18n="Latest Notes">Latest Notes</label><textarea id="pNotes" placeholder="Observations, doctor remarks..."></textarea></div>
 
-    <div class="form-title">Upload Reports / Images</div>
+    <div class="form-title" data-i18n="Upload Reports / Images">Upload Reports / Images</div>
     <div class="fg">
-      <div class="form-row"><div class="fg"><label>Category</label><select id="fileCategory"><option value="Latest Report">Latest Report</option><option value="History">History</option><option value="Prescription">Prescription</option><option value="Other">Other</option></select></div></div>
+      <div class="form-row"><div class="fg"><label data-i18n="Category">Category</label><select id="fileCategory"><option value="Latest Report">Latest Report</option><option value="History">History</option><option value="Prescription">Prescription</option><option value="Other">Other</option></select></div></div>
       <div class="file-area" id="fileArea" onclick="if(isExistingPatient)document.getElementById('fileInput').click()">
         <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFiles(this)">
         <p id="fileAreaHint"><strong>Click to upload</strong> reports, prescriptions, or test results</p>
@@ -404,18 +407,18 @@
       <div class="file-list" id="fileList"></div>
     </div>
   </div>
-  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="savePatient()">Save Patient</button></div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeModal()" data-i18n="Cancel">Cancel</button><button class="btn btn-primary" onclick="savePatient()" data-i18n="Save Patient">Save Patient</button></div>
 </div>
 </div>
 
 <!-- ═══ UPDATE VISIT MODAL ═══ -->
 <div class="modal-overlay" id="updateModal">
 <div class="modal" style="max-width:520px">
-  <div class="modal-head"><h2>Add Visit Update</h2><button class="modal-close" onclick="closeUpdate()">&times;</button></div>
+  <div class="modal-head"><h2 data-i18n="Add Visit Update">Add Visit Update</h2><button class="modal-close" onclick="closeUpdate()">&times;</button></div>
   <div class="modal-body">
     <input type="hidden" id="updateId">
     <div class="fg">
-      <label>Quick Update (plain English, optional)</label>
+      <label data-i18n="Quick Update (plain English, optional)">Quick Update (plain English, optional)</label>
       <textarea id="uFreeText" placeholder="e.g. 'Started chemo cycle 2, gave tab Paclitaxel 80mg weekly, patient tolerating well, next visit in 3 weeks, blood test due in 10 days. Gave 2000 for travel.'"></textarea>
       <button type="button" class="btn btn-secondary btn-sm" id="uFillBtn" style="margin-top:6px" onclick="parseUpdateText()">🤖 Fill Form From Text</button>
       <div id="uPaymentDetected" class="ai-box" style="display:none;margin-top:6px">
@@ -424,19 +427,19 @@
         <button type="button" class="btn btn-secondary btn-sm" style="margin-top:6px" onclick="logDetectedPayment()">Log This Payment</button>
       </div>
     </div>
-    <div class="fg"><label>Visit Date</label><input type="date" id="uDate"></div>
-    <div class="fg"><label>Visit Number</label><input type="number" id="uVisitNum" min="1"></div>
-    <div class="fg"><label>What happened at this visit?</label><textarea id="uNotes" placeholder="Describe the visit — tests done, doctor observations, treatment changes..."></textarea></div>
-    <div class="form-row"><div class="fg"><label>Updated Status</label><select id="uStatus"><option value="">No change</option><option value="Screening">Screening</option><option value="Under Investigation">Under Investigation</option><option value="Treatment">Treatment</option><option value="Admitted">Admitted</option><option value="On Medication">On Medication</option><option value="Follow-up">Follow-up</option><option value="Completed">Completed</option></select></div><div class="fg"><label>Next Visit Date</label><input type="date" id="uNextVisit"></div></div>
-    <div class="fg"><label>Diagnosis / Cancer Type (leave blank for no change)</label><input type="text" id="uDiagnosis"></div>
-    <div class="fg"><label>Current Treatment (leave blank for no change)</label><textarea id="uTreatment" placeholder="Treatment details..."></textarea></div>
-    <div class="fg"><label>Current Medication (leave blank for no change)</label><textarea id="uMedication" placeholder="Medicines and dosages..."></textarea></div>
-    <div class="form-row"><div class="fg"><label>Next Medical Test</label><input type="text" id="uNextTest"></div><div class="fg"><label>Test Due Date</label><input type="date" id="uTestDate"></div></div>
-    <div class="fg"><label>Medicine Refill Due</label><input type="date" id="uMedDate"></div>
-    <div class="fg"><label>Committed Amount (₹, leave blank for no change)</label><input type="number" id="uCommitted" min="0" step="0.01"></div>
+    <div class="fg"><label data-i18n="Visit Date">Visit Date</label><input type="date" id="uDate"></div>
+    <div class="fg"><label data-i18n="Visit Number">Visit Number</label><input type="number" id="uVisitNum" min="1"></div>
+    <div class="fg"><label data-i18n="What happened at this visit?">What happened at this visit?</label><textarea id="uNotes" placeholder="Describe the visit — tests done, doctor observations, treatment changes..."></textarea></div>
+    <div class="form-row"><div class="fg"><label data-i18n="Updated Status">Updated Status</label><select id="uStatus"><option value="" data-i18n="No change">No change</option><option value="Screening" data-i18n="Screening">Screening</option><option value="Under Investigation" data-i18n="Under Investigation">Under Investigation</option><option value="Treatment" data-i18n="Treatment">Treatment</option><option value="Admitted" data-i18n="Admitted">Admitted</option><option value="On Medication" data-i18n="On Medication">On Medication</option><option value="Follow-up" data-i18n="Follow-up">Follow-up</option><option value="Completed" data-i18n="Completed">Completed</option></select></div><div class="fg"><label data-i18n="Next Visit Date">Next Visit Date</label><input type="date" id="uNextVisit"></div></div>
+    <div class="fg"><label data-i18n="Diagnosis / Cancer Type (leave blank for no change)">Diagnosis / Cancer Type (leave blank for no change)</label><input type="text" id="uDiagnosis"></div>
+    <div class="fg"><label data-i18n="Current Treatment (leave blank for no change)">Current Treatment (leave blank for no change)</label><textarea id="uTreatment" placeholder="Treatment details..."></textarea></div>
+    <div class="fg"><label data-i18n="Current Medication (leave blank for no change)">Current Medication (leave blank for no change)</label><textarea id="uMedication" placeholder="Medicines and dosages..."></textarea></div>
+    <div class="form-row"><div class="fg"><label data-i18n="Next Medical Test">Next Medical Test</label><input type="text" id="uNextTest"></div><div class="fg"><label data-i18n="Test Due Date">Test Due Date</label><input type="date" id="uTestDate"></div></div>
+    <div class="fg"><label data-i18n="Medicine Refill Due">Medicine Refill Due</label><input type="date" id="uMedDate"></div>
+    <div class="fg"><label data-i18n="Committed Amount (₹, leave blank for no change)">Committed Amount (₹, leave blank for no change)</label><input type="number" id="uCommitted" min="0" step="0.01"></div>
     <div class="fg">
-      <label>Attach Photos (optional)</label>
-      <div class="form-row"><div class="fg"><label style="font-weight:400;font-size:0.75rem;">Category</label><select id="uFileCategory"><option value="Latest Report">Latest Report</option><option value="History">History</option><option value="Prescription">Prescription</option><option value="Other">Other</option></select></div></div>
+      <label data-i18n="Attach Photos (optional)">Attach Photos (optional)</label>
+      <div class="form-row"><div class="fg"><label style="font-weight:400;font-size:0.75rem;" data-i18n="Category">Category</label><select id="uFileCategory"><option value="Latest Report">Latest Report</option><option value="History">History</option><option value="Prescription">Prescription</option><option value="Other">Other</option></select></div></div>
       <div class="file-area" id="uFileArea" onclick="document.getElementById('uFileInput').click()">
         <input type="file" id="uFileInput" accept="image/*" multiple onchange="handleUpdateFiles(this)">
         <p><strong>Click to upload</strong> photos from this visit</p>
@@ -444,68 +447,68 @@
       <div class="file-list" id="uFileList"></div>
     </div>
   </div>
-  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeUpdate()">Cancel</button><button class="btn btn-primary" onclick="saveUpdate()">Save Update</button></div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeUpdate()" data-i18n="Cancel">Cancel</button><button class="btn btn-primary" onclick="saveUpdate()" data-i18n="Save Update">Save Update</button></div>
 </div>
 </div>
 
 <!-- ═══ LOG PAYMENT MODAL ═══ -->
 <div class="modal-overlay" id="txnModal">
 <div class="modal" style="max-width:520px">
-  <div class="modal-head"><h2 id="txnModalTitle">Log Payment</h2><button class="modal-close" onclick="closeTxn()">&times;</button></div>
+  <div class="modal-head"><h2 id="txnModalTitle" data-i18n="Log Payment">Log Payment</h2><button class="modal-close" onclick="closeTxn()">&times;</button></div>
   <div class="modal-body">
     <input type="hidden" id="txnId">
-    <div class="fg"><label>Patient</label><select id="txnPatient"></select></div>
-    <div class="form-row"><div class="fg"><label>Amount (₹)</label><input type="number" id="txnAmount" min="0" step="0.01"></div><div class="fg"><label>Purpose</label><select id="txnPurpose"><option>Travel</option><option>Screening</option><option>Treatment</option><option>Medicine</option><option>Hospital Stay</option><option>Other</option></select></div></div>
-    <div class="fg"><label>Date</label><input type="date" id="txnDate"></div>
-    <div class="fg"><label>Notes</label><textarea id="txnNotes" placeholder="What was this payment for, specifically?"></textarea></div>
+    <div class="fg"><label data-i18n="Patient">Patient</label><select id="txnPatient"></select></div>
+    <div class="form-row"><div class="fg"><label>Amount (₹)</label><input type="number" id="txnAmount" min="0" step="0.01"></div><div class="fg"><label data-i18n="Purpose">Purpose</label><select id="txnPurpose"><option data-i18n="Travel">Travel</option><option data-i18n="Screening">Screening</option><option data-i18n="Treatment">Treatment</option><option>Medicine</option><option>Hospital Stay</option><option>Other</option></select></div></div>
+    <div class="fg"><label data-i18n="Date">Date</label><input type="date" id="txnDate"></div>
+    <div class="fg"><label data-i18n="Notes">Notes</label><textarea id="txnNotes" placeholder="What was this payment for, specifically?"></textarea></div>
   </div>
-  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeTxn()">Cancel</button><button class="btn btn-primary" onclick="saveTxn()">Save Payment</button></div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeTxn()" data-i18n="Cancel">Cancel</button><button class="btn btn-primary" onclick="saveTxn()" data-i18n="Save Payment">Save Payment</button></div>
 </div>
 </div>
 
 <!-- ═══ LOG ENTRY MODAL (was activity — now the universal log) ═══ -->
 <div class="modal-overlay" id="activityModal">
 <div class="modal" style="max-width:520px">
-  <div class="modal-head"><h2 id="activityModalTitle">Add Log Entry</h2><button class="modal-close" onclick="closeActivity()">&times;</button></div>
+  <div class="modal-head"><h2 id="activityModalTitle" data-i18n="Add Log Entry">Add Log Entry</h2><button class="modal-close" onclick="closeActivity()">&times;</button></div>
   <div class="modal-body">
     <input type="hidden" id="activityId">
-    <div class="form-row"><div class="fg"><label>Date</label><input type="date" id="aDate"></div><div class="fg"><label>Category</label><select id="aType" onchange="onLogTypeChange()"></select></div></div>
+    <div class="form-row"><div class="fg"><label data-i18n="Date">Date</label><input type="date" id="aDate"></div><div class="fg"><label data-i18n="Category">Category</label><select id="aType" onchange="onLogTypeChange()"></select></div></div>
     <div class="fg"><label>Title</label><input type="text" id="aTitle" placeholder="e.g. Health camp in Motipur panchayat"></div>
     <div class="fg"><label>Description</label><textarea id="aDescription" placeholder="What happened, discussed, or was decided..."></textarea></div>
-    <div class="fg"><label>Participants</label><input type="text" id="aParticipants" placeholder="e.g. Dr. Vidyasagar, 3 cancer saathis"></div>
+    <div class="fg"><label data-i18n="Participants">Participants</label><input type="text" id="aParticipants" placeholder="e.g. Dr. Vidyasagar, 3 cancer saathis"></div>
     <div class="fg"><label>Count — how many people/things this entry represents</label><input type="number" id="aQuantity" min="1" step="1" value="1"></div>
     <div class="chk-line"><input type="checkbox" id="aPublic"><label for="aPublic">🌐 Show on public dashboard</label></div>
     <p style="font-size:0.75rem;color:var(--ink-muted)">Need a category that doesn't exist yet? <span class="link" onclick="openCatModal()">+ Add new category</span></p>
   </div>
-  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeActivity()">Cancel</button><button class="btn btn-primary" onclick="saveActivity()">Save Entry</button></div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeActivity()" data-i18n="Cancel">Cancel</button><button class="btn btn-primary" onclick="saveActivity()" data-i18n="Save Entry">Save Entry</button></div>
 </div>
 </div>
 
 <!-- ═══ NEW CATEGORY MODAL ═══ -->
 <div class="modal-overlay" id="catModal">
 <div class="modal" style="max-width:440px">
-  <div class="modal-head"><h2>New Log Category</h2><button class="modal-close" onclick="closeCatModal()">&times;</button></div>
+  <div class="modal-head"><h2 data-i18n="New Log Category">New Log Category</h2><button class="modal-close" onclick="closeCatModal()">&times;</button></div>
   <div class="modal-body">
     <div class="form-row"><div class="fg"><label>Name *</label><input type="text" id="catName" placeholder="e.g. Blood Donation Drive"></div><div class="fg"><label>Emoji</label><input type="text" id="catEmoji" placeholder="🩸" maxlength="4"></div></div>
     <div class="chk-line"><input type="checkbox" id="catPublic"><label for="catPublic">Public by default (still confirmed on each entry)</label></div>
     <div class="chk-line"><input type="checkbox" id="catTile"><label for="catTile">Show a count tile on the public dashboard</label></div>
     <div class="fg"><label>Tile label (if tile shown)</label><input type="text" id="catTileLabel" placeholder="e.g. Drives Held"></div>
   </div>
-  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeCatModal()">Cancel</button><button class="btn btn-primary" onclick="saveCategory()">Add Category</button></div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeCatModal()" data-i18n="Cancel">Cancel</button><button class="btn btn-primary" onclick="saveCategory()" data-i18n="Add Category">Add Category</button></div>
 </div>
 </div>
 
 <!-- ═══ CLOSE CASE MODAL ═══ -->
 <div class="modal-overlay" id="closeCaseModal">
 <div class="modal" style="max-width:480px">
-  <div class="modal-head"><h2>Close Case</h2><button class="modal-close" onclick="closeCloseCaseModal()">&times;</button></div>
+  <div class="modal-head"><h2 data-i18n="Close Case">Close Case</h2><button class="modal-close" onclick="closeCloseCaseModal()">&times;</button></div>
   <div class="modal-body">
     <input type="hidden" id="ccPatientId">
     <p style="font-size:0.85rem;color:var(--ink-muted);margin-bottom:12px">This marks the case as closed and removes it from active follow-up. It's separate from "Completed" — use this for death, discontinuing treatment, or transferring elsewhere.</p>
     <div class="fg"><label>Reason</label><select id="ccReason"><option>Deceased</option><option>Discontinued Treatment</option><option>Transferred to Another Hospital</option><option>Other</option></select></div>
     <div class="fg"><label>Notes (optional)</label><textarea id="ccNotes" placeholder="Any additional detail..."></textarea></div>
   </div>
-  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeCloseCaseModal()">Cancel</button><button class="btn btn-warn" onclick="confirmCloseCase()">Close Case</button></div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeCloseCaseModal()" data-i18n="Cancel">Cancel</button><button class="btn btn-warn" onclick="confirmCloseCase()" data-i18n="Close Case">Close Case</button></div>
 </div>
 </div>
 
@@ -536,7 +539,7 @@
 <!-- ═══ STORY ENTRY MODAL ═══ -->
 <div class="modal-overlay" id="storyEntryModal">
 <div class="modal" style="max-width:520px">
-  <div class="modal-head"><h2 id="storyEntryTitle">Add Milestone</h2><button class="modal-close" onclick="closeStoryEntryModal()">&times;</button></div>
+  <div class="modal-head"><h2 id="storyEntryTitle" data-i18n="Add Milestone">Add Milestone</h2><button class="modal-close" onclick="closeStoryEntryModal()">&times;</button></div>
   <div class="modal-body">
     <input type="hidden" id="storyEntryId">
     <div class="form-row"><div class="fg"><label>Date label *</label><input type="text" id="storyEntryDateLabel" placeholder="e.g. 29 May 2026, or Winter 2025-26"></div><div class="fg"><label>Exact date (optional)</label><input type="date" id="storyEntryDate"></div></div>
@@ -588,6 +591,74 @@
 // live in Postgres behind Row Level Security, not in this browser's storage,
 // so everyone with portal access sees the same data.
 var ROLE='public', UNAME='Public View', UUSER='';
+// ─── APP-WIDE HINDI TRANSLATION ──────────────────────────────
+// Static UI chrome only (nav, titles, headers, buttons, labels, status
+// badges) — real patient/log data (names, notes, diagnosis text) stays
+// exactly as staff typed it; that's live clinical data, not fixed
+// copy, and isn't safe to pre-translate here. Keyed by the exact
+// English string so HTML only needs a data-i18n="<same text>" tag.
+var T_HI={
+  'Active Cases':'सक्रिय मामले','All Patients':'सभी मरीज़','All Patients — Detailed View':'सभी मरीज़ — विस्तृत दृश्य',
+  'Finances':'वित्त','Quick Update':'त्वरित अपडेट','WhatsApp Import':'व्हाट्सएप इम्पोर्ट','Our Story':'हमारी कहानी',
+  'Public View':'सार्वजनिक दृश्य','Public Dashboard':'सार्वजनिक डैशबोर्ड','Logout':'लॉगआउट',
+  'Full Access':'पूर्ण पहुंच','Advisor (Read-Only)':'सलाहकार (केवल पढ़ने के लिए)','Public':'सार्वजनिक',
+  '+ Add Patient':'+ मरीज़ जोड़ें','+ Add Log Entry':'+ लॉग एंट्री जोड़ें','Export CSV':'CSV निर्यात करें',
+  '+ Log Payment':'+ भुगतान दर्ज करें','🤖 Parse Updates':'🤖 अपडेट्स समझें','🤖 Read & Propose Entries':'🤖 पढ़ें और एंट्री सुझाएं',
+  'Search...':'खोजें...','Search by patient...':'मरीज़ के नाम से खोजें...',
+  'Log — Recent Entries':'लॉग — हाल की एंट्री','Complete Patient Records':'पूरा मरीज़ रिकॉर्ड',
+  'Patient Balances':'मरीज़ का बकाया','All Payments':'सभी भुगतान',
+  'Write anything — patient updates, camps, meetings, saathi joinings':'कुछ भी लिखें — मरीज़ अपडेट, शिविर, बैठकें, साथी जुड़ना',
+  'Paste the group chat export':'ग्रुप चैट एक्सपोर्ट पेस्ट करें',
+  'Activity — Camps, Saathis & More':'गतिविधि — शिविर, साथी और अधिक','Patient Overview (Anonymised)':'मरीज़ का विवरण (गुमनाम)',
+  'Total Patients':'कुल मरीज़','Active Treatment':'सक्रिय इलाज','In Screening':'जांच में','Actions Due':'लंबित कार्य',
+  'Total Disbursed':'कुल वितरित राशि','Travel':'यात्रा','Treatment':'इलाज','Screening / Medicine / Other':'जांच / दवा / अन्य',
+  'Patients Supported':'सहायता प्राप्त मरीज़','Currently in Treatment':'वर्तमान में इलाजरत',
+  'Under Screening':'जांच के अंतर्गत','Treatment Completed':'इलाज पूर्ण',
+  'ID':'आईडी','Name':'नाम','Age/Gender':'उम्र/लिंग','Age':'उम्र','Gender':'लिंग','Diagnosis':'निदान','Status':'स्थिति',
+  'Last Visit':'पिछली विज़िट','Visit #':'विज़िट संख्या','Next Due':'अगली देय तारीख','Date':'तारीख','Type':'प्रकार',
+  'Title / Description':'शीर्षक / विवरण','Participants':'प्रतिभागी','Actions':'कार्रवाई','Village':'गांव','Block':'ब्लॉक',
+  'Admitted':'भर्ती','Next Visit':'अगली विज़िट','Due Test':'देय जांच','Due Medicine':'देय दवा','Patient':'मरीज़',
+  'Committed Amount':'प्रतिबद्ध राशि','Advance Given':'अग्रिम दी गई','Pending / Balance Left':'शेष बकाया','Amount':'राशि',
+  'Purpose':'उद्देश्य','Notes':'टिप्पणी','Recorded By':'दर्ज किया गया','Visits':'विज़िट',
+  'View':'देखें','Edit':'संपादित करें','Update':'अपडेट करें','Delete':'हटाएं','Close Case':'केस बंद करें',
+  'Screening':'जांच','Under Investigation':'जांच के अंतर्गत','On Medication':'दवा पर','Follow-up':'फॉलो-अप',
+  'Completed':'पूर्ण','Case Closed':'केस बंद',
+  'Add New Patient':'नया मरीज़ जोड़ें','Edit Patient':'मरीज़ संपादित करें','Add Visit Update':'विज़िट अपडेट जोड़ें',
+  'Log Payment':'भुगतान दर्ज करें','Add Log Entry':'लॉग एंट्री जोड़ें','New Log Category':'नई लॉग श्रेणी',
+  'Edit Payment':'भुगतान संपादित करें','Edit Log Entry':'लॉग एंट्री संपादित करें',
+  'Cancel':'रद्द करें','Save Patient':'मरीज़ सहेजें','Save Update':'अपडेट सहेजें','Save Payment':'भुगतान सहेजें',
+  'Save Entry':'एंट्री सहेजें','Add Category':'श्रेणी जोड़ें','Close':'बंद करें','Save':'सहेजें',
+  'Patient Information':'मरीज़ की जानकारी','Full Name *':'पूरा नाम *','Phone':'फोन',
+  'Village / Panchayat':'गांव / पंचायत','District':'जिला','Aadhar & Bank Details':'आधार और बैंक विवरण',
+  'Aadhar Card Number':'आधार कार्ड नंबर','Bank Name':'बैंक का नाम','Bank Account Number':'बैंक खाता संख्या',
+  'IFSC Code':'IFSC कोड','Medical Details':'मेडिकल विवरण','Diagnosis / Cancer Type':'निदान / कैंसर का प्रकार',
+  'Is Patient Admitted?':'क्या मरीज़ भर्ती है?','Visit Number':'विज़िट संख्या','Current Treatment':'वर्तमान इलाज',
+  'Current Medication':'वर्तमान दवा','Upcoming Schedule':'आगामी शेड्यूल','Next Visit Date':'अगली विज़िट तारीख',
+  'Next Medical Test':'अगली मेडिकल जांच','Test Due Date':'जांच की देय तारीख','Medicine Refill Due':'दवा रिफिल देय',
+  'Committed Amount (₹) — total estimated/committed cost of care':'प्रतिबद्ध राशि (₹) — देखभाल की कुल अनुमानित/प्रतिबद्ध लागत',
+  'Latest Notes':'नवीनतम टिप्पणी','Upload Reports / Images':'रिपोर्ट / छवियां अपलोड करें','Category':'श्रेणी',
+  'Select':'चुनें','No':'नहीं','Yes':'हां',
+  'Quick Update (plain English, optional)':'त्वरित अपडेट (सामान्य भाषा में, वैकल्पिक)','Visit Date':'विज़िट तारीख',
+  'What happened at this visit?':'इस विज़िट में क्या हुआ?','Updated Status':'अद्यतन स्थिति','No change':'कोई बदलाव नहीं',
+  'Diagnosis / Cancer Type (leave blank for no change)':'निदान / कैंसर का प्रकार (बदलाव न करने के लिए खाली छोड़ें)',
+  'Current Treatment (leave blank for no change)':'वर्तमान इलाज (बदलाव न करने के लिए खाली छोड़ें)',
+  'Current Medication (leave blank for no change)':'वर्तमान दवा (बदलाव न करने के लिए खाली छोड़ें)',
+  'Committed Amount (₹, leave blank for no change)':'प्रतिबद्ध राशि (₹, बदलाव न करने के लिए खाली छोड़ें)',
+  'Attach Photos (optional)':'फोटो जोड़ें (वैकल्पिक)',
+  'No active cases.':'कोई सक्रिय मामला नहीं।','No patients.':'कोई मरीज़ नहीं।',
+  'Nothing published yet — camps, cancer saathi joinings, and milestones will appear here.':'अभी तक कुछ प्रकाशित नहीं हुआ है, कैंप, कैंसर साथी की जॉइनिंग और मील के पत्थर यहां दिखाई देंगे।',
+  'No data yet.':'अभी तक कोई डेटा नहीं।','No payments logged yet.':'अभी तक कोई भुगतान दर्ज नहीं हुआ।',
+  'No committed amounts or payments logged yet.':'अभी तक कोई प्रतिबद्ध राशि या भुगतान दर्ज नहीं हुआ।',
+  'No log entries yet.':'अभी तक कोई लॉग एंट्री नहीं।'
+};
+// Named `tr`, not `t` — `t` is already used everywhere in this file as a
+// loop variable for transactions/log types, and shadowing it inside those
+// closures would silently break translation right where it's called.
+function tr(en){return(storyLang==='hi'&&T_HI[en])?T_HI[en]:en;}
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(function(el){el.textContent=tr(el.dataset.i18n);});
+  document.querySelectorAll('[data-i18n-ph]').forEach(function(el){el.placeholder=tr(el.dataset.i18nPh);});
+}
 var patients=[];
 var transactions=[];
 var logs=[];
@@ -789,12 +860,12 @@ function renderDash(q){
 
   var tbody=document.getElementById('dashBody');
   var recent=list.filter(function(p){return p.status!=='Case Closed'&&p.status!=='Completed';}).reverse();
-  if(!recent.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:36px;color:var(--ink-muted)">No active cases.</td></tr>';return;}
+  if(!recent.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No active cases.')+'</td></tr>';return;}
   var h='';recent.forEach(function(p){
     var nd=dueStatus(p.nextVisit);
-    var acts='<span class="link" onclick="viewPatient(\''+p.id+'\')">View</span>';
-    if(ROLE==='staff')acts+=' · <span class="link" onclick="editPatient(\''+p.id+'\')">Edit</span> · <span class="link" onclick="openUpdate(\''+p.id+'\')">Update</span>'+(p.status!=='Case Closed'?' · <span class="link" onclick="openCloseCase(\''+p.id+'\')">Close Case</span>':'');
-    h+='<tr><td>'+esc(p.code||'—')+'</td><td><strong>'+esc(p.name)+'</strong></td><td>'+(p.age||'—')+' / '+(p.gender?p.gender[0]:'—')+'</td><td>'+esc(p.diagnosis||'—')+'</td><td><span class="badge '+statusCls(p.status)+'">'+p.status+'</span></td><td>'+lastVisit(p)+'</td><td>'+(p.visitNum||'—')+'</td><td>'+(nd.c?'<span class="due '+nd.c+'">'+nd.t+'</span>':nd.t)+'</td><td>'+acts+'</td></tr>';
+    var acts='<span class="link" onclick="viewPatient(\''+p.id+'\')">'+tr('View')+'</span>';
+    if(ROLE==='staff')acts+=' · <span class="link" onclick="editPatient(\''+p.id+'\')">'+tr('Edit')+'</span> · <span class="link" onclick="openUpdate(\''+p.id+'\')">'+tr('Update')+'</span>'+(p.status!=='Case Closed'?' · <span class="link" onclick="openCloseCase(\''+p.id+'\')">'+tr('Close Case')+'</span>':'');
+    h+='<tr><td>'+esc(p.code||'—')+'</td><td><strong>'+esc(p.name)+'</strong></td><td>'+(p.age||'—')+' / '+(p.gender?p.gender[0]:'—')+'</td><td>'+esc(p.diagnosis||'—')+'</td><td><span class="badge '+statusCls(p.status)+'">'+tr(p.status)+'</span></td><td>'+lastVisit(p)+'</td><td>'+(p.visitNum||'—')+'</td><td>'+(nd.c?'<span class="due '+nd.c+'">'+nd.t+'</span>':nd.t)+'</td><td>'+acts+'</td></tr>';
   });tbody.innerHTML=h;
 }
 
@@ -803,12 +874,12 @@ function renderAll(q){
   var list=patients;
   if(q){var f=q.toLowerCase();list=list.filter(function(p){return(p.name||'').toLowerCase().indexOf(f)>=0||(p.village||'').toLowerCase().indexOf(f)>=0||(p.diagnosis||'').toLowerCase().indexOf(f)>=0||(p.block||'').toLowerCase().indexOf(f)>=0||(p.code||'').toLowerCase().indexOf(f)>=0;});}
   var tbody=document.getElementById('allBody');
-  if(!list.length){tbody.innerHTML='<tr><td colspan="15" style="text-align:center;padding:36px;color:var(--ink-muted)">No patients.</td></tr>';return;}
+  if(!list.length){tbody.innerHTML='<tr><td colspan="15" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No patients.')+'</td></tr>';return;}
   var h='';list.forEach(function(p){
     var nd=dueStatus(p.nextVisit),td=dueStatus(p.testDate),md=dueStatus(p.medDate);
-    var acts='<span class="link" onclick="viewPatient(\''+p.id+'\')">View</span>';
-    if(ROLE==='staff')acts+=' · <span class="link" onclick="editPatient(\''+p.id+'\')">Edit</span> · <span class="link" onclick="openUpdate(\''+p.id+'\')">Update</span>'+(p.status!=='Case Closed'?' · <span class="link" onclick="openCloseCase(\''+p.id+'\')">Close Case</span>':'');
-    h+='<tr><td>'+esc(p.code||'—')+'</td><td><strong>'+esc(p.name)+'</strong></td><td>'+(p.age||'—')+'</td><td>'+(p.gender||'—')+'</td><td>'+esc(p.village||'—')+'</td><td>'+esc(p.block||'—')+'</td><td>'+esc(p.diagnosis||'—')+'</td><td><span class="badge '+statusCls(p.status)+'">'+p.status+'</span></td><td>'+(p.admitted||'No')+'</td><td>'+lastVisit(p)+'</td><td>'+(p.visitNum||'—')+'</td><td>'+(nd.c?'<span class="due '+nd.c+'">'+nd.t+'</span>':nd.t)+'</td><td>'+(td.c?'<span class="due '+td.c+'">'+td.t+'</span>':td.t)+'</td><td>'+(md.c?'<span class="due '+md.c+'">'+md.t+'</span>':md.t)+'</td><td>'+acts+'</td></tr>';
+    var acts='<span class="link" onclick="viewPatient(\''+p.id+'\')">'+tr('View')+'</span>';
+    if(ROLE==='staff')acts+=' · <span class="link" onclick="editPatient(\''+p.id+'\')">'+tr('Edit')+'</span> · <span class="link" onclick="openUpdate(\''+p.id+'\')">'+tr('Update')+'</span>'+(p.status!=='Case Closed'?' · <span class="link" onclick="openCloseCase(\''+p.id+'\')">'+tr('Close Case')+'</span>':'');
+    h+='<tr><td>'+esc(p.code||'—')+'</td><td><strong>'+esc(p.name)+'</strong></td><td>'+(p.age||'—')+'</td><td>'+(p.gender||'—')+'</td><td>'+esc(p.village||'—')+'</td><td>'+esc(p.block||'—')+'</td><td>'+esc(p.diagnosis||'—')+'</td><td><span class="badge '+statusCls(p.status)+'">'+tr(p.status)+'</span></td><td>'+tr(p.admitted||'No')+'</td><td>'+lastVisit(p)+'</td><td>'+(p.visitNum||'—')+'</td><td>'+(nd.c?'<span class="due '+nd.c+'">'+nd.t+'</span>':nd.t)+'</td><td>'+(td.c?'<span class="due '+td.c+'">'+td.t+'</span>':td.t)+'</td><td>'+(md.c?'<span class="due '+md.c+'">'+md.t+'</span>':md.t)+'</td><td>'+acts+'</td></tr>';
   });tbody.innerHTML=h;
 }
 
@@ -842,7 +913,7 @@ async function renderPublic(){
     (fResp.data||[]).forEach(function(f){(filesByLog[f.log_id]=filesByLog[f.log_id]||[]).push(f);});
   }
   if(!pubLogs.length){
-    tl.innerHTML='<p style="font-size:0.85rem;color:var(--ink-muted);padding:6px 0 12px">Nothing published yet — camps, cancer saathi joinings, and milestones will appear here.</p>';
+    tl.innerHTML='<p style="font-size:0.85rem;color:var(--ink-muted);padding:6px 0 12px">'+tr('Nothing published yet — camps, cancer saathi joinings, and milestones will appear here.')+'</p>';
   } else {
     tl.innerHTML=pubLogs.map(function(l){
       var e='<div class="pub-timeline-entry"><div class="pub-timeline-head">'+esc(l.emoji||'📌')+' '+esc(l.log_type)+(l.quantity>1?' ×'+l.quantity:'')+' — '+fmtDate(l.occurred_on)+'</div>';
@@ -862,9 +933,9 @@ async function renderPublic(){
   }
 
   var tbody=document.getElementById('pubBody');
-  if(!patients.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:36px;color:var(--ink-muted)">No data yet.</td></tr>';return;}
+  if(!patients.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No data yet.')+'</td></tr>';return;}
   var h='';patients.forEach(function(p,i){
-    h+='<tr><td>'+(i+1)+'</td><td>'+(p.age||'—')+'</td><td>'+(p.gender||'—')+'</td><td>'+esc(p.block||'—')+'</td><td>'+esc(p.diagnosis||'—')+'</td><td><span class="badge '+statusCls(p.status)+'">'+p.status+'</span></td><td>'+(p.visitNum||'—')+'</td></tr>';
+    h+='<tr><td>'+(i+1)+'</td><td>'+(p.age||'—')+'</td><td>'+(p.gender||'—')+'</td><td>'+esc(p.block||'—')+'</td><td>'+esc(p.diagnosis||'—')+'</td><td><span class="badge '+statusCls(p.status)+'">'+tr(p.status)+'</span></td><td>'+(p.visitNum||'—')+'</td></tr>';
   });tbody.innerHTML=h;
 }
 
@@ -884,10 +955,10 @@ function renderFinances(q){
   renderPatientBalances();
 
   var tbody=document.getElementById('txnBody');
-  if(!list.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:36px;color:var(--ink-muted)">No payments logged yet.</td></tr>';return;}
+  if(!list.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No payments logged yet.')+'</td></tr>';return;}
   var sorted=list.slice().sort(function(a,b){return new Date(b.txn_date)-new Date(a.txn_date);});
   var h='';sorted.forEach(function(t){
-    h+='<tr><td>'+esc(patientCode(t.patient_id))+'</td><td><strong>'+esc(patientName(t.patient_id))+'</strong></td><td>₹'+Number(t.amount).toLocaleString('en-IN')+'</td><td>'+esc(t.purpose)+'</td><td>'+fmtDate(t.txn_date)+'</td><td>'+esc(t.notes||'—')+'</td><td>'+esc(t.recorded_by||'—')+'</td><td><span class="link" onclick="editTxn(\''+t.id+'\')">Edit</span> · <span class="link" onclick="deleteTxn(\''+t.id+'\')">Delete</span></td></tr>';
+    h+='<tr><td>'+esc(patientCode(t.patient_id))+'</td><td><strong>'+esc(patientName(t.patient_id))+'</strong></td><td>₹'+Number(t.amount).toLocaleString('en-IN')+'</td><td>'+esc(t.purpose)+'</td><td>'+fmtDate(t.txn_date)+'</td><td>'+esc(t.notes||'—')+'</td><td>'+esc(t.recorded_by||'—')+'</td><td><span class="link" onclick="editTxn(\''+t.id+'\')">'+tr('Edit')+'</span> · <span class="link" onclick="deleteTxn(\''+t.id+'\')">'+tr('Delete')+'</span></td></tr>';
   });tbody.innerHTML=h;
 }
 function patientName(id){var p=patients.find(function(x){return x.id===id;});return p?p.name:'(unknown patient)';}
@@ -902,7 +973,7 @@ function renderPatientBalances(){
   var tbody=document.getElementById('balanceBody');if(!tbody)return;
   var rows=patients.filter(function(p){return p.committedAmount||patientTotal(p.id)>0;})
     .sort(function(a,b){return a.name.localeCompare(b.name);});
-  if(!rows.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:36px;color:var(--ink-muted)">No committed amounts or payments logged yet.</td></tr>';return;}
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No committed amounts or payments logged yet.')+'</td></tr>';return;}
   var h='';rows.forEach(function(p){
     var given=patientTotal(p.id);
     var committed=Number(p.committedAmount)||0;
@@ -918,7 +989,7 @@ async function loadTransactions(){
 }
 
 function openAddTxn(){
-  document.getElementById('txnModalTitle').textContent='Log Payment';
+  document.getElementById('txnModalTitle').textContent=tr('Log Payment');
   document.getElementById('txnId').value='';
   document.getElementById('txnAmount').value='';
   document.getElementById('txnPurpose').value='Travel';
@@ -932,7 +1003,7 @@ function openAddTxn(){
 function editTxn(id){
   var t=transactions.find(function(x){return x.id===id;});if(!t)return;
   openAddTxn();
-  document.getElementById('txnModalTitle').textContent='Edit Payment';
+  document.getElementById('txnModalTitle').textContent=tr('Edit Payment');
   document.getElementById('txnId').value=id;
   document.getElementById('txnPatient').value=t.patient_id;
   document.getElementById('txnAmount').value=t.amount;
@@ -999,8 +1070,8 @@ function setStoryLang(lang){
   storyLang=lang;
   localStorage.setItem('sacci_story_lang',lang);
   syncLangToggle();
-  renderStorySummary();
-  renderStoryDetail();
+  applyI18n();
+  refreshActivePage();
 }
 function syncLangToggle(){
   document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.toggle('active',b.dataset.lang===storyLang);});
@@ -1060,7 +1131,7 @@ async function renderStorySummary(){
 
   var tl=document.getElementById('storyTimeline');
   if(!storyEntries.length){
-    tl.innerHTML='<p style="color:var(--ink-muted);padding:0 0 16px">No milestones yet.</p>';
+    tl.innerHTML='<p style="color:var(--ink-muted);padding:0 0 16px">'+tr('No milestones yet.')+'</p>';
     return;
   }
   var filesResp=await sb.from('story_entry_files').select('*');
@@ -1079,7 +1150,7 @@ async function renderStorySummary(){
     if(e.history&&e.history.length)h+='<div class="story-desc" style="margin-top:8px">'+e.history.map(function(u){
       return '<div style="margin-bottom:4px"><strong>'+fmtDate(u.date)+':</strong> '+esc(u.note)+'</div>';
     }).join('')+'</div>';
-    if(ROLE==='staff')h+='<div class="story-actions"><span class="link" onclick="openStoryEntry(\''+e.id+'\')">Edit</span> · <span class="link" onclick="openStoryUpdate(\''+e.id+'\')">Update</span> · <span class="link" onclick="deleteStoryEntry(\''+e.id+'\')">Delete</span></div>';
+    if(ROLE==='staff')h+='<div class="story-actions"><span class="link" onclick="openStoryEntry(\''+e.id+'\')">'+tr('Edit')+'</span> · <span class="link" onclick="openStoryUpdate(\''+e.id+'\')">'+tr('Update')+'</span> · <span class="link" onclick="deleteStoryEntry(\''+e.id+'\')">'+tr('Delete')+'</span></div>';
     h+='</div>';
   });
   tl.innerHTML=h;
@@ -1106,7 +1177,7 @@ async function renderStoryLogFeed(){
   var orgLogs=logs.filter(function(l){return !l.patient_id||l.is_public;})
     .slice().sort(function(a,b){return new Date(b.occurred_on)-new Date(a.occurred_on);}).slice(0,30);
   var feed=document.getElementById('storyLogFeed');
-  if(!orgLogs.length){feed.innerHTML='<p style="color:var(--ink-muted);padding:0 0 16px">Nothing yet — camps, meetings, trainings and other entries logged via Quick Update or WhatsApp Import (plus any patient update marked public) will show up here automatically.</p>';return;}
+  if(!orgLogs.length){feed.innerHTML='<p style="color:var(--ink-muted);padding:0 0 16px">'+tr('Nothing yet — camps, meetings, trainings and other entries logged via Quick Update or WhatsApp Import (plus any patient update marked public) will show up here automatically.')+'</p>';return;}
   var filesResp=await sb.from('log_files').select('*').in('log_id',orgLogs.map(function(l){return l.id;}));
   var filesByLog={};
   (filesResp.data||[]).forEach(function(f){(filesByLog[f.log_id]=filesByLog[f.log_id]||[]).push(f);});
@@ -1155,7 +1226,7 @@ async function saveStoryIntro(){
 }
 async function openStoryEntry(id){
   var e=id?storyEntries.find(function(x){return x.id===id;}):null;
-  document.getElementById('storyEntryTitle').textContent=e?'Edit Milestone':'Add Milestone';
+  document.getElementById('storyEntryTitle').textContent=e?tr('Edit Milestone'):tr('Add Milestone');
   document.getElementById('storyEntryId').value=e?e.id:'';
   document.getElementById('storyEntryDateLabel').value=e?e.date_label:'';
   document.getElementById('storyEntryDate').value=e&&e.event_date?e.event_date:'';
@@ -1190,7 +1261,7 @@ async function saveStoryEntry(){
     var resp2=await sb.from('story_entries').insert(row).select().single();
     if(resp2.error){alert('Could not save: '+resp2.error.message);return;}
     document.getElementById('storyEntryId').value=resp2.data.id;
-    document.getElementById('storyEntryTitle').textContent='Edit Milestone';
+    document.getElementById('storyEntryTitle').textContent=tr('Edit Milestone');
     document.getElementById('storyEntryFilesSection').style.display='';
     document.getElementById('storyEntrySaveFirstNote').style.display='none';
   }
@@ -1263,7 +1334,7 @@ function logTypeOptions(selectedId,excludePatient){
     .map(function(t){return '<option value="'+t.id+'"'+(t.id===selectedId?' selected':'')+'>'+t.emoji+' '+esc(t.name)+'</option>';}).join('');
 }
 function openActivity(){
-  document.getElementById('activityModalTitle').textContent='Add Log Entry';
+  document.getElementById('activityModalTitle').textContent=tr('Add Log Entry');
   document.getElementById('activityId').value='';
   document.getElementById('aDate').value=new Date().toISOString().slice(0,10);
   document.getElementById('aType').innerHTML=logTypeOptions(null,true);
@@ -1281,7 +1352,7 @@ function onLogTypeChange(){
 function editActivity(id){
   var a=logs.find(function(x){return x.id===id;});if(!a)return;
   openActivity();
-  document.getElementById('activityModalTitle').textContent='Edit Log Entry';
+  document.getElementById('activityModalTitle').textContent=tr('Edit Log Entry');
   document.getElementById('activityId').value=id;
   document.getElementById('aDate').value=a.occurred_on;
   document.getElementById('aType').innerHTML=logTypeOptions(a.log_type_id,false);
@@ -1318,7 +1389,7 @@ async function deleteActivity(id){
 }
 function renderActivities(){
   var tbody=document.getElementById('activityBody');if(!tbody)return;
-  if(!logs.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:36px;color:var(--ink-muted)">No log entries yet.</td></tr>';return;}
+  if(!logs.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No log entries yet.')+'</td></tr>';return;}
   var h='';logs.slice(0,25).forEach(function(a){
     var t=logTypeById(a.log_type_id);
     var typeLabel=(t?t.emoji+' '+esc(t.name):'—')+(a.quantity>1?' <strong>×'+a.quantity+'</strong>':'')+(a.is_public?' <span title="Shown on public dashboard">🌐</span>':'');
@@ -1330,7 +1401,7 @@ function renderActivities(){
     // original one click away. Never crosses to the public views.
     var srcToggle=a.source_text?'<br><span class="link" style="font-size:0.8rem" onclick="toggleLogSource(\''+a.id+'\')">💬 Original messages</span>':'';
     h+='<tr><td>'+fmtDate(a.occurred_on)+'</td><td>'+typeLabel+'</td><td>'+titleLine+patientTag+esc(descShort)+srcToggle+'</td><td>'+esc(a.participants||'—')+'</td><td>';
-    if(ROLE==='staff')h+='<span class="link" onclick="editActivity(\''+a.id+'\')">Edit</span> · <span class="link" onclick="deleteActivity(\''+a.id+'\')">Delete</span>';
+    if(ROLE==='staff')h+='<span class="link" onclick="editActivity(\''+a.id+'\')">'+tr('Edit')+'</span> · <span class="link" onclick="deleteActivity(\''+a.id+'\')">'+tr('Delete')+'</span>';
     else h+='—';
     h+='</td></tr>';
     if(a.source_text)h+='<tr id="src-'+a.id+'" style="display:none"><td colspan="5" style="background:rgba(0,0,0,0.03)"><div style="white-space:pre-wrap;font-size:0.82rem;color:var(--ink-muted);padding:4px 8px">'+esc(a.source_text)+'</div></td></tr>';
@@ -1402,10 +1473,10 @@ async function confirmCloseCase(){
 function setFileAreaState(){
   var area=document.getElementById('fileArea'),hint=document.getElementById('fileAreaHint');
   if(isExistingPatient){area.style.opacity='1';area.style.cursor='pointer';hint.innerHTML='<strong>Click to upload</strong> reports, prescriptions, or test results';}
-  else{area.style.opacity='0.5';area.style.cursor='not-allowed';hint.textContent='Save the patient first, then reopen to add files';}
+  else{area.style.opacity='0.5';area.style.cursor='not-allowed';hint.textContent=tr('Save the patient first, then reopen to add files');}
 }
 function openAdd(){
-  document.getElementById('modalTitle').textContent='Add New Patient';
+  document.getElementById('modalTitle').textContent=tr('Add New Patient');
   editingId=crypto.randomUUID();
   isExistingPatient=false;
   document.getElementById('editId').value=editingId;
@@ -1414,7 +1485,7 @@ function openAdd(){
 }
 async function editPatient(id){
   var p=patients.find(function(x){return x.id===id;});if(!p)return;
-  document.getElementById('modalTitle').textContent='Edit Patient';
+  document.getElementById('modalTitle').textContent=tr('Edit Patient');
   editingId=id;
   isExistingPatient=true;
   document.getElementById('editId').value=id;
@@ -1479,7 +1550,7 @@ async function savePatient(){
     // Patient row now exists — switch the still-open modal into Edit mode so
     // files can be attached right away (uploads need the row to exist first).
     isExistingPatient=true;
-    document.getElementById('modalTitle').textContent='Edit Patient';
+    document.getElementById('modalTitle').textContent=tr('Edit Patient');
     setFileAreaState();
     refreshActivePage();
   } else {
@@ -1639,7 +1710,7 @@ async function parseUpdateText(){
   var text=document.getElementById('uFreeText').value.trim();
   if(!text){alert('Type a plain-English update first');return;}
   var btn=document.getElementById('uFillBtn');
-  btn.disabled=true;btn.textContent='Reading…';
+  btn.disabled=true;btn.textContent=tr('Reading…');
   var resp=await sb.functions.invoke('parse-update',{body:{patientId:updateTargetId,text:text}});
   btn.disabled=false;btn.textContent='🤖 Fill Form From Text';
   if(resp.error||!resp.data||resp.data.error){
@@ -1692,7 +1763,7 @@ async function parseBulkUpdate(){
   var text=document.getElementById('bqFreeText').value.trim();
   if(!text){alert('Write something first');return;}
   var btn=document.getElementById('bqParseBtn');
-  btn.disabled=true;btn.textContent='Reading…';
+  btn.disabled=true;btn.textContent=tr('Reading…');
   var resp=await sb.functions.invoke('parse-bulk-update',{body:{text:text}});
   btn.disabled=false;btn.textContent='🤖 Parse Updates';
   if(resp.error||!resp.data||resp.data.error){
@@ -1821,7 +1892,7 @@ async function registerNewPatient(prefix,i){
   var name=(document.getElementById(prefix+'-'+i+'-np-name').value||'').trim();
   if(!name){alert('Enter the patient\'s name first');return;}
   var btn=document.getElementById(prefix+'-'+i+'-np-btn');
-  btn.disabled=true;btn.textContent='Registering…';
+  btn.disabled=true;btn.textContent=tr('Registering…');
   function v(sfx){var el=document.getElementById(prefix+'-'+i+'-np-'+sfx);return el?(el.value||'').trim():'';}
   var id=crypto.randomUUID();
   var row={id:id,name:name,age:parseInt(v('age'))||null,gender:v('gender')||null,phone:v('phone')||null,
@@ -1842,13 +1913,13 @@ async function saveBulkCard(i){
   var pid=document.getElementById('bq-'+i+'-patient').value;
   if(!pid){alert('Please select a patient for this update first');return;}
   var btn=document.getElementById('bq-'+i+'-savebtn');
-  btn.disabled=true;btn.textContent='Saving…';
+  btn.disabled=true;btn.textContent=tr('Saving…');
   var s=bulkSegments[i].data;
   var result=await savePatientUpdate(pid,collectPatientFields('bq',i),
     {source:'quick-update',sourceText:s.segment_text||null,
      isPublic:document.getElementById('bq-'+i+'-public').checked});
   if(result.error){
-    btn.disabled=false;btn.textContent='Save This Update';
+    btn.disabled=false;btn.textContent=tr('Save This Update');
     alert('Could not save update: '+result.error);
     return;
   }
@@ -1859,7 +1930,7 @@ async function saveBulkActivity(i){
   var desc=document.getElementById('bq-'+i+'-adesc').value.trim();
   if(!desc){alert('Describe what happened');return;}
   var btn=document.getElementById('bq-'+i+'-savebtn');
-  btn.disabled=true;btn.textContent='Saving…';
+  btn.disabled=true;btn.textContent=tr('Saving…');
   var s=bulkSegments[i].data;
   var row={occurred_on:document.getElementById('bq-'+i+'-adate').value||new Date().toISOString().slice(0,10),
     log_type_id:document.getElementById('bq-'+i+'-atype').value,
@@ -1872,7 +1943,7 @@ async function saveBulkActivity(i){
     created_by:UNAME};
   var resp=await sb.from('logs').insert(row);
   if(resp.error){
-    btn.disabled=false;btn.textContent='Save This Entry';
+    btn.disabled=false;btn.textContent=tr('Save This Entry');
     alert('Could not save entry: '+resp.error.message);
     return;
   }
@@ -2020,7 +2091,7 @@ async function waImport(){
   if(waTxtFile)text=await waTxtFile.text();
   if(!text.trim()){alert('Paste the exported chat text (or upload the exported .txt file) first');return;}
   var btn=document.getElementById('waImportBtn');
-  btn.disabled=true;btn.textContent='Reading…';
+  btn.disabled=true;btn.textContent=tr('Reading…');
   try{
     waParsed=parseWhatsAppExport(text);
     if(!waParsed.length){alert('No WhatsApp messages recognized. Expected lines like "[12:48, 09/08/2026] Name: message".');return;}
@@ -2248,8 +2319,8 @@ async function saveWaCard(i){
   var en=waEntries[i];if(!en||en.saved)return true;
   var e=en.data;
   var btn=document.getElementById('wa-'+i+'-savebtn');
-  if(btn){btn.disabled=true;btn.textContent='Saving…';}
-  function fail(msg){if(btn){btn.disabled=false;btn.textContent='Save This Entry';}if(msg)alert(msg);return false;}
+  if(btn){btn.disabled=true;btn.textContent=tr('Saving…');}
+  function fail(msg){if(btn){btn.disabled=false;btn.textContent=tr('Save This Entry');}if(msg)alert(msg);return false;}
   if(!await waEnsureLedger())return fail(null);
   if(e.log_type==='Patient Update'){
     var pid=document.getElementById('wa-'+i+'-patient').value;
@@ -2325,7 +2396,7 @@ async function edgeErrorMessage(resp){
 }
 async function analyzeFile(fileId){
   var btn=document.getElementById('aiBtn-'+fileId);
-  btn.disabled=true;btn.textContent='Analyzing…';
+  btn.disabled=true;btn.textContent=tr('Analyzing…');
   var resp=await sb.functions.invoke('analyze-report',{body:{fileId:fileId}});
   btn.disabled=false;
   if(resp.error||!resp.data||resp.data.error){
@@ -2338,7 +2409,7 @@ async function analyzeFile(fileId){
 }
 async function generateSummary(id){
   var btn=document.getElementById('summaryBtn');
-  btn.disabled=true;btn.textContent='Generating…';
+  btn.disabled=true;btn.textContent=tr('Generating…');
   var resp=await sb.functions.invoke('summarize-patient',{body:{patientId:id}});
   btn.disabled=false;
   if(resp.error||!resp.data||resp.data.error){
@@ -2447,10 +2518,10 @@ async function viewPatient(id){
   }
 
   document.getElementById('viewBody').innerHTML=h;
-  var foot='<button class="btn btn-secondary" onclick="closeView()">Close</button>';
+  var foot='<button class="btn btn-secondary" onclick="closeView()">'+tr('Close')+'</button>';
   if(ROLE==='staff'){
-    foot+='<button class="btn btn-primary" onclick="closeView();editPatient(\''+id+'\')">Edit</button><button class="btn btn-warn" onclick="closeView();openUpdate(\''+id+'\')">Add Visit Update</button>';
-    if(p.status!=='Case Closed')foot+='<button class="btn btn-warn" onclick="openCloseCase(\''+id+'\')">Close Case</button>';
+    foot+='<button class="btn btn-primary" onclick="closeView();editPatient(\''+id+'\')">'+tr('Edit')+'</button><button class="btn btn-warn" onclick="closeView();openUpdate(\''+id+'\')">'+tr('Add Visit Update')+'</button>';
+    if(p.status!=='Case Closed')foot+='<button class="btn btn-warn" onclick="openCloseCase(\''+id+'\')">'+tr('Close Case')+'</button>';
   }
   document.getElementById('viewFoot').innerHTML=foot;
   document.getElementById('viewModal').classList.add('show');
