@@ -26,7 +26,8 @@
   /* SIDEBAR */
   .sidebar{width:var(--sidebar-w);background:#0a2e22;color:#fff;padding:20px 0;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;}
   .sidebar-logo{padding:0 16px 20px;border-bottom:1px solid rgba(255,255,255,0.08);}
-  .sidebar-brand{font-family:var(--font);font-size:1.15rem;font-weight:700;color:#fff;letter-spacing:0.04em;}
+  .sidebar-brand{font-family:var(--font);font-size:1.15rem;font-weight:700;color:#fff;letter-spacing:0.04em;text-decoration:none;display:block;}
+  .sidebar-brand:hover{color:rgba(255,255,255,0.8);}
   .sidebar-label{padding:16px 16px 6px;font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.25);}
   .sidebar-nav{list-style:none;}
   .sidebar-nav li a{display:flex;align-items:center;gap:8px;padding:9px 16px;color:rgba(255,255,255,0.55);text-decoration:none;font-size:0.84rem;font-weight:500;border-left:3px solid transparent;transition:all 0.2s;}
@@ -164,7 +165,7 @@
 
 <div class="app">
 <aside class="sidebar">
-  <div class="sidebar-logo sidebar-brand">SACCI</div>
+  <div class="sidebar-logo"><a href="index.html" class="sidebar-brand">SACCI</a></div>
   <div class="sidebar-label">Sita Anandam Cancer Care Portal</div>
   <ul class="sidebar-nav" id="sidebarNav">
     <li><a href="#" class="active" data-page="dashboard" onclick="navTo('dashboard',this)">📊 Dashboard</a></li>
