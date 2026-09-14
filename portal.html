@@ -201,7 +201,8 @@
   <div class="sidebar-bottom">
     <div class="sidebar-user" id="dispName">Staff</div>
     <div class="sidebar-role" id="dispRole">staff</div>
-    <button class="logout-btn" onclick="logout()" data-i18n="Logout">Logout</button>
+    <button class="logout-btn" id="logoutBtn" onclick="logout()" data-i18n="Logout">Logout</button>
+    <a class="logout-btn" id="sidebarLoginBtn" href="portal-login.html" style="display:none;text-decoration:none;text-align:center;box-sizing:border-box" data-i18n="Staff Login">Staff Login</a>
   </div>
 </aside>
 
@@ -347,7 +348,7 @@
 
 <!-- ═══ PUBLIC DASHBOARD ═══ -->
 <div class="page" id="page-public">
-  <div class="topbar"><h1 data-i18n="Public Dashboard">Public Dashboard</h1><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div></div>
+  <div class="topbar"><h1 data-i18n="Public Dashboard">Public Dashboard</h1><div class="topbar-actions" style="align-items:center;flex-wrap:wrap"><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div><a class="btn btn-primary" href="portal-login.html" id="publicLoginBtn" style="display:none" data-i18n="Staff Login">Staff Login</a></div></div>
   <div class="public-banner"><p>📊 This is an anonymised view of the Sita Anandam Cancer Care Initiative's impact. Patient identities and personal details are not shown.</p></div>
   <div class="stats-row">
     <div class="stat-box"><div class="stat-box-number" id="pub-total">0</div><div class="stat-box-label" data-i18n="Patients Supported">Patients Supported</div></div>
@@ -603,7 +604,7 @@ var ROLE='public', UNAME='Public View', UUSER='';
 var T_HI={
   'Active Cases':'सक्रिय मामले','All Patients':'सभी मरीज़','All Patients — Detailed View':'सभी मरीज़ — विस्तृत दृश्य',
   'Finances':'वित्त','Quick Update':'त्वरित अपडेट','WhatsApp Import':'व्हाट्सएप इम्पोर्ट','Our Story':'हमारी कहानी',
-  'Public View':'सार्वजनिक दृश्य','Public Dashboard':'सार्वजनिक डैशबोर्ड','Logout':'लॉगआउट',
+  'Public View':'सार्वजनिक दृश्य','Public Dashboard':'सार्वजनिक डैशबोर्ड','Logout':'लॉगआउट','Staff Login':'स्टाफ लॉगिन',
   'Full Access':'पूर्ण पहुंच','Advisor (Read-Only)':'सलाहकार (केवल पढ़ने के लिए)','Public':'सार्वजनिक',
   '+ Add Patient':'+ मरीज़ जोड़ें','+ Add Log Entry':'+ लॉग एंट्री जोड़ें','Export CSV':'CSV निर्यात करें',
   '+ Log Payment':'+ भुगतान दर्ज करें','🤖 Parse Updates':'🤖 अपडेट्स समझें','🤖 Read & Propose Entries':'🤖 पढ़ें और एंट्री सुझाएं',
@@ -780,6 +781,36 @@ function toDb(p){
     test_date:p.testDate||null,med_date:p.medDate||null,notes:p.notes||null,committed_amount:p.committedAmount||null,updated_by:UNAME};
 }
 
+// Looking up the caller's role has THREE outcomes, not two: a real row, a
+// definitive "no row" (the account exists but was never granted portal access),
+// and a request that never completed (offline, a dropped connection, a server
+// blip). The old code conflated the last two and signed the user out on a
+// failed request — one bad request cost a valid session, and re-logging in
+// could hit the same blip again. Failures now retry, then leave the session
+// alone and say what happened.
+async function fetchProfile(uid){
+  // Each attempt is capped: supabase-js does its own internal retrying, so an
+  // unbounded wait here left the page blank for ~20s before reporting anything.
+  for(var attempt=0;attempt<2;attempt++){
+    try{
+      var r=await Promise.race([
+        sb.from('profiles').select('name,role').eq('id',uid).limit(1),
+        new Promise(function(_,rej){setTimeout(function(){rej(new Error('timeout'));},5000);})
+      ]);
+      if(r&&!r.error)return{reached:true,row:(r.data&&r.data[0])||null};
+    }catch(e){/* a dropped connection throws rather than returning an error */}
+    if(attempt<1)await new Promise(function(done){setTimeout(done,600);});
+  }
+  return{reached:false,row:null};
+}
+function portalBanner(msg,actionHtml,bg){
+  var d=document.createElement('div');
+  d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:'+(bg||'#991b1b')+';color:#fff;'+
+    'padding:12px 16px;font-size:0.9rem;text-align:center;font-family:var(--font)';
+  d.innerHTML=esc(msg)+(actionHtml?' '+actionHtml:'');
+  document.body.appendChild(d);
+}
+
 async function init(){
   var sessionResp=await sb.auth.getSession();
   var session=sessionResp.data.session;
@@ -787,14 +818,21 @@ async function init(){
   // No session = public dashboard, no login required. This lets the "Public
   // Dashboard" link on the main site go straight here.
   if(session){
-    var profResp=await sb.from('profiles').select('name,role').eq('id',session.user.id).single();
-    if(!profResp.data){
+    var prof=await fetchProfile(session.user.id);
+    if(!prof.reached){
+      // Deliberately keeps the session: a failed lookup is a connection
+      // problem, not proof that the account lost access.
+      portalBanner('Could not reach the server. You are still signed in — check your connection, then reload.',
+        '<span style="text-decoration:underline;cursor:pointer" onclick="location.reload()">Reload</span>');
+      return;
+    }
+    if(!prof.row){
       alert('Your account is signed in but has no portal access yet. Contact an admin to be added.');
       await sb.auth.signOut();
       window.location.href='portal-login.html';
       return;
     }
-    ROLE=profResp.data.role;UNAME=profResp.data.name;UUSER=session.user.email;
+    ROLE=prof.row.role;UNAME=prof.row.name;UUSER=session.user.email;
   } else {
     ROLE='public';UNAME='Public View';
   }
@@ -804,6 +842,12 @@ async function init(){
 
   if(ROLE==='public'){
     document.getElementById('sidebarNav').style.display='none';
+    // Signed-out staff must always have a visible way back in. Without this
+    // the public dashboard is a dead end: the sidebar is hidden entirely on
+    // phones, so there was no login control on the page at all.
+    document.getElementById('logoutBtn').style.display='none';
+    document.getElementById('sidebarLoginBtn').style.display='';
+    document.getElementById('publicLoginBtn').style.display='';
   }
   if(ROLE!=='staff'){
     document.getElementById('nav-finances').parentElement.style.display='none';
@@ -841,7 +885,7 @@ async function init(){
       .on('postgres_changes',{event:'*',schema:'public',table:'story_settings'},function(){loadStory().then(refreshActivePage);})
       .subscribe();
   }
-  if(ROLE==='staff')waConsumeSharedInbox();
+  waConsumeSharedInbox();
 }
 
 // ─── PWA / Android share-sheet plumbing ─────────────────────
@@ -850,7 +894,26 @@ async function init(){
 // shared files in the 'share-inbox' cache. This picks them up on the next
 // portal load — including the load right after logging in, since the inbox
 // survives until a staff session consumes it.
-if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){});}
+// Recovery hatch: portal.html?reset=1 unregisters every service worker on this
+// origin and drops its caches, then reloads clean — so a browser stuck on a bad
+// worker can be rescued over the phone, without anyone clearing site data by hand.
+if(location.search.indexOf('reset=1')>=0){
+  (async function(){
+    try{
+      if('serviceWorker' in navigator){
+        var regs=await navigator.serviceWorker.getRegistrations();
+        for(var i=0;i<regs.length;i++)await regs[i].unregister();
+      }
+      if('caches' in window){
+        var ks=await caches.keys();
+        for(var j=0;j<ks.length;j++)await caches.delete(ks[j]);
+      }
+    }catch(e){}
+    location.replace('portal.html');
+  })();
+} else if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(function(){});
+}
 var waDeferredInstall=null;
 window.addEventListener('beforeinstallprompt',function(e){
   e.preventDefault();waDeferredInstall=e;
@@ -868,6 +931,15 @@ async function waConsumeSharedInbox(){
     var keys=await cache.keys();
     keys=keys.filter(function(k){return new URL(k.url).pathname.indexOf('/share-inbox/file-')===0;});
     if(!keys.length)return;
+    // Shared from WhatsApp while signed out (a lapsed session, or the app
+    // opened where nobody has logged in yet): leave the files in the inbox
+    // and point at the login screen. They are consumed after signing in,
+    // rather than being thrown away with no explanation.
+    if(ROLE!=='staff'){
+      portalBanner('WhatsApp sent '+keys.length+' file(s) to import.',
+        '<a href="portal-login.html" style="color:#fff;font-weight:600">Sign in to import them</a> — tick “Keep me signed in” so future shares open straight in.','#0f4c3a');
+      return;
+    }
     var files=[];
     for(var i=0;i<keys.length;i++){
       var resp=await cache.match(keys[i]);
