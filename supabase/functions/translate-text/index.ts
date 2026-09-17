@@ -16,8 +16,8 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
 
-const MAX_TEXTS = 60;
-const MAX_CHARS = 20000;
+const MAX_TEXTS = 80;
+const MAX_CHARS = 40000;
 
 async function sha256Hex(text: string): Promise<string> {
   const bytes = new TextEncoder().encode(text);
@@ -82,7 +82,12 @@ Deno.serve(async (req) => {
       const numbered = missingTexts.map((t, i) => `[${i}] ${t}`).join("\n");
       const response = await anthropic.messages.parse({
         model: "claude-opus-4-8",
-        max_tokens: 4096,
+        // Devanagari output runs noticeably more tokens than the English
+        // input, and a batch here can be dozens of log entries at once
+        // (up to MAX_CHARS/MAX_TEXTS). 4096 was cutting long batches off
+        // mid-response, which fails structured-output parsing and silently
+        // falls back to English below — bumped well past worst case.
+        max_tokens: 16000,
         system:
           "You translate short English fragments from a cancer-care nonprofit's patient records and activity " +
           "log into natural, plain Hindi (Devanagari script), for a Hindi-reading field coordinator. Each " +

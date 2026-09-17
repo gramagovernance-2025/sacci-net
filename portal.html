@@ -349,7 +349,7 @@
 <!-- ═══ PUBLIC DASHBOARD ═══ -->
 <div class="page" id="page-public">
   <div class="topbar"><h1 data-i18n="Public Dashboard">Public Dashboard</h1><div class="topbar-actions" style="align-items:center;flex-wrap:wrap"><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div><a class="btn btn-primary" href="portal-login.html" id="publicLoginBtn" style="display:none" data-i18n="Staff Login">Staff Login</a></div></div>
-  <div class="public-banner"><p>📊 This is an anonymised view of the Sita Anandam Cancer Care Initiative's impact. Patient identities and personal details are not shown.</p></div>
+  <div class="public-banner"><p>📊 <span data-i18n="This is an anonymised view of the Sita Anandam Cancer Care Initiative's impact. Patient identities and personal details are not shown.">This is an anonymised view of the Sita Anandam Cancer Care Initiative's impact. Patient identities and personal details are not shown.</span></p></div>
   <div class="stats-row">
     <div class="stat-box"><div class="stat-box-number" id="pub-total">0</div><div class="stat-box-label" data-i18n="Patients Supported">Patients Supported</div></div>
     <div class="stat-box"><div class="stat-box-number" id="pub-active">0</div><div class="stat-box-label" data-i18n="Currently in Treatment">Currently in Treatment</div></div>
@@ -710,7 +710,9 @@ var T_HI={
   'photos from this visit':'इस विज़िट की फोटो',
   'Re-analyze':'फिर से जांचें','Analyze':'जांचें','AI Read':'AI द्वारा पढ़ा गया','confidence':'विश्वास स्तर',
   'Type:':'प्रकार:','Date:':'तारीख़:','Doctor:':'डॉक्टर:','Diagnosis:':'निदान:','Medicines:':'दवाइयां:',
-  'Findings:':'निष्कर्ष:','🤖 Fill Form From Text':'🤖 टेक्स्ट से फॉर्म भरें','Finance':'वित्त'
+  'Findings:':'निष्कर्ष:','🤖 Fill Form From Text':'🤖 टेक्स्ट से फॉर्म भरें','Finance':'वित्त',
+  'Last updated':'आखिरी बार अपडेट किया गया','No updates yet':'अभी तक कोई अपडेट नहीं',
+  'This is an anonymised view of the Sita Anandam Cancer Care Initiative\'s impact. Patient identities and personal details are not shown.':'यह Sita Anandam Cancer Care Initiative के काम का गुमनाम दृश्य है। मरीज़ों की पहचान और निजी जानकारी नहीं दिखाई जाती।'
 };
 // Named `tr`, not `t` — `t` is already used everywhere in this file as a
 // loop variable for transactions/log types, and shadowing it inside those
@@ -1112,9 +1114,18 @@ function renderFinances(q){
   var tbody=document.getElementById('txnBody');
   if(!list.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No payments logged yet.')+'</td></tr>';return;}
   var sorted=list.slice().sort(function(a,b){return new Date(b.txn_date)-new Date(a.txn_date);});
-  var h='';sorted.forEach(function(t){
-    h+='<tr><td>'+esc(patientCode(t.patient_id))+'</td><td><strong>'+esc(patientName(t.patient_id))+'</strong></td><td>₹'+Number(t.amount).toLocaleString('en-IN')+'</td><td>'+esc(t.purpose)+'</td><td>'+fmtDate(t.txn_date)+'</td><td>'+esc(t.notes||'—')+'</td><td>'+esc(t.recorded_by||'—')+'</td><td><span class="link" onclick="editTxn(\''+t.id+'\')">'+tr('Edit')+'</span> · <span class="link" onclick="deleteTxn(\''+t.id+'\')">'+tr('Delete')+'</span></td></tr>';
-  });tbody.innerHTML=h;
+  function build(){
+    var h='';sorted.forEach(function(t){
+      h+='<tr><td>'+esc(patientCode(t.patient_id))+'</td><td><strong>'+esc(patientName(t.patient_id))+'</strong></td><td>₹'+Number(t.amount).toLocaleString('en-IN')+'</td><td>'+tr(t.purpose)+'</td><td>'+fmtDate(t.txn_date)+'</td><td>'+esc(dtr(t.notes)||'—')+'</td><td>'+esc(t.recorded_by||'—')+'</td><td><span class="link" onclick="editTxn(\''+t.id+'\')">'+tr('Edit')+'</span> · <span class="link" onclick="deleteTxn(\''+t.id+'\')">'+tr('Delete')+'</span></td></tr>';
+    });
+    return h;
+  }
+  tbody.innerHTML=build();
+  if(storyLang==='hi'){
+    translateBatch(sorted.map(function(t){return t.notes;})).then(function(){
+      if(storyLang==='hi')tbody.innerHTML=build();
+    });
+  }
 }
 function patientName(id){var p=patients.find(function(x){return x.id===id;});return p?p.name:'(unknown patient)';}
 function patientCode(id){var p=patients.find(function(x){return x.id===id;});return p&&p.code?p.code:'—';}
@@ -1227,6 +1238,7 @@ function setStoryLang(lang){
   localStorage.setItem('sacci_story_lang',lang);
   syncLangToggle();
   applyI18n();
+  renderStoryLastUpdated();
   refreshActivePage();
 }
 function syncLangToggle(){
@@ -1244,18 +1256,19 @@ function storyLastUpdatedAt(){
   return new Date(latest.updated_at||latest.created_at);
 }
 function relativeTime(d){
+  var hi=storyLang==='hi';
   var mins=Math.floor((new Date()-d)/60000);
-  if(mins<1)return'just now';
-  if(mins<60)return mins+' min ago';
+  if(mins<1)return hi?'अभी':'just now';
+  if(mins<60)return hi?(mins+' मिनट पहले'):(mins+' min ago');
   var hrs=Math.floor(mins/60);
-  if(hrs<24)return hrs+' hr'+(hrs>1?'s':'')+' ago';
+  if(hrs<24)return hi?(hrs+' घंटे पहले'):(hrs+' hr'+(hrs>1?'s':'')+' ago');
   var days=Math.floor(hrs/24);
-  if(days<7)return days+' day'+(days>1?'s':'')+' ago';
+  if(days<7)return hi?(days+' दिन पहले'):(days+' day'+(days>1?'s':'')+' ago');
   return fmtDate(d.toISOString().slice(0,10));
 }
 function renderStoryLastUpdated(){
   var d=storyLastUpdatedAt();
-  var label=d?('🕐 Last updated '+relativeTime(d)):'🕐 No updates yet';
+  var label=d?('🕐 '+tr('Last updated')+' '+relativeTime(d)):('🕐 '+tr('No updates yet'));
   document.querySelectorAll('.story-last-updated').forEach(function(b){b.textContent=label;});
 }
 function goToLastUpdate(){
@@ -1343,8 +1356,8 @@ async function renderStoryLogFeed(){
     orgLogs.forEach(function(l){
       var t=logTypeById(l.log_type_id);
       h+='<div class="story-item"><div class="story-dot"></div>';
-      h+='<div class="story-date">'+fmtDate(l.occurred_on)+' · '+esc(t?t.emoji+' '+t.name:tr('Log'))+' · '+tr(sourceLabel[l.source]||l.source)+(l.patient_id?' · '+tr('Public Patient Story'):'')+'</div>';
-      h+='<div class="story-title">'+esc(dtr(l.title)||(t?t.name:tr('Update')))+'</div>';
+      h+='<div class="story-date">'+fmtDate(l.occurred_on)+' · '+esc(t?t.emoji+' '+dtr(t.name):tr('Log'))+' · '+tr(sourceLabel[l.source]||l.source)+(l.patient_id?' · '+tr('Public Patient Story'):'')+'</div>';
+      h+='<div class="story-title">'+esc(dtr(l.title)||(t?dtr(t.name):tr('Update')))+'</div>';
       if(l.description)h+='<div class="story-desc">'+esc(dtr(l.description))+'</div>';
       h+=storyThumbRow('log-files',filesByLog[l.id]||[]);
       h+='</div>';
@@ -1357,7 +1370,7 @@ async function renderStoryLogFeed(){
   // cache. Swap in the Hindi text once it's ready.
   feed.innerHTML=build();
   if(storyLang==='hi'){
-    await translateBatch(orgLogs.map(function(l){return l.title;}).concat(orgLogs.map(function(l){return l.description;})));
+    await translateBatch(orgLogs.map(function(l){return l.title;}).concat(orgLogs.map(function(l){return l.description;})).concat(logTypes.map(function(t){return t.name;})));
     if(storyLang==='hi')feed.innerHTML=build();
   }
 }
@@ -1561,7 +1574,7 @@ async function renderActivities(){
   function build(){
     var h='';shown.forEach(function(a){
       var t=logTypeById(a.log_type_id);
-      var typeLabel=(t?t.emoji+' '+esc(t.name):'—')+(a.quantity>1?' <strong>×'+a.quantity+'</strong>':'')+(a.is_public?' <span title="Shown on public dashboard">🌐</span>':'');
+      var typeLabel=(t?t.emoji+' '+esc(dtr(t.name)):'—')+(a.quantity>1?' <strong>×'+a.quantity+'</strong>':'')+(a.is_public?' <span title="Shown on public dashboard">🌐</span>':'');
       var patientTag=a.patient_id?'<strong>'+esc(patientName(a.patient_id))+'</strong> — ':'';
       var titleLine=a.title?'<strong>'+esc(dtr(a.title))+'</strong><br>':'';
       var descShort=dtr(a.description||'');if(descShort.length>300)descShort=descShort.slice(0,300)+'…';
@@ -1581,7 +1594,7 @@ async function renderActivities(){
   // translation is in flight — see renderStoryLogFeed for why.
   tbody.innerHTML=build();
   if(storyLang==='hi'){
-    await translateBatch(shown.map(function(a){return a.title;}).concat(shown.map(function(a){return a.description;})));
+    await translateBatch(shown.map(function(a){return a.title;}).concat(shown.map(function(a){return a.description;})).concat(logTypes.map(function(t){return t.name;})));
     if(storyLang==='hi')tbody.innerHTML=build();
   }
 }
@@ -2633,7 +2646,7 @@ async function viewPatient(id){
   // themselves, not fixed UI copy, so they're translated on demand here
   // (cached by translateBatch) rather than pre-translated like the labels.
   if(storyLang==='hi'){
-    await translateBatch([p.diagnosis,p.treatment,p.medication,p.notes,p.closureReason,p.closureNotes]
+    await translateBatch([p.diagnosis,p.treatment,p.medication,p.notes,p.closureReason,p.closureNotes,p.aiSummary]
       .concat((p.history||[]).map(function(v){return v.note;})));
     if(storyLang==='hi'&&document.getElementById('viewModal').classList.contains('show'))document.getElementById('viewBody').innerHTML=buildViewBody();
   }
@@ -2643,7 +2656,7 @@ async function viewPatient(id){
   if(ROLE==='staff'||ROLE==='advisor'){
     h+='<div class="detail-section"><h3>'+tr('Case Summary')+'</h3>';
     if(p.aiSummary){
-      h+='<p style="font-size:0.88rem;color:var(--ink-light);white-space:pre-wrap">'+esc(p.aiSummary)+'</p>';
+      h+='<p style="font-size:0.88rem;color:var(--ink-light);white-space:pre-wrap">'+esc(dtr(p.aiSummary))+'</p>';
       h+='<div style="font-size:0.72rem;color:var(--ink-muted);margin-top:6px">'+tr('Generated')+' '+fmtDate(p.aiSummaryAt)+'</div>';
       h+='<button class="btn btn-secondary btn-sm" id="summaryBtn" style="margin-top:8px" onclick="generateSummary(\''+id+'\')">'+tr('🤖 Regenerate Summary')+'</button>';
     } else {
