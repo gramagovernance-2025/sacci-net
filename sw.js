@@ -17,6 +17,15 @@
 //      same-origin POST, before touching new URL() — the cheapest possible
 //      pass-through, with no chance of an exception here turning an ordinary
 //      request into a network error.
+// Fallback extension for a shared file that arrived without a name.
+function extFor(type) {
+  if (!type) return '';
+  if (type.indexOf('zip') >= 0) return '.zip';
+  if (type === 'text/plain') return '.txt';
+  var m = type.match(/^image\/(\w+)/);
+  return m ? '.' + (m[1] === 'jpeg' ? 'jpg' : m[1]) : '';
+}
+
 self.addEventListener('install', function () { self.skipWaiting(); });
 self.addEventListener('activate', function () { /* intentionally no clients.claim() */ });
 
@@ -32,22 +41,40 @@ self.addEventListener('fetch', function (e) {
     // "the share reached the worker but carried no files" rather than
     // silently showing the dashboard — the two were indistinguishable from a
     // phone in the Sept 2026 reports.
-    var note = { at: Date.now(), count: 0, fields: '', error: '' };
+    var note = { at: Date.now(), count: 0, fields: '', error: '', text_len: 0, text_head: '', title: '' };
     try {
       var form = await e.request.formData();
       var seen = [];
-      form.forEach(function (v, k) { seen.push(k + (v && v.name ? '=' + v.name : '')); });
+      form.forEach(function (v, k) { seen.push(k + (v && typeof v === 'object' ? '=' + (v.name || '(unnamed)') : '')); });
       note.fields = seen.join(', ').slice(0, 300);
-      var files = form.getAll('media').filter(function (f) { return f && f.name; });
-      note.count = files.length;
+      // Files can arrive without a name (Android content URIs) — keep them.
+      var files = form.getAll('media').filter(function (f) { return f && typeof f === 'object' && typeof f.arrayBuffer === 'function' && f.size > 0; });
+      var text = form.get('text'), title = form.get('title');
+      if (text && typeof text === 'object') { files.push(text); text = ''; }   // a file that landed under 'text'
+      if (typeof text !== 'string') text = '';
+      if (typeof title !== 'string') title = '';
+      note.text_len = text.length; note.text_head = text.slice(0, 120); note.title = title.slice(0, 80);
       var cache = await caches.open('share-inbox');
+      var stamp = Date.now();
       for (var i = 0; i < files.length; i++) {
-        await cache.put('/share-inbox/file-' + Date.now() + '-' + i, new Response(files[i], {
+        var nm = files[i].name || ('shared-' + i + extFor(files[i].type));
+        await cache.put('/share-inbox/file-' + stamp + '-' + i, new Response(files[i], {
           headers: {
-            'X-Name': encodeURIComponent(files[i].name),
+            'X-Name': encodeURIComponent(nm),
             'Content-Type': files[i].type || 'application/octet-stream'
           }
         }));
+      }
+      // WhatsApp on some phones hands the export over as plain text rather
+      // than a file (25 Sept 2026: the share carried title + text, no media).
+      // Keep it as a text file so the portal treats it like an uploaded .txt.
+      if (!files.length && text) {
+        await cache.put('/share-inbox/file-' + stamp + '-text', new Response(text, {
+          headers: { 'X-Name': encodeURIComponent('shared-text.txt'), 'Content-Type': 'text/plain' }
+        }));
+        note.count = 1; note.as_text = true;
+      } else {
+        note.count = files.length;
       }
     } catch (err) { note.error = String((err && err.message) || err); }
     try {

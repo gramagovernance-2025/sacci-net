@@ -953,7 +953,7 @@ async function waConsumeSharedInbox(){
       // was indistinguishable from a signed-out landing (Sept 2026).
       if(arrivedViaShare){
         var note='';
-        try{var nr=await cache.match('/share-inbox/last-share');if(nr){var nj=await nr.json();note='worker saw '+nj.count+' file(s)'+(nj.fields?', fields: '+nj.fields:'')+(nj.error?', error: '+nj.error:'');}}catch(e){}
+        try{var nr=await cache.match('/share-inbox/last-share');if(nr){var nj=await nr.json();note='worker saw '+nj.count+' file(s)'+(nj.fields?', fields: '+nj.fields:'')+(nj.text_len?', text: '+nj.text_len+' chars starting "'+nj.text_head.slice(0,60)+'"':'')+(nj.error?', error: '+nj.error:'');}}catch(e){}
         portalBanner('WhatsApp opened SACCI but no files came through.'+(note?' ('+note+')':''),
           '<span style="text-decoration:underline;cursor:pointer" onclick="this.parentNode.remove()">Dismiss</span>','#92400e');
       }
@@ -973,19 +973,28 @@ async function waConsumeSharedInbox(){
         '<span style="text-decoration:underline;cursor:pointer" onclick="this.parentNode.remove()">Dismiss</span>','#92400e');
       return;
     }
-    var files=[];
+    var files=[],sharedText='';
     for(var i=0;i<keys.length;i++){
       var resp=await cache.match(keys[i]);
       if(!resp)continue;
       var name=decodeURIComponent(resp.headers.get('X-Name')||'shared-file');
       var blob=await resp.blob();
-      files.push(new File([blob],name,{type:blob.type}));
+      // sw.js stores a text-only share (no file attached) under this name.
+      if(name==='shared-text.txt')sharedText=await blob.text();
+      else files.push(new File([blob],name,{type:blob.type}));
       await cache.delete(keys[i]);
     }
-    if(!files.length)return;
+    if(!files.length&&!sharedText)return;
     navTo('whatsapp',document.querySelector('[data-page="whatsapp"]'));
-    await waAcceptFiles(files);
-    document.getElementById('waSummary').innerHTML='<div class="ai-box" style="margin-top:16px">📲 Received '+files.length+' file(s) shared from WhatsApp — press "Read &amp; Propose Entries" when ready.</div>';
+    if(sharedText){
+      // Put it in the paste box, where it can be seen and edited, and let the
+      // normal paste path read it from there.
+      waTxtFile=null;
+      document.getElementById('waText').value=sharedText;
+    }
+    if(files.length)await waAcceptFiles(files);
+    var what=(files.length?files.length+' file(s)':'')+(sharedText?(files.length?' and ':'')+'the chat as text ('+sharedText.length+' characters)':'');
+    document.getElementById('waSummary').innerHTML='<div class="ai-box" style="margin-top:16px">📲 Received '+what+' shared from WhatsApp — press "Read &amp; Propose Entries" when ready.</div>';
   }catch(err){console.error(err);}
 }
 
