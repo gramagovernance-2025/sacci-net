@@ -62,6 +62,7 @@
 
     <div class="login-error" id="loginError">Invalid email or password</div>
     <div class="login-error" id="resetMsg" style="background:#f0fdf4;border-color:#bbf7d0;color:#166534;"></div>
+    <div class="login-error" id="shareNote" style="background:#ecfdf5;border-color:#a7f3d0;color:#065f46;"></div>
 
     <form id="loginForm" onsubmit="handleLogin(event); return false;">
       <div class="form-group"><label>Email</label><input type="email" id="email" name="email" placeholder="Enter your email" autocomplete="username"></div>
@@ -165,6 +166,23 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch
     showResetMsg('If that email has an account, a reset link is on its way.');
     showLogin({ preventDefault: function(){} });
   }
+
+  // Arriving here from a WhatsApp share (portal.html?shared=N sends signed-out
+  // shares straight to this page): say the files are waiting, and pre-tick
+  // "keep me signed in" so the next share opens the import page directly.
+  // The installed app on a phone gets the same default — sessionStorage is
+  // the right choice for a shared computer, not for a personal phone, where
+  // every share launches a fresh window with no session.
+  (function () {
+    var sharedN = (location.search.match(/[?&]shared=(\d+)/) || [])[1];
+    var standalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+    if (sharedN) {
+      var el = document.getElementById('shareNote');
+      el.textContent = '📲 ' + sharedN + ' file(s) from WhatsApp are waiting. Sign in and they will open in WhatsApp Import.';
+      el.classList.add('show');
+    }
+    if (sharedN || standalone) document.getElementById('rememberMe').checked = true;
+  })();
 
   async function redirectIfLoggedIn() {
     var { data: { session } } = await sb.auth.getSession();

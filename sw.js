@@ -28,9 +28,18 @@ self.addEventListener('fetch', function (e) {
   if (url.pathname !== '/share-target') return;
 
   e.respondWith((async function () {
+    // What arrived is recorded alongside the files, so the portal can say
+    // "the share reached the worker but carried no files" rather than
+    // silently showing the dashboard — the two were indistinguishable from a
+    // phone in the Sept 2026 reports.
+    var note = { at: Date.now(), count: 0, fields: '', error: '' };
     try {
       var form = await e.request.formData();
+      var seen = [];
+      form.forEach(function (v, k) { seen.push(k + (v && v.name ? '=' + v.name : '')); });
+      note.fields = seen.join(', ').slice(0, 300);
       var files = form.getAll('media').filter(function (f) { return f && f.name; });
+      note.count = files.length;
       var cache = await caches.open('share-inbox');
       for (var i = 0; i < files.length; i++) {
         await cache.put('/share-inbox/file-' + Date.now() + '-' + i, new Response(files[i], {
@@ -40,7 +49,11 @@ self.addEventListener('fetch', function (e) {
           }
         }));
       }
-    } catch (err) { /* fall through to the portal either way */ }
+    } catch (err) { note.error = String((err && err.message) || err); }
+    try {
+      var c2 = await caches.open('share-inbox');
+      await c2.put('/share-inbox/last-share', new Response(JSON.stringify(note), { headers: { 'Content-Type': 'application/json' } }));
+    } catch (err2) { /* the note is best-effort */ }
     return Response.redirect('/portal.html?shared=1', 303);
   })());
 });

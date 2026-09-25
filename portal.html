@@ -174,8 +174,18 @@
   .page{display:none;}
   .page.active{display:block;}
 
+  /* Phone menu. The sidebar holds every nav link plus Logout; hiding it
+     outright at phone widths left signed-in staff with no way to reach
+     WhatsApp Import or to sign out (Sept 2026). On narrow screens it is now
+     a drawer behind this button. */
+  .menu-btn{display:none;position:fixed;top:12px;left:12px;z-index:60;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;background:#0a2e22;color:#fff;border:none;font-family:var(--font);font-size:0.85rem;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.25);}
+  .nav-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:49;}
   @media(max-width:900px){
-    .sidebar{display:none;}.main{margin-left:0;}
+    .sidebar{display:none;width:min(280px,85vw);padding-top:64px;box-shadow:4px 0 24px rgba(0,0,0,0.35);}  /* padding clears the menu button */
+    body.nav-open .sidebar{display:flex;}
+    body.nav-open .nav-backdrop{display:block;}
+    .menu-btn{display:inline-flex;}
+    .main{margin-left:0;padding-top:64px;}
     .stats-row{grid-template-columns:1fr 1fr;}
     .form-row,.detail-grid{grid-template-columns:1fr;}
     .form-row-3{grid-template-columns:1fr;}
@@ -186,6 +196,8 @@
 <body>
 
 <div class="app">
+<button class="menu-btn" id="menuBtn" onclick="toggleNav()" aria-label="Menu">☰ <span data-i18n="Menu">Menu</span></button>
+<div class="nav-backdrop" onclick="toggleNav(false)"></div>
 <aside class="sidebar">
   <div class="sidebar-logo"><a href="index.html" class="sidebar-brand">SACCI</a></div>
   <div class="sidebar-label">Sita Anandam Cancer Care Portal</div>
@@ -604,7 +616,7 @@ var ROLE='public', UNAME='Public View', UUSER='';
 var T_HI={
   'Active Cases':'सक्रिय मामले','All Patients':'सभी मरीज़','All Patients — Detailed View':'सभी मरीज़ — विस्तृत दृश्य',
   'Finances':'वित्त','Quick Update':'त्वरित अपडेट','WhatsApp Import':'व्हाट्सएप इम्पोर्ट','Our Story':'हमारी कहानी',
-  'Public View':'सार्वजनिक दृश्य','Public Dashboard':'सार्वजनिक डैशबोर्ड','Logout':'लॉगआउट','Staff Login':'स्टाफ लॉगिन',
+  'Public View':'सार्वजनिक दृश्य','Public Dashboard':'सार्वजनिक डैशबोर्ड','Logout':'लॉगआउट','Staff Login':'स्टाफ लॉगिन','Menu':'मेन्यू',
   'Full Access':'पूर्ण पहुंच','Advisor (Read-Only)':'सलाहकार (केवल पढ़ने के लिए)','Public':'सार्वजनिक',
   '+ Add Patient':'+ मरीज़ जोड़ें','+ Add Log Entry':'+ लॉग एंट्री जोड़ें','Export CSV':'CSV निर्यात करें',
   '+ Log Payment':'+ भुगतान दर्ज करें','🤖 Parse Updates':'🤖 अपडेट्स समझें','🤖 Read & Propose Entries':'🤖 पढ़ें और एंट्री सुझाएं',
@@ -928,18 +940,37 @@ function waPromptInstall(){
 }
 async function waConsumeSharedInbox(){
   if(!('caches' in window))return;
+  var arrivedViaShare=location.search.indexOf('shared=1')>=0;
   try{
     var cache=await caches.open('share-inbox');
     var keys=await cache.keys();
     keys=keys.filter(function(k){return new URL(k.url).pathname.indexOf('/share-inbox/file-')===0;});
-    if(!keys.length)return;
+    if(arrivedViaShare)history.replaceState(null,'',location.pathname);
+    if(!keys.length){
+      // Opened by a WhatsApp share, but the worker stored nothing. Say so,
+      // with what the worker recorded (sw.js writes a note beside the files),
+      // instead of silently showing the dashboard — from a phone that silence
+      // was indistinguishable from a signed-out landing (Sept 2026).
+      if(arrivedViaShare){
+        var note='';
+        try{var nr=await cache.match('/share-inbox/last-share');if(nr){var nj=await nr.json();note='worker saw '+nj.count+' file(s)'+(nj.fields?', fields: '+nj.fields:'')+(nj.error?', error: '+nj.error:'');}}catch(e){}
+        portalBanner('WhatsApp opened SACCI but no files came through.'+(note?' ('+note+')':''),
+          '<span style="text-decoration:underline;cursor:pointer" onclick="this.parentNode.remove()">Dismiss</span>','#92400e');
+      }
+      return;
+    }
     // Shared from WhatsApp while signed out (a lapsed session, or the app
-    // opened where nobody has logged in yet): leave the files in the inbox
-    // and point at the login screen. They are consumed after signing in,
-    // rather than being thrown away with no explanation.
+    // opened where nobody has logged in yet): keep the files and go straight
+    // to the login page, which says they are waiting. They are consumed on
+    // the load right after signing in. (Landing on the public dashboard with
+    // a strip across the top read as "it took me to the wrong page".)
+    if(ROLE==='public'){
+      location.replace('portal-login.html?shared='+keys.length);
+      return;
+    }
     if(ROLE!=='staff'){
-      portalBanner('WhatsApp sent '+keys.length+' file(s) to import.',
-        '<a href="portal-login.html" style="color:#fff;font-weight:600">Sign in to import them</a> — tick “Keep me signed in” so future shares open straight in.','#0f4c3a');
+      portalBanner('WhatsApp sent '+keys.length+' file(s), but imports need a staff account — this one is '+ROLE+'.',
+        '<span style="text-decoration:underline;cursor:pointer" onclick="this.parentNode.remove()">Dismiss</span>','#92400e');
       return;
     }
     var files=[];
@@ -951,7 +982,6 @@ async function waConsumeSharedInbox(){
       files.push(new File([blob],name,{type:blob.type}));
       await cache.delete(keys[i]);
     }
-    if(location.search.indexOf('shared=1')>=0)history.replaceState(null,'',location.pathname);
     if(!files.length)return;
     navTo('whatsapp',document.querySelector('[data-page="whatsapp"]'));
     await waAcceptFiles(files);
@@ -985,7 +1015,13 @@ function refreshActivePage(){
 }
 
 // NAV
+// Phone drawer (see .menu-btn in the styles). Any navigation closes it.
+function toggleNav(open){
+  var want=typeof open==='boolean'?open:!document.body.classList.contains('nav-open');
+  document.body.classList.toggle('nav-open',want);
+}
 function navTo(name,el){
+  toggleNav(false);
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.getElementById('page-'+name).classList.add('active');
   document.querySelectorAll('.sidebar-nav a').forEach(function(a){a.classList.remove('active');});
