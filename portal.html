@@ -2259,7 +2259,11 @@ async function waAcceptFiles(files){
 }
 
 function parseWhatsAppExport(text){
-  var lines=text.split(/\r?\n/);
+  // Some phones write an invisible direction mark (U+200E) at the start of
+  // every line, ahead of the "[" or the date — it made the header patterns
+  // below miss every message of a whole export (25 Sept 2026). Strip the
+  // invisible marks before matching; they carry no text.
+  var lines=text.split(/\r?\n/).map(function(l){return l.replace(/[‎‏﻿‪-‮]/g,'');});
   var msgs=[];var cur=null;
   function p2(n){return(n<10?'0':'')+n;}
   function norm(dateStr,timeStr){
@@ -2330,7 +2334,15 @@ async function waImport(){
   btn.disabled=true;btn.textContent=tr('Reading…');
   try{
     waParsed=parseWhatsAppExport(text);
-    if(!waParsed.length){alert('No WhatsApp messages recognized. Expected lines like "[12:48, 09/08/2026] Name: message".');return;}
+    if(!waParsed.length){
+      // Show what was actually read, so a format the parser does not know
+      // can be reported from a phone screenshot instead of guessed at.
+      var src=waTxtFile?(waTxtFile.name+', '+waTxtFile.size+' bytes'):'pasted text';
+      var head=text.replace(/[‎‏﻿]/g,'⟨mark⟩').slice(0,200);
+      if(waTxtFile){document.getElementById('waText').value=text;waTxtFile=null;document.getElementById('waTxtName').textContent='';}
+      alert('No WhatsApp messages recognized in '+src+'. Expected lines like "[12:48, 09/08/2026] Name: message".\n\nIt starts with:\n'+head+'\n\n(The full text is now in the paste box.)');
+      return;
+    }
     // WhatsApp stamps an export in the EXPORTING phone's local timezone, so
     // the same message exported in India and in the US carries times 9h30m
     // apart — which would defeat the timestamp-based dedup and re-import a
