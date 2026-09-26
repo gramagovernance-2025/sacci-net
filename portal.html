@@ -986,6 +986,20 @@ async function waConsumeSharedInbox(){
     }
     if(!files.length&&!sharedText)return;
     navTo('whatsapp',document.querySelector('[data-page="whatsapp"]'));
+    // Chrome on Android hands WhatsApp's "Export chat" share over as the
+    // email caption only — "Chat history is attached as … file to this
+    // email." — wrapped as shared.txt now that the app declares no text
+    // param; the export file itself never arrives (confirmed 25 Sept 2026 on
+    // Sharan's phone). Say so and point at the route that works, rather
+    // than failing later with a parse error.
+    if(files.length===1&&files[0].size<400&&/^shared(-\d+)?\.txt$/i.test(files[0].name)){
+      var peek=await files[0].text();
+      if(/attached|WhatsApp Chat with/i.test(peek)){
+        document.getElementById('waText').value=peek;
+        document.getElementById('waSummary').innerHTML='<div class="ai-box" style="margin-top:16px;border-color:#f59e0b">📲 WhatsApp sent only its caption (“'+esc(peek.slice(0,70))+'…”) — on this phone Chrome drops the export file itself. Route that works: in WhatsApp’s share sheet choose <strong>Save to Files</strong> (or Drive), then tap the upload box above and pick the saved file.</div>';
+        return;
+      }
+    }
     if(sharedText){
       // Put it in the paste box, where it can be seen and edited, and let the
       // normal paste path read it from there.
