@@ -100,12 +100,12 @@
         opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease,box-shadow .35s ease;}
   .tl-item.in .card{opacity:1;transform:none;}
   .card:hover{box-shadow:0 14px 34px rgba(15,76,58,0.16);transform:translateY(-4px);}
-  /* Photos rest in a forest-green duotone and bloom into colour as their card
+  /* Photos rest in a warm sepia and bloom into colour as their card
      reaches the middle of the screen (.bloom). The overlay blends with the
      photo's luminosity, so the image stays readable underneath. */
   .card .img{position:relative;aspect-ratio:4/3;background:var(--bone);overflow:hidden;isolation:isolate;}
-  .card .img img{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.001);transition:transform 1.1s cubic-bezier(.2,.7,.2,1),filter 1.2s ease;filter:grayscale(.15) contrast(1.02);}
-  .card .img::after{content:'';position:absolute;inset:0;background:var(--teal);mix-blend-mode:color;opacity:.92;transition:opacity 1.3s ease;pointer-events:none;}
+  .card .img img{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.001);transition:transform 1.1s cubic-bezier(.2,.7,.2,1),filter 1.2s ease;filter:sepia(.55) contrast(1.04) brightness(.98);}
+  .card .img::after{content:'';position:absolute;inset:0;background:#8a6a42;mix-blend-mode:color;opacity:.85;transition:opacity 1.3s ease;pointer-events:none;}
   .tl-item.bloom .img::after{opacity:0;}
   .tl-item.bloom .img img{filter:none;}
   .card:hover .img img{transform:scale(1.07);}
@@ -132,7 +132,8 @@
   .year-marker.show{opacity:1;transform:translateY(-50%);}
   .year-marker.flip{animation:flip .45s ease;}
   @keyframes flip{0%{transform:translateY(-50%) scale(.85);opacity:.4}100%{transform:translateY(-50%) scale(1);opacity:1}}
-  @media(max-width:900px){.year-marker{top:auto;bottom:18px;left:14px;transform:none;font-size:1.1rem;padding:4px 12px;}.year-marker.show{transform:none;}
+  /* Below ~1300px the cards reach the left gutter, so the pill moves to the bottom corner. */
+  @media(max-width:1300px){.year-marker{top:auto;bottom:18px;left:14px;transform:none;font-size:1.1rem;padding:4px 12px;}.year-marker.show{transform:none;}
     @keyframes flip{0%{transform:scale(.85);opacity:.4}100%{transform:scale(1);opacity:1}}}
 
   /* ─── DETAIL ─── */
@@ -272,10 +273,11 @@ var CAT={origin:['Origin','शुरुआत'],partnership:['Partnership','स�
   program:['Program','कार्यक्रम'],system:['How it works','कैसे काम करता है'],milestone:['Milestone','मील का पत्थर'],event:['Event','घटना']};
 
 // Places on the district map, and which milestones happen where. Ratnauli
-// panchayat is not in OpenStreetMap; it is placed at Kurhani block, which
-// it belongs to (marked approximate).
+// and Mahant Maniyari panchayats are not in OpenStreetMap; they are placed
+// around Kurhani block, which they belong to (marked approximate).
 var PLACES={
   ratnauli:{lat:26.0204,lon:85.3735,en:'Ratnauli',hi:'रत्नौली',approx:true},
+  maniyari:{lat:26.0450,lon:85.3450,en:'Mahant Maniyari',hi:'महंत मनियारी',approx:true},   // neighbours Ratnauli; neither is in OSM
   rajla:{lat:25.9740,lon:85.3141,en:'Rajla',hi:'रजला'},
   kharauna:{lat:26.1000,lon:85.3120,en:'Kharauna Dih',hi:'खरौना दीह'},
   sadar:{lat:26.1221,lon:85.3824,en:'Sadar Hospital',hi:'सदर अस्पताल'},
@@ -284,7 +286,7 @@ var PLACES={
 };
 var SLUG_PLACES={
   'dr-vidyasagar-s-idea':['city'],'a-year-of-remote-pilots':['city'],'finding-dr-ravikant':['hbch'],'first-hospital-visit':['hbch','sadar'],
-  'first-health-camp-ratnauli':['ratnauli'],'founder-visits-muzaffarpur':['hbch'],'field-visits-ratnauli-and-neighbouring-panchayats':['ratnauli','kharauna'],
+  'first-health-camp-ratnauli':['maniyari','ratnauli'],'founder-visits-muzaffarpur':['hbch'],'field-visits-ratnauli-and-neighbouring-panchayats':['ratnauli','kharauna'],
   'second-health-camp-rajla':['rajla'],'cancer-saathi-program-begins':['sadar'],'first-patient-begins-radiation':['hbch']
 };
 // Muzaffarpur district outline, simplified from OpenStreetMap (ODbL), [lon,lat].
