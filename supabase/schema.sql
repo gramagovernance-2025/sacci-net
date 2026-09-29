@@ -685,3 +685,37 @@ create policy "staff and advisors read translations" on translations_hi for sele
   using (has_profile());
 -- No client insert/update policy: only the translate-text edge function
 -- (service role) writes to this table.
+
+
+-- ─── OUR STORY — PUBLIC TIMELINE (2026-09-29) ─────────────────
+alter table story_entries add column if not exists is_public boolean not null default false;
+alter table story_entries add column if not exists slug text;
+alter table story_entries add column if not exists log_id uuid references logs(id) on delete set null;
+alter table story_entries add column if not exists body text;
+alter table story_entries add column if not exists body_hi text;
+alter table story_entries add column if not exists kind text not null default 'event';
+alter table story_entry_files add column if not exists is_public boolean not null default false;
+alter table story_entry_files add column if not exists caption text;
+alter table story_entry_files add column if not exists caption_hi text;
+alter table story_entry_files add column if not exists sort_order int not null default 0;
+alter table story_entry_files add column if not exists thumb_path text;
+alter table story_entry_files add column if not exists width int;
+alter table story_entry_files add column if not exists height int;
+alter table story_entries add column if not exists hero_file_id uuid references story_entry_files(id) on delete set null;
+create unique index if not exists story_entries_slug_key on story_entries(slug) where slug is not null;
+update story_entries set slug = trim(both '-' from regexp_replace(lower(title), '[^a-z0-9]+', '-', 'g')) where slug is null;
+update story_entries set kind = 'panel' where date_label = 'Ongoing' and kind = 'event';
+create or replace view story_public with (security_invoker = false) as
+  select e.id, e.slug, e.kind, e.category, e.sort_order, e.event_date, e.date_label,
+         e.title, e.title_hi, e.description, e.description_hi, e.body, e.body_hi,
+         e.hero_file_id, e.log_id, e.updated_at
+  from story_entries e where e.is_public;
+create or replace view story_files_public with (security_invoker = false) as
+  select f.id, f.entry_id, f.name, f.storage_path, f.thumb_path, f.caption, f.caption_hi, f.sort_order, f.width, f.height
+  from story_entry_files f join story_entries e on e.id = f.entry_id
+  where f.is_public and e.is_public;
+create or replace view story_settings_public with (security_invoker = false) as
+  select summary, summary_hi from story_settings where id = 1;
+grant select on story_public to anon, authenticated;
+grant select on story_files_public to anon, authenticated;
+grant select on story_settings_public to anon, authenticated;

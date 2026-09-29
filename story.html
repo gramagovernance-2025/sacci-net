@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Our Story — SACCI</title>
+<meta name="description" content="How the Sita Anandam Cancer Care Initiative came to be: the milestones, the people and the places, from an idea to camps, Cancer Saathis and a hospital pathway in Muzaffarpur.">
+<meta property="og:title" content="Our Story — SACCI">
+<meta property="og:description" content="Milestones of the Sita Anandam Cancer Care Initiative in Muzaffarpur, Bihar.">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Same tokens as index.html, so the story reads as part of the site. */
+  :root {
+    --forest:#0f4c3a;--teal:#1a6b5a;--teal-light:#2d8a73;--teal-soft:#e8f4f0;--mint:#f2f9f7;
+    --amber:#c4603c;--amber-soft:#faf0ec;
+    --slate:#334155;--slate-light:#64748b;--slate-muted:#94a3b8;
+    --white:#ffffff;--offwhite:#f8fafb;--bone:#f1f5f4;--line:#e2e8f0;
+    --serif:'Playfair Display',Georgia,serif;
+    --sans:'Inter',-apple-system,'Noto Sans Devanagari',sans-serif;
+    --max:1100px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{font-family:var(--sans);color:var(--slate);background:var(--white);line-height:1.7;font-size:16px;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  html[lang="hi"] body{font-family:'Noto Sans Devanagari',var(--sans);}
+  a{color:inherit;}
+
+  /* ─── TOPBAR (as on index.html) ─── */
+  .topbar{position:fixed;top:0;width:100%;z-index:100;background:rgba(255,255,255,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);height:60px;display:flex;align-items:center;padding:0 clamp(16px,4vw,48px);}
+  .topbar-inner{max-width:1200px;margin:0 auto;width:100%;display:flex;justify-content:space-between;align-items:center;}
+  .brand-mark{font-family:var(--serif);font-size:1.35rem;font-weight:700;color:var(--forest);letter-spacing:0.02em;text-decoration:none;}
+  .topbar-links{display:flex;gap:clamp(12px,2.5vw,24px);align-items:center;}
+  .topbar-links a{font-size:0.82rem;font-weight:500;color:var(--slate-light);text-decoration:none;transition:color 0.2s;white-space:nowrap;}
+  .topbar-links a:hover{color:var(--forest);}
+  .topbar-links .portal-link{background:var(--forest);color:#fff;padding:7px 18px;border-radius:5px;font-weight:600;}
+  .topbar-links .portal-link:hover{background:var(--teal);}
+  .lang{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;}
+  .lang button{font-family:inherit;font-size:0.76rem;font-weight:600;padding:5px 11px;border:none;background:#fff;color:var(--slate-light);cursor:pointer;}
+  .lang button.on{background:var(--forest);color:#fff;}
+  @media(max-width:640px){.topbar-links .hide-sm{display:none;}}
+
+  /* ─── HERO ─── */
+  .story-hero{margin-top:60px;background:var(--forest);color:#fff;padding:clamp(40px,7vw,80px) clamp(16px,4vw,48px) clamp(36px,6vw,64px);}
+  .story-hero .inner{max-width:var(--max);margin:0 auto;}
+  .hero-tag{display:inline-block;font-size:0.72rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.7);margin-bottom:14px;}
+  .story-hero h1{font-family:var(--serif);font-size:clamp(1.9rem,4.2vw,3rem);font-weight:500;line-height:1.15;max-width:18ch;margin-bottom:18px;}
+  .story-hero p{max-width:62ch;font-size:clamp(0.98rem,1.4vw,1.08rem);line-height:1.75;color:rgba(255,255,255,0.86);}
+
+  /* ─── TIMELINE ─── */
+  .tl{position:relative;max-width:var(--max);margin:0 auto;padding:clamp(40px,6vw,72px) clamp(16px,4vw,48px) 24px;}
+  .spine{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;}
+  .spine .track{fill:none;stroke:var(--line);stroke-width:3;}
+  .spine .draw{fill:none;stroke:var(--teal);stroke-width:3;stroke-linecap:round;}
+  .tl-list{list-style:none;position:relative;display:flex;flex-direction:column;gap:clamp(40px,6vw,72px);}
+  .tl-item{display:grid;grid-template-columns:1fr 88px 1fr;align-items:start;}
+  .tl-item .node{grid-column:2;grid-row:1;justify-self:center;margin-top:28px;width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--line);box-shadow:0 0 0 6px #fff;transition:border-color .5s ease,transform .5s ease,background .5s ease;}
+  .tl-item.in .node{border-color:var(--teal);background:var(--teal);transform:scale(1.15);}
+  .tl-item .card{grid-column:1;grid-row:1;justify-self:end;}
+  .tl-item.right .card{grid-column:3;justify-self:start;}
+  .card{display:block;width:min(100%,460px);text-decoration:none;color:inherit;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(15,76,58,0.04);
+        opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease,box-shadow .35s ease;}
+  .tl-item.in .card{opacity:1;transform:none;}
+  .card:hover{box-shadow:0 14px 34px rgba(15,76,58,0.16);transform:translateY(-4px);}
+  .card .img{position:relative;aspect-ratio:4/3;background:var(--bone);overflow:hidden;}
+  .card .img img{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.001);transition:transform 1.1s cubic-bezier(.2,.7,.2,1);}
+  .card:hover .img img{transform:scale(1.07);}
+  .card .img.tile{display:flex;align-items:flex-end;padding:18px;background:linear-gradient(135deg,var(--teal-soft),var(--mint));}
+  .card .img.tile .big{font-family:var(--serif);font-size:clamp(2rem,4vw,2.8rem);line-height:1;color:var(--forest);font-weight:500;}
+  .card .body{padding:16px 18px 18px;}
+  .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;}
+  .chip{display:inline-block;font-size:0.72rem;font-weight:700;letter-spacing:0.04em;padding:3px 9px;border-radius:999px;background:var(--teal-soft);color:var(--forest);}
+  .cat{font-size:0.72rem;font-weight:600;color:var(--slate-muted);text-transform:uppercase;letter-spacing:0.08em;}
+  .card h3{font-family:var(--serif);font-size:1.22rem;font-weight:600;line-height:1.3;color:#0b1f18;margin-bottom:6px;}
+  .card p{font-size:0.92rem;color:var(--slate-light);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+  .card .more{display:inline-block;margin-top:10px;font-size:0.8rem;font-weight:600;color:var(--teal);}
+  .tl-empty{text-align:center;color:var(--slate-light);padding:40px 0;}
+
+  @media(max-width:900px){
+    .tl-item{grid-template-columns:44px 1fr;}
+    .tl-item .node{grid-column:1;justify-self:center;margin-top:22px;width:16px;height:16px;}
+    .tl-item .card,.tl-item.right .card{grid-column:2;justify-self:stretch;width:100%;}
+    .tl-list{gap:32px;}
+  }
+
+  /* ─── PANELS (how support works) ─── */
+  .panels{max-width:var(--max);margin:0 auto;padding:clamp(32px,5vw,56px) clamp(16px,4vw,48px) clamp(48px,7vw,88px);}
+  .panels h2{font-family:var(--serif);font-size:clamp(1.4rem,2.6vw,1.9rem);font-weight:600;color:#0b1f18;margin-bottom:6px;}
+  .panels .lead{color:var(--slate-light);margin-bottom:22px;max-width:60ch;}
+  .panel-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;}
+  .panel{background:var(--offwhite);border:1px solid var(--line);border-radius:12px;padding:20px 20px 22px;}
+  .panel h3{font-family:var(--serif);font-size:1.08rem;font-weight:600;color:#0b1f18;margin:8px 0 6px;}
+  .panel p{font-size:0.92rem;color:var(--slate);}
+
+  /* ─── DETAIL ─── */
+  .detail{max-width:var(--max);margin:0 auto;padding:24px clamp(16px,4vw,48px) clamp(48px,7vw,88px);}
+  .back{display:inline-flex;align-items:center;gap:6px;font-size:0.86rem;font-weight:600;color:var(--teal);text-decoration:none;margin:8px 0 20px;}
+  .detail .hero-img{border-radius:16px;overflow:hidden;background:var(--bone);max-height:560px;}
+  .detail .hero-img img{width:100%;height:100%;max-height:560px;object-fit:cover;display:block;}
+  .detail .hero-img.tile{aspect-ratio:16/7;display:flex;align-items:flex-end;padding:28px;background:linear-gradient(135deg,var(--teal-soft),var(--mint));}
+  .detail .hero-img.tile .big{font-family:var(--serif);font-size:clamp(2.4rem,6vw,4rem);line-height:1;color:var(--forest);}
+  .detail figcaption,.strip figcaption{font-size:0.8rem;color:var(--slate-light);margin-top:8px;}
+  .detail .text{max-width:68ch;margin:28px auto 0;}
+  .detail h1{font-family:var(--serif);font-size:clamp(1.7rem,3.6vw,2.5rem);font-weight:600;line-height:1.2;color:#0b1f18;margin:10px 0 18px;}
+  .detail .text p{font-size:1.04rem;line-height:1.8;margin-bottom:1.1em;}
+  .strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin:28px 0 8px;}
+  .strip figure{margin:0;}
+  .strip a{display:block;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:var(--bone);}
+  .strip img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .9s ease;}
+  .strip a:hover img{transform:scale(1.06);}
+  .pn{display:flex;justify-content:space-between;gap:12px;margin-top:36px;padding-top:20px;border-top:1px solid var(--line);}
+  .pn a{text-decoration:none;color:var(--forest);font-weight:600;font-size:0.9rem;max-width:48%;}
+  .pn a span{display:block;font-size:0.72rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--slate-muted);margin-bottom:2px;}
+  .pn a.next{text-align:right;margin-left:auto;}
+
+  footer{background:var(--forest);color:rgba(255,255,255,0.7);padding:24px clamp(16px,4vw,48px);font-size:0.8rem;text-align:center;}
+  [hidden]{display:none !important;}
+
+  @media(prefers-reduced-motion:reduce){
+    .card,.tl-item .node,.card .img img,.strip img{transition:none !important;}
+    .card{opacity:1;transform:none;}
+    html{scroll-behavior:auto;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="topbar-inner">
+  <a href="index.html" class="brand-mark">SACCI</a>
+  <div class="topbar-links">
+    <div class="lang" id="lang"><button data-lang="en" onclick="setLang('en')">English</button><button data-lang="hi" onclick="setLang('hi')">हिंदी</button></div>
+    <a href="portal.html" class="hide-sm" data-t="Public Dashboard">Public Dashboard</a>
+    <a href="portal-login.html" class="portal-link" data-t="Staff Portal">Staff Portal</a>
+  </div>
+</div></div>
+
+<header class="story-hero" id="storyHero">
+  <div class="inner">
+    <div class="hero-tag" data-t="Our Story">Our Story</div>
+    <h1 data-t="How SACCI came to be">How SACCI came to be</h1>
+    <p id="summary"></p>
+  </div>
+</header>
+
+<main>
+  <section class="tl" id="tl">
+    <svg class="spine" id="spine" aria-hidden="true"><path class="track" id="track" d=""/><path class="draw" id="draw" d=""/></svg>
+    <ol class="tl-list" id="list"></ol>
+  </section>
+
+  <section class="panels" id="panels" hidden>
+    <h2 data-t="How support works">How support works</h2>
+    <p class="lead" data-t="What happens for a family once a case is found.">What happens for a family once a case is found.</p>
+    <div class="panel-grid" id="panelGrid"></div>
+  </section>
+
+  <article class="detail" id="detail" hidden></article>
+</main>
+
+<footer><span data-t="Sita Anandam Cancer Care Initiative (SACCI) — A collaborative effort facilitated by GRAMA">Sita Anandam Cancer Care Initiative (SACCI) — A collaborative effort facilitated by GRAMA</span></footer>
+
+<script>
+// Reads the public story views only (story_public, story_files_public,
+// story_settings_public). The anon key is meant to be public: what it can
+// see is decided by Row Level Security and by which milestones staff have
+// marked public in the portal. Nothing private is reachable from here.
+var SUPABASE_URL='https://jsyzilcdozqajczpynnp.supabase.co';
+var SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzeXppbGNkb3pxYWpjenB5bm5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxODcyOTksImV4cCI6MjA5OTc2MzI5OX0.aa0_Lcw4OGhP59k-lor7wLuWCQsqR-H7wRbXGCX7qRo';
+var FILES=SUPABASE_URL+'/storage/v1/object/public/story-files/';
+
+var T_HI={
+  'Our Story':'हमारी कहानी','How SACCI came to be':'SACCI की शुरुआत कैसे हुई',
+  'Public Dashboard':'सार्वजनिक डैशबोर्ड','Staff Portal':'स्टाफ पोर्टल',
+  'How support works':'सहायता कैसे काम करती है','What happens for a family once a case is found.':'कोई मामला मिलने के बाद परिवार के लिए क्या होता है।',
+  'Back to the timeline':'टाइमलाइन पर वापस','Previous':'पिछला','Next':'अगला','Read more':'और पढ़ें','Photos':'फोटो',
+  'The story is being written. Please come back soon.':'कहानी लिखी जा रही है। कृपया जल्द ही फिर आएँ।',
+  'Sita Anandam Cancer Care Initiative (SACCI) — A collaborative effort facilitated by GRAMA':'सीता आनंदम कैंसर केयर इनिशिएटिव (SACCI) — GRAMA द्वारा संचालित एक सहयोगी प्रयास'
+};
+var CAT={origin:['Origin','शुरुआत'],partnership:['Partnership','साझेदारी'],camp:['Health Camp','स्वास्थ्य शिविर'],visit:['Visit','दौरा'],
+  program:['Program','कार्यक्रम'],system:['How it works','कैसे काम करता है'],milestone:['Milestone','मील का पत्थर'],event:['Event','घटना']};
+
+var lang='en';
+try{lang=localStorage.getItem('sacci_story_lang')==='hi'?'hi':'en';}catch(e){}
+function tr(s){return lang==='hi'&&T_HI[s]?T_HI[s]:s;}
+function pick(en,hi){return lang==='hi'&&hi?hi:(en||'');}
+function catLabel(c){var p=CAT[c]||[c,c];return lang==='hi'?p[1]:p[0];}
+function esc(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML;}
+function paras(text){return String(text||'').split(/\n\s*\n/).map(function(p){return '<p>'+esc(p.trim()).replace(/\n/g,'<br>')+'</p>';}).join('');}
+
+function setLang(l){
+  lang=l==='hi'?'hi':'en';
+  try{localStorage.setItem('sacci_story_lang',lang);}catch(e){}
+  document.documentElement.lang=lang;
+  document.querySelectorAll('#lang button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-lang')===lang);});
+  document.querySelectorAll('[data-t]').forEach(function(el){el.textContent=tr(el.getAttribute('data-t'));});
+  render();
+}
+
+var entries=[],filesByEntry={},summary={};
+
+async function api(path){
+  var r=await fetch(SUPABASE_URL+'/rest/v1/'+path,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+SUPABASE_ANON_KEY}});
+  if(!r.ok)throw new Error(path+' → '+r.status);
+  return r.json();
+}
+async function load(){
+  var got=await Promise.all([
+    api('story_public?select=*&order=sort_order.asc'),
+    api('story_files_public?select=*&order=sort_order.asc,name.asc'),
+    api('story_settings_public?select=*')
+  ]);
+  entries=got[0];filesByEntry={};
+  got[1].forEach(function(f){(filesByEntry[f.entry_id]=filesByEntry[f.entry_id]||[]).push(f);});
+  summary=got[2][0]||{};
+}
+function heroOf(e){
+  var fs=filesByEntry[e.id]||[];
+  if(e.hero_file_id){var h=fs.find(function(f){return f.id===e.hero_file_id;});if(h)return h;}
+  return fs[0]||null;
+}
+function yearOf(e){return e.event_date?e.event_date.slice(0,4):(String(e.date_label||'').match(/\d{4}/)||[''])[0];}
+function imgAttrs(f){return (f.width&&f.height)?' width="'+f.width+'" height="'+f.height+'"':'';}
+
+// ─── timeline ───
+function renderTimeline(){
+  var list=document.getElementById('list');
+  var events=entries.filter(function(e){return e.kind!=='panel';});
+  document.getElementById('summary').textContent=pick(summary.summary,summary.summary_hi);
+  if(!events.length){list.innerHTML='<li class="tl-empty">'+esc(tr('The story is being written. Please come back soon.'))+'</li>';drawSpine();return;}
+  list.innerHTML=events.map(function(e,i){
+    var h=heroOf(e);
+    var img=h?'<div class="img"><img src="'+FILES+esc(h.thumb_path||h.storage_path)+'" alt="'+esc(pick(h.caption,h.caption_hi)||pick(e.title,e.title_hi))+'" loading="lazy" decoding="async"'+imgAttrs(h)+'></div>'
+             :'<div class="img tile"><span class="big">'+esc(yearOf(e)||'·')+'</span></div>';
+    return '<li class="tl-item'+(i%2?' right':'')+'" data-slug="'+esc(e.slug)+'">'+
+      '<div class="node"></div>'+
+      '<a class="card" href="#'+esc(e.slug)+'">'+img+'<div class="body">'+
+        '<div class="meta"><span class="chip">'+esc(pick(e.date_label,null))+'</span><span class="cat">'+esc(catLabel(e.category))+'</span></div>'+
+        '<h3>'+esc(pick(e.title,e.title_hi))+'</h3>'+
+        (e.description?'<p>'+esc(pick(e.description,e.description_hi))+'</p>':'')+
+        '<span class="more">'+esc(tr('Read more'))+' →</span>'+
+      '</div></a></li>';
+  }).join('');
+  observeItems();
+  requestAnimationFrame(function(){drawSpine();setTimeout(drawSpine,600);});
+}
+var io=null;
+function observeItems(){
+  if(io)io.disconnect();
+  var reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var items=document.querySelectorAll('.tl-item');
+  if(reduced||!('IntersectionObserver' in window)){items.forEach(function(el){el.classList.add('in');});return;}
+  io=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target);}});},{threshold:0.18,rootMargin:'0px 0px -8% 0px'});
+  items.forEach(function(el){io.observe(el);});
+}
+// The spine is an SVG path through the node centres: a gentle S-curve on
+// desktop (cards alternate sides), a straight rail on phones. It "draws"
+// itself as the reader scrolls, via stroke-dashoffset.
+var pathLen=0;
+function drawSpine(){
+  var tl=document.getElementById('tl'),svg=document.getElementById('spine');
+  var nodes=document.querySelectorAll('.tl-item .node');
+  var tlr=tl.getBoundingClientRect();
+  svg.setAttribute('viewBox','0 0 '+tlr.width+' '+tlr.height);
+  if(nodes.length<1){document.getElementById('track').setAttribute('d','');document.getElementById('draw').setAttribute('d','');return;}
+  var pts=[];nodes.forEach(function(n){var r=n.getBoundingClientRect();pts.push([r.left-tlr.left+r.width/2,r.top-tlr.top+r.height/2]);});
+  var d='M'+pts[0][0]+' '+Math.max(0,pts[0][1]-40)+' L'+pts[0][0]+' '+pts[0][1];
+  for(var i=1;i<pts.length;i++){
+    var a=pts[i-1],b=pts[i],dy=(b[1]-a[1])/2;
+    d+=' C'+a[0]+' '+(a[1]+dy)+' '+b[0]+' '+(b[1]-dy)+' '+b[0]+' '+b[1];
+  }
+  var last=pts[pts.length-1];d+=' L'+last[0]+' '+(last[1]+40);
+  document.getElementById('track').setAttribute('d',d);
+  var draw=document.getElementById('draw');draw.setAttribute('d',d);
+  pathLen=draw.getTotalLength();
+  draw.style.strokeDasharray=pathLen;
+  progressSpine();
+}
+function progressSpine(){
+  var draw=document.getElementById('draw');if(!pathLen)return;
+  var tl=document.getElementById('tl').getBoundingClientRect();
+  var seen=(window.innerHeight*0.72-tl.top)/tl.height;
+  var p=Math.max(0,Math.min(1,seen));
+  draw.style.strokeDashoffset=pathLen*(1-p);
+}
+window.addEventListener('scroll',progressSpine,{passive:true});
+window.addEventListener('resize',function(){drawSpine();});
+
+// ─── panels ───
+function renderPanels(){
+  var ps=entries.filter(function(e){return e.kind==='panel';});
+  var sec=document.getElementById('panels');
+  sec.hidden=!ps.length;
+  document.getElementById('panelGrid').innerHTML=ps.map(function(e){
+    return '<div class="panel"><span class="cat">'+esc(catLabel(e.category))+'</span><h3>'+esc(pick(e.title,e.title_hi))+'</h3><p>'+esc(pick(e.description,e.description_hi))+'</p></div>';
+  }).join('');
+}
+
+// ─── detail (one milestone, at its own URL: story.html#slug) ───
+function renderDetail(slug){
+  var events=entries.filter(function(e){return e.kind!=='panel';});
+  var i=events.findIndex(function(e){return e.slug===slug;});
+  var art=document.getElementById('detail');
+  if(i<0){art.hidden=true;return false;}
+  var e=events[i],h=heroOf(e),fs=(filesByEntry[e.id]||[]).filter(function(f){return !h||f.id!==h.id;});
+  var prev=events[i-1],next=events[i+1];
+  var hero=h?'<figure><div class="hero-img"><img src="'+FILES+esc(h.storage_path)+'" alt="'+esc(pick(h.caption,h.caption_hi)||pick(e.title,e.title_hi))+'"'+imgAttrs(h)+'></div>'+(pick(h.caption,h.caption_hi)?'<figcaption>'+esc(pick(h.caption,h.caption_hi))+'</figcaption>':'')+'</figure>'
+             :'<div class="hero-img tile"><span class="big">'+esc(yearOf(e)||'·')+'</span></div>';
+  var text=pick(e.body,e.body_hi)||pick(e.description,e.description_hi);
+  art.innerHTML='<a class="back" href="#">← '+esc(tr('Back to the timeline'))+'</a>'+hero+
+    '<div class="text"><div class="meta"><span class="chip">'+esc(e.date_label)+'</span><span class="cat">'+esc(catLabel(e.category))+'</span></div>'+
+    '<h1>'+esc(pick(e.title,e.title_hi))+'</h1>'+paras(text)+
+    (fs.length?'<h2 class="cat" style="margin-top:24px">'+esc(tr('Photos'))+'</h2><div class="strip">'+fs.map(function(f){
+      return '<figure><a href="'+FILES+esc(f.storage_path)+'" target="_blank" rel="noopener"><img src="'+FILES+esc(f.thumb_path||f.storage_path)+'" alt="'+esc(pick(f.caption,f.caption_hi)||'')+'" loading="lazy" decoding="async"'+imgAttrs(f)+'></a>'+(pick(f.caption,f.caption_hi)?'<figcaption>'+esc(pick(f.caption,f.caption_hi))+'</figcaption>':'')+'</figure>';
+    }).join('')+'</div>':'')+
+    '<div class="pn">'+(prev?'<a href="#'+esc(prev.slug)+'"><span>'+esc(tr('Previous'))+'</span>'+esc(pick(prev.title,prev.title_hi))+'</a>':'')+
+    (next?'<a class="next" href="#'+esc(next.slug)+'"><span>'+esc(tr('Next'))+'</span>'+esc(pick(next.title,next.title_hi))+'</a>':'')+'</div></div>';
+  art.hidden=false;
+  document.title=pick(e.title,e.title_hi)+' — SACCI';
+  return true;
+}
+
+function render(){
+  var slug=decodeURIComponent((location.hash||'').replace(/^#/,''));
+  var showDetail=slug&&renderDetail(slug);
+  document.getElementById('tl').hidden=!!showDetail;
+  document.getElementById('storyHero').hidden=!!showDetail;
+  document.getElementById('panels').hidden=!!showDetail||!entries.some(function(e){return e.kind==='panel';});
+  if(!showDetail){document.getElementById('detail').hidden=true;document.title=tr('Our Story')+' — SACCI';renderTimeline();renderPanels();}
+  window.scrollTo({top:0,behavior:'auto'});
+}
+window.addEventListener('hashchange',render);
+
+(async function(){
+  document.documentElement.lang=lang;
+  document.querySelectorAll('#lang button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-lang')===lang);});
+  document.querySelectorAll('[data-t]').forEach(function(el){el.textContent=tr(el.getAttribute('data-t'));});
+  try{await load();}catch(err){console.error(err);}
+  render();
+})();
+</script>
+</body>
+</html>

@@ -360,7 +360,7 @@
 
 <!-- ═══ PUBLIC DASHBOARD ═══ -->
 <div class="page" id="page-public">
-  <div class="topbar"><h1 data-i18n="Public Dashboard">Public Dashboard</h1><div class="topbar-actions" style="align-items:center;flex-wrap:wrap"><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div><a class="btn btn-primary" href="portal-login.html" id="publicLoginBtn" style="display:none" data-i18n="Staff Login">Staff Login</a></div></div>
+  <div class="topbar"><h1 data-i18n="Public Dashboard">Public Dashboard</h1><div class="topbar-actions" style="align-items:center;flex-wrap:wrap"><div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div><a class="btn btn-secondary" href="story.html" data-i18n="📖 Our Story">📖 Our Story</a><a class="btn btn-primary" href="portal-login.html" id="publicLoginBtn" style="display:none" data-i18n="Staff Login">Staff Login</a></div></div>
   <div class="public-banner"><p>📊 <span data-i18n="This is an anonymised view of the Sita Anandam Cancer Care Initiative's impact. Patient identities and personal details are not shown.">This is an anonymised view of the Sita Anandam Cancer Care Initiative's impact. Patient identities and personal details are not shown.</span></p></div>
   <div class="stats-row">
     <div class="stat-box"><div class="stat-box-number" id="pub-total">0</div><div class="stat-box-label" data-i18n="Patients Supported">Patients Supported</div></div>
@@ -564,12 +564,25 @@
     <div class="fg"><label data-i18n="Description">Description</label><textarea id="storyEntryDesc" placeholder="What happened..."></textarea></div>
     <div class="fg"><label>शीर्षक (हिंदी, optional)</label><input type="text" id="storyEntryTitleHiInput" placeholder="जैसे: पहला स्वास्थ्य शिविर - रत्नौली"></div>
     <div class="fg"><label>विवरण (हिंदी, optional — leave blank to fall back to English)</label><textarea id="storyEntryDescHi" placeholder="क्या हुआ..."></textarea></div>
+    <!-- Public timeline (sacci.net/story.html), 2026-09-29: a milestone is
+         only visible outside the portal once it is ticked public here. -->
+    <div class="form-row">
+      <div class="fg"><label data-i18n="Public site">Public site</label><label style="display:flex;gap:8px;align-items:center;font-weight:400;text-transform:none;letter-spacing:0"><input type="checkbox" id="storyEntryPublic" style="width:auto"> <span data-i18n="Show on sacci.net/story.html">Show on sacci.net/story.html</span></label></div>
+      <div class="fg"><label data-i18n="Shown as">Shown as</label><select id="storyEntryKind"><option value="event" data-i18n="Event on the timeline">Event on the timeline</option><option value="panel" data-i18n="Panel under “How support works”">Panel under “How support works”</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label data-i18n="Web address (slug)">Web address (slug)</label><input type="text" id="storyEntrySlug" placeholder="first-health-camp-ratnauli"></div>
+      <div class="fg"><label data-i18n="Linked log entry (optional)">Linked log entry (optional)</label><select id="storyEntryLog"><option value="">—</option></select></div>
+    </div>
+    <div class="fg"><label data-i18n="Full story (the milestone’s own page)">Full story (the milestone’s own page)</label><textarea id="storyEntryBody" style="min-height:130px" placeholder="A few paragraphs. Blank lines separate paragraphs. Leave empty to show the description."></textarea></div>
+    <div class="fg"><label>पूरी कहानी (हिंदी, optional) <span class="link" onclick="storyTranslateBlanks()" style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:8px">🤖 <span data-i18n="Fill blank Hindi fields">Fill blank Hindi fields</span></span></label><textarea id="storyEntryBodyHi" style="min-height:130px"></textarea></div>
     <div class="fg" id="storyEntryFilesSection" style="display:none">
       <label data-i18n="Photos">Photos</label>
       <div class="file-area" onclick="document.getElementById('storyEntryFileInput').click()">
         <input type="file" id="storyEntryFileInput" accept="image/*" multiple onchange="handleStoryEntryFiles(this)">
         <p><strong data-i18n="Click to upload">Click to upload</strong> <span data-i18n="photos for this milestone">photos for this milestone</span></p>
       </div>
+      <p style="font-size:0.78rem;color:var(--ink-muted);margin-top:6px"><span class="link" onclick="storyCopyLogPhotos()">📷 <span data-i18n="Copy the linked log entry’s public photos here">Copy the linked log entry’s public photos here</span></span> · <span data-i18n="Tick a photo to show it publicly; choose one as the cover.">Tick a photo to show it publicly; choose one as the cover.</span></p>
       <div class="file-list" id="storyEntryFileList"></div>
     </div>
     <p id="storyEntrySaveFirstNote" style="font-size:0.78rem;color:var(--ink-muted)" data-i18n="Save the milestone first, then you can add photos here.">Save the milestone first, then you can add photos here.</p>
@@ -617,6 +630,14 @@ var T_HI={
   'Active Cases':'सक्रिय मामले','All Patients':'सभी मरीज़','All Patients — Detailed View':'सभी मरीज़ — विस्तृत दृश्य',
   'Finances':'वित्त','Quick Update':'त्वरित अपडेट','WhatsApp Import':'व्हाट्सएप इम्पोर्ट','Our Story':'हमारी कहानी',
   'Public View':'सार्वजनिक दृश्य','Public Dashboard':'सार्वजनिक डैशबोर्ड','Logout':'लॉगआउट','Staff Login':'स्टाफ लॉगिन','Menu':'मेन्यू',
+  'Public site':'सार्वजनिक साइट','Show on sacci.net/story.html':'sacci.net/story.html पर दिखाएँ','Shown as':'इस रूप में दिखाएँ',
+  'Event on the timeline':'टाइमलाइन पर घटना','Panel under “How support works”':'“सहायता कैसे काम करती है” के नीचे पैनल',
+  'Web address (slug)':'वेब पता (slug)','Linked log entry (optional)':'जुड़ी हुई लॉग प्रविष्टि (वैकल्पिक)',
+  'Full story (the milestone’s own page)':'पूरी कहानी (मील के पत्थर का अपना पृष्ठ)','Fill blank Hindi fields':'खाली हिंदी फ़ील्ड भरें',
+  'Copy the linked log entry’s public photos here':'जुड़ी लॉग प्रविष्टि की सार्वजनिक फोटो यहाँ कॉपी करें',
+  'Tick a photo to show it publicly; choose one as the cover.':'सार्वजनिक दिखाने के लिए फोटो पर टिक करें; एक को कवर चुनें।',
+  'Caption (optional)':'कैप्शन (वैकल्पिक)','Public':'सार्वजनिक','Cover photo':'कवर फोटो','Milestone':'मील का पत्थर',
+  'Turn this entry into a milestone on Our Story':'इस प्रविष्टि को हमारी कहानी में मील का पत्थर बनाएँ',
   'Full Access':'पूर्ण पहुंच','Advisor (Read-Only)':'सलाहकार (केवल पढ़ने के लिए)','Public':'सार्वजनिक',
   '+ Add Patient':'+ मरीज़ जोड़ें','+ Add Log Entry':'+ लॉग एंट्री जोड़ें','Export CSV':'CSV निर्यात करें',
   '+ Log Payment':'+ भुगतान दर्ज करें','🤖 Parse Updates':'🤖 अपडेट्स समझें','🤖 Read & Propose Entries':'🤖 पढ़ें और एंट्री सुझाएं',
@@ -1463,21 +1484,37 @@ async function saveStoryIntro(){
   await loadStory();
   renderStoryDetail();
 }
-async function openStoryEntry(id){
+function storySlugify(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');}
+// The linked-log dropdown lists organisation-level entries (not patient
+// updates), newest first — a camp or induction becomes a milestone here.
+function storyFillLogSelect(selectedId){
+  var sel=document.getElementById('storyEntryLog');
+  var opts=logs.filter(function(l){return !l.patient_id;}).slice().sort(function(a,b){return new Date(b.occurred_on)-new Date(a.occurred_on);});
+  sel.innerHTML='<option value="">—</option>'+opts.map(function(l){var t=logTypeById(l.log_type_id);return '<option value="'+l.id+'">'+esc(fmtDate(l.occurred_on)+' · '+(t?t.emoji+' ':'')+(l.title||(t?t.name:'Log')).slice(0,60))+'</option>';}).join('');
+  sel.value=selectedId||'';
+}
+async function openStoryEntry(id,preset){
   var e=id?storyEntries.find(function(x){return x.id===id;}):null;
+  var p=preset||{};
   document.getElementById('storyEntryTitle').textContent=e?tr('Edit Milestone'):tr('Add Milestone');
   document.getElementById('storyEntryId').value=e?e.id:'';
-  document.getElementById('storyEntryDateLabel').value=e?e.date_label:'';
-  document.getElementById('storyEntryDate').value=e&&e.event_date?e.event_date:'';
-  document.getElementById('storyEntryCategory').value=e?e.category:'milestone';
-  document.getElementById('storyEntryTitleInput').value=e?e.title:'';
-  document.getElementById('storyEntryDesc').value=e?(e.description||''):'';
+  document.getElementById('storyEntryDateLabel').value=e?e.date_label:(p.date_label||'');
+  document.getElementById('storyEntryDate').value=e&&e.event_date?e.event_date:(p.event_date||'');
+  document.getElementById('storyEntryCategory').value=e?e.category:(p.category||'milestone');
+  document.getElementById('storyEntryTitleInput').value=e?e.title:(p.title||'');
+  document.getElementById('storyEntryDesc').value=e?(e.description||''):(p.description||'');
   document.getElementById('storyEntryTitleHiInput').value=e?(e.title_hi||''):'';
   document.getElementById('storyEntryDescHi').value=e?(e.description_hi||''):'';
+  document.getElementById('storyEntryPublic').checked=!!(e&&e.is_public);
+  document.getElementById('storyEntryKind').value=e?(e.kind||'event'):'event';
+  document.getElementById('storyEntrySlug').value=e?(e.slug||storySlugify(e.title)):storySlugify(p.title||'');
+  storyFillLogSelect(e?e.log_id:(p.log_id||''));
+  document.getElementById('storyEntryBody').value=e?(e.body||''):'';
+  document.getElementById('storyEntryBodyHi').value=e?(e.body_hi||''):'';
   document.getElementById('storyEntryFilesSection').style.display=e?'':'none';
   document.getElementById('storyEntrySaveFirstNote').style.display=e?'none':'';
   storyEntryFiles=[];
-  if(e){var f=await sb.from('story_entry_files').select('*').eq('entry_id',e.id);storyEntryFiles=f.data||[];}
+  if(e){var f=await sb.from('story_entry_files').select('*').eq('entry_id',e.id).order('sort_order').order('name');storyEntryFiles=f.data||[];}
   renderStoryEntryFiles();
   document.getElementById('storyEntryModal').classList.add('show');
 }
@@ -1487,11 +1524,17 @@ async function saveStoryEntry(){
   var dateLabel=document.getElementById('storyEntryDateLabel').value.trim();
   var title=document.getElementById('storyEntryTitleInput').value.trim();
   if(!dateLabel||!title){alert('Date label and title are required');return;}
+  var slug=storySlugify(document.getElementById('storyEntrySlug').value)||storySlugify(title);
   var row={date_label:dateLabel,event_date:document.getElementById('storyEntryDate').value||null,
     category:document.getElementById('storyEntryCategory').value,title:title,
     description:document.getElementById('storyEntryDesc').value.trim()||null,
     title_hi:document.getElementById('storyEntryTitleHiInput').value.trim()||null,
-    description_hi:document.getElementById('storyEntryDescHi').value.trim()||null,updated_by:UNAME};
+    description_hi:document.getElementById('storyEntryDescHi').value.trim()||null,
+    is_public:document.getElementById('storyEntryPublic').checked,
+    kind:document.getElementById('storyEntryKind').value,slug:slug,
+    log_id:document.getElementById('storyEntryLog').value||null,
+    body:document.getElementById('storyEntryBody').value.trim()||null,
+    body_hi:document.getElementById('storyEntryBodyHi').value.trim()||null,updated_by:UNAME};
   if(id){
     var resp=await sb.from('story_entries').update(row).eq('id',id);
     if(resp.error){alert('Could not save: '+resp.error.message);return;}
@@ -1504,38 +1547,129 @@ async function saveStoryEntry(){
     document.getElementById('storyEntryFilesSection').style.display='';
     document.getElementById('storyEntrySaveFirstNote').style.display='none';
   }
+  document.getElementById('storyEntrySlug').value=slug;
   await loadStory();
   renderStorySummary();
 }
+// Fills whichever Hindi fields are blank from the English, through the same
+// translate-text function the portal uses for on-the-fly display — but here
+// the result is stored with the milestone, so the public page needs no call.
+async function storyTranslateBlanks(){
+  var pairs=[['storyEntryTitleInput','storyEntryTitleHiInput'],['storyEntryDesc','storyEntryDescHi'],['storyEntryBody','storyEntryBodyHi']];
+  var todo=pairs.filter(function(p){return document.getElementById(p[0]).value.trim()&&!document.getElementById(p[1]).value.trim();});
+  if(!todo.length){alert('Every Hindi field already has text.');return;}
+  var texts=todo.map(function(p){return document.getElementById(p[0]).value.trim();});
+  var resp=await sb.functions.invoke('translate-text',{body:{texts:texts}});
+  if(resp.error||!resp.data){alert('Translation failed: '+(resp.error&&resp.error.message||'no response'));return;}
+  var out=resp.data.translations||resp.data;
+  todo.forEach(function(p,i){var hi=Array.isArray(out)?out[i]:out[texts[i]];if(hi)document.getElementById(p[1]).value=hi;});
+}
+function storyFileUrl(path){return sb.storage.from('story-files').getPublicUrl(path).data.publicUrl;}
 function renderStoryEntryFiles(){
   var c=document.getElementById('storyEntryFileList');
-  c.innerHTML=storyEntryFiles.map(function(f,i){return '<div class="file-item">'+esc(f.name)+'<button onclick="removeStoryEntryFile('+i+')">&times;</button></div>';}).join('');
+  var e=storyEntries.find(function(x){return x.id===document.getElementById('storyEntryId').value;});
+  var heroId=e?e.hero_file_id:null;
+  c.innerHTML=storyEntryFiles.map(function(f,i){
+    return '<div class="file-item" style="display:grid;grid-template-columns:64px 1fr auto;gap:10px;align-items:center;padding:8px 0">'+
+      '<img src="'+esc(storyFileUrl(f.thumb_path||f.storage_path))+'" style="width:64px;height:48px;object-fit:cover;border-radius:4px" loading="lazy">'+
+      '<div style="min-width:0"><input type="text" value="'+esc(f.caption||'')+'" placeholder="'+esc(tr('Caption (optional)'))+'" onchange="storyFileField('+i+',\'caption\',this.value)" style="width:100%;font-size:0.8rem;padding:4px 6px;margin-bottom:4px">'+
+      '<label style="font-size:0.76rem;margin-right:12px;text-transform:none;letter-spacing:0;display:inline-flex;gap:4px;align-items:center"><input type="checkbox" style="width:auto"'+(f.is_public?' checked':'')+' onchange="storyFileField('+i+',\'is_public\',this.checked)"> '+esc(tr('Public'))+'</label>'+
+      '<label style="font-size:0.76rem;text-transform:none;letter-spacing:0;display:inline-flex;gap:4px;align-items:center"><input type="radio" name="storyHero" style="width:auto"'+(f.id===heroId?' checked':'')+' onchange="storySetHero(\''+f.id+'\')"> '+esc(tr('Cover photo'))+'</label></div>'+
+      '<button onclick="removeStoryEntryFile('+i+')" title="'+esc(tr('Delete'))+'">&times;</button></div>';
+  }).join('');
+}
+async function storyFileField(idx,field,value){
+  var f=storyEntryFiles[idx];if(!f)return;
+  var patch={};patch[field]=field==='caption'?(String(value).trim()||null):value;
+  var resp=await sb.from('story_entry_files').update(patch).eq('id',f.id);
+  if(resp.error){alert('Could not save: '+resp.error.message);return;}
+  f[field]=patch[field];
+}
+async function storySetHero(fileId){
+  var id=document.getElementById('storyEntryId').value;if(!id)return;
+  var resp=await sb.from('story_entries').update({hero_file_id:fileId,updated_by:UNAME}).eq('id',id);
+  if(resp.error){alert('Could not save: '+resp.error.message);return;}
+  await loadStory();
+}
+// Browser-side resize: this Supabase plan has no image transformation, and
+// a phone photo is 3–5 MB. Stores a ≤1600px JPEG plus a 640px thumbnail.
+function storyResize(fileOrBlob,maxSide,quality){
+  return new Promise(function(resolve,reject){
+    var img=new Image();var url=URL.createObjectURL(fileOrBlob);
+    img.onload=function(){
+      var s=Math.min(1,maxSide/Math.max(img.naturalWidth,img.naturalHeight));
+      var w=Math.round(img.naturalWidth*s),h=Math.round(img.naturalHeight*s);
+      var cv=document.createElement('canvas');cv.width=w;cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(url);
+      cv.toBlob(function(b){b?resolve({blob:b,width:w,height:h}):reject(new Error('resize failed'));},'image/jpeg',quality);
+    };
+    img.onerror=function(){URL.revokeObjectURL(url);reject(new Error('not an image'));};
+    img.src=url;
+  });
+}
+async function storyStorePhoto(entryId,blobLike,name,extra){
+  var full=await storyResize(blobLike,1600,0.84),th=await storyResize(blobLike,640,0.78);
+  var base=entryId+'/'+Date.now()+'_'+name.replace(/\.[a-z0-9]+$/i,'').replace(/[^a-z0-9_-]+/gi,'-').toLowerCase();
+  var up=await sb.storage.from('story-files').upload(base+'.jpg',full.blob,{contentType:'image/jpeg'});
+  if(up.error)throw new Error(up.error.message);
+  var up2=await sb.storage.from('story-files').upload(base+'.thumb.jpg',th.blob,{contentType:'image/jpeg'});
+  if(up2.error)throw new Error(up2.error.message);
+  var row=Object.assign({entry_id:entryId,name:name,storage_path:base+'.jpg',thumb_path:base+'.thumb.jpg',width:full.width,height:full.height,
+    is_public:false,sort_order:storyEntryFiles.length+1,uploaded_by:UNAME},extra||{});
+  var ins=await sb.from('story_entry_files').insert(row).select().single();
+  if(ins.error)throw new Error(ins.error.message);
+  return ins.data;
 }
 async function handleStoryEntryFiles(input){
   var id=document.getElementById('storyEntryId').value;
   if(!id)return;
   var files=Array.from(input.files);
   for(var i=0;i<files.length;i++){
-    var f=files[i];
-    if(f.size>4*1024*1024){alert('Too large: '+f.name);continue;}
-    var path=id+'/'+Date.now()+'_'+f.name;
-    var up=await sb.storage.from('story-files').upload(path,f);
-    if(up.error){alert('Upload failed for '+f.name+': '+up.error.message);continue;}
-    var ins=await sb.from('story_entry_files').insert({entry_id:id,name:f.name,storage_path:path,uploaded_by:UNAME}).select().single();
-    if(ins.error){alert('Could not record '+f.name+': '+ins.error.message);continue;}
-    storyEntryFiles.push(ins.data);
+    try{storyEntryFiles.push(await storyStorePhoto(id,files[i],files[i].name));}
+    catch(err){alert('Could not add '+files[i].name+': '+err.message);}
   }
   renderStoryEntryFiles();
   input.value='';
   renderStorySummary();
 }
+// Photos already on the linked log entry (a camp imported from WhatsApp, say)
+// are copied into the milestone's own set, resized, unticked until reviewed.
+async function storyCopyLogPhotos(){
+  var id=document.getElementById('storyEntryId').value;var logId=document.getElementById('storyEntryLog').value;
+  if(!id)return;
+  if(!logId){alert('Choose a linked log entry first.');return;}
+  var lf=await sb.from('log_files').select('*').eq('log_id',logId).eq('is_public',true);
+  if(lf.error){alert(lf.error.message);return;}
+  if(!(lf.data||[]).length){alert('That log entry has no public photos.');return;}
+  var have={};storyEntryFiles.forEach(function(f){have[f.name]=true;});
+  var n=0;
+  for(var i=0;i<lf.data.length;i++){
+    var f=lf.data[i];if(have[f.name])continue;
+    try{
+      var r=await fetch(sb.storage.from('log-files').getPublicUrl(f.storage_path).data.publicUrl);
+      storyEntryFiles.push(await storyStorePhoto(id,await r.blob(),f.name));n++;
+    }catch(err){console.error(err);}
+  }
+  renderStoryEntryFiles();
+  alert(n+' photo(s) copied. Tick the ones to show publicly and pick a cover.');
+}
 async function removeStoryEntryFile(idx){
   var f=storyEntryFiles[idx];if(!f)return;
-  await sb.storage.from('story-files').remove([f.storage_path]);
+  await sb.storage.from('story-files').remove([f.storage_path].concat(f.thumb_path?[f.thumb_path]:[]));
   await sb.from('story_entry_files').delete().eq('id',f.id);
   storyEntryFiles.splice(idx,1);
   renderStoryEntryFiles();
   renderStorySummary();
+}
+// "Make a milestone" from a log row: pre-fills the modal from the entry and
+// links it, so the date, title and photos come from one place.
+function storyFromLog(logId){
+  var l=logs.find(function(x){return x.id===logId;});if(!l)return;
+  var t=logTypeById(l.log_type_id);var tn=t?t.name:'';
+  var cat=tn==='Health Camp'?'camp':tn==='Cancer Saathi Joined'?'program':tn==='Meeting'?'visit':tn==='Milestone'?'milestone':'milestone';
+  navTo('story',document.getElementById('nav-story'));
+  openStoryEntry(null,{title:l.title||tn,description:(l.description||'').slice(0,400),event_date:l.occurred_on,date_label:fmtDate(l.occurred_on),category:cat,log_id:l.id});
 }
 function openStoryUpdate(id){
   document.getElementById('storyUpdateEntryId').value=id;
@@ -1642,7 +1776,7 @@ async function renderActivities(){
       // original one click away. Never crosses to the public views.
       var srcToggle=a.source_text?'<br><span class="link" style="font-size:0.8rem" onclick="toggleLogSource(\''+a.id+'\')">💬 Original messages</span>':'';
       h+='<tr><td>'+fmtDate(a.occurred_on)+'</td><td>'+typeLabel+'</td><td>'+titleLine+patientTag+esc(descShort)+srcToggle+'</td><td>'+esc(a.participants||'—')+'</td><td>';
-      if(ROLE==='staff')h+='<span class="link" onclick="editActivity(\''+a.id+'\')">'+tr('Edit')+'</span> · <span class="link" onclick="deleteActivity(\''+a.id+'\')">'+tr('Delete')+'</span>';
+      if(ROLE==='staff')h+='<span class="link" onclick="editActivity(\''+a.id+'\')">'+tr('Edit')+'</span> · <span class="link" onclick="deleteActivity(\''+a.id+'\')">'+tr('Delete')+'</span>'+(a.patient_id?'':' · <span class="link" onclick="storyFromLog(\''+a.id+'\')" title="'+esc(tr('Turn this entry into a milestone on Our Story'))+'">📖 '+tr('Milestone')+'</span>');
       else h+='—';
       h+='</td></tr>';
       if(a.source_text)h+='<tr id="src-'+a.id+'" style="display:none"><td colspan="5" style="background:rgba(0,0,0,0.03)"><div style="white-space:pre-wrap;font-size:0.82rem;color:var(--ink-muted);padding:4px 8px">'+esc(a.source_text)+'</div></td></tr>';
