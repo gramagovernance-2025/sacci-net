@@ -164,9 +164,10 @@ Deno.serve(async (req) => {
         "e.g. \"Dr. Vidyasagar & Dr. Ravikant meeting\"), activity_participants (who was involved, by their " +
         "real names), and activity_description — same keep-every-detail, don't-sanitize principle as " +
         "visit_notes above (in plain English), this is storytelling material too. quantity is how many people " +
-        "or things the entry represents, as a plain number string — \"3\" when three saathis are inducted at " +
-        "once — and empty when it is a single event or person (read as 1). Leave quantity empty on " +
-        "patient_update segments.",
+        "JOIN or are inducted in this segment, as a plain number string — \"3\" when three saathis are inducted " +
+        "at once — and empty otherwise (read as 1). It is never the number of people screened, treated or " +
+        "attending: a Health Camp, Meeting or Training is one event, so leave quantity empty and put the " +
+        "attendance in the description. Leave quantity empty on patient_update segments.",
       messages: [
         { role: "user", content: `Free-text note:\n${text}` },
       ],

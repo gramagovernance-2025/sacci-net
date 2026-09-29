@@ -719,3 +719,21 @@ create or replace view story_settings_public with (security_invoker = false) as
 grant select on story_public to anon, authenticated;
 grant select on story_files_public to anon, authenticated;
 grant select on story_settings_public to anon, authenticated;
+
+
+-- ─── TILES COUNT EVENTS, NOT ATTENDEES (2026-09-29) ───────────
+-- quantity was added so a "3 saathis inducted" row counts as 3 people. The
+-- parser also fills it for camps with the number screened, which made the
+-- public "Camps Held" tile read 143. Only types flagged count_people sum
+-- quantity; every other type counts one per entry.
+alter table log_types add column if not exists count_people boolean not null default false;
+update log_types set count_people = true where name = 'Cancer Saathi Joined';
+create or replace view log_tiles_public with (security_invoker = false) as
+  select t.name, t.emoji, coalesce(t.tile_label, t.name) as tile_label, t.sort_order,
+         coalesce(sum(case when t.count_people then l.quantity else 1 end) filter (where l.is_public), 0) as n_public
+  from log_types t
+  left join logs l on l.log_type_id = t.id
+  where t.show_public_tile and t.active
+  group by t.id;
+update logs set quantity = 1
+  where log_type_id in (select id from log_types where name = 'Health Camp') and quantity <> 1;

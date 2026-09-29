@@ -787,7 +787,15 @@ var editingId=null;
 var isExistingPatient=false;
 
 function esc(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
-function fmtDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});}
+// A bare YYYY-MM-DD is parsed by the browser as UTC midnight, which shows as
+// the previous day anywhere west of India (Sharan in the US saw 14 Aug as
+// 13 Aug). Build date-only values as local dates instead.
+function fmtDate(d){
+  if(!d)return'—';
+  var m=typeof d==='string'?/^(\d{4})-(\d{2})-(\d{2})$/.exec(d):null;
+  var dt=m?new Date(+m[1],+m[2]-1,+m[3]):new Date(d);
+  return dt.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+}
 function dueStatus(d){if(!d)return{t:'—',c:''};var diff=Math.floor((new Date(d)-new Date(new Date().toDateString()))/864e5);if(diff<0)return{t:'Overdue ('+Math.abs(diff)+'d)',c:'due-over'};if(diff<=3)return{t:'In '+diff+'d',c:'due-soon'};return{t:fmtDate(d),c:'due-ok'};}
 function statusCls(s){return{'Screening':'b-screening','Under Investigation':'b-screening','Treatment':'b-treatment','Admitted':'b-treatment','On Medication':'b-active','Follow-up':'b-followup','Completed':'b-completed','Case Closed':'b-closed'}[s]||'b-screening';}
 function lastVisit(p){

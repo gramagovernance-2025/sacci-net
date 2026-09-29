@@ -175,9 +175,10 @@ Deno.serve(async (req) => {
         "For every other log_type: leave all patient fields empty. Fill title (a short label, e.g. \"Health camp " +
         "in Motipur panchayat\"), participants (who was involved, by their real names), and description — same " +
         "keep-every-detail, don't-sanitize principle as visit_notes, in plain English. quantity is how many " +
-        "people or things the entry represents, as a plain number string — \"3\" when three saathis join at " +
-        "once — and empty when it is a single event or person (read as 1). Leave quantity empty on Patient " +
-        "Update entries.",
+        "people JOIN or are inducted in this entry, as a plain number string — \"3\" when three saathis join at " +
+        "once — and empty otherwise (read as 1). It is never the number of people screened, treated or " +
+        "attending: a Health Camp, Meeting or Training is one event, so leave quantity empty and put the " +
+        "attendance in the description. Leave quantity empty on Patient Update entries.",
       messages: [
         { role: "user", content: `WhatsApp messages:\n${messagesText}` },
       ],
