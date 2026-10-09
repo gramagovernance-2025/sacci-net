@@ -276,15 +276,9 @@
       <div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div>
     </div>
   </div>
-  <div class="stats-row">
-    <div class="stat-box"><div class="stat-box-number" id="f-total">₹0</div><div class="stat-box-label" data-i18n="Total Disbursed">Total Disbursed</div></div>
-    <div class="stat-box"><div class="stat-box-number" id="f-travel">₹0</div><div class="stat-box-label" data-i18n="Travel">Travel</div></div>
-    <div class="stat-box"><div class="stat-box-number" id="f-treatment">₹0</div><div class="stat-box-label" data-i18n="Treatment">Treatment</div></div>
-    <div class="stat-box"><div class="stat-box-number" id="f-other">₹0</div><div class="stat-box-label" data-i18n="Screening / Medicine / Other">Screening / Medicine / Other</div></div>
-  </div>
   <div class="card">
     <div class="card-header"><h2 data-i18n="Payments by Patient">Payments by Patient</h2></div>
-    <div style="overflow-x:auto"><table><thead><tr><th data-i18n="ID">ID</th><th data-i18n="Patient">Patient</th><th data-i18n="Advance Given">Advance Given</th></tr></thead><tbody id="balanceBody"></tbody></table></div>
+    <div style="overflow-x:auto"><table><thead><tr><th data-i18n="ID">ID</th><th data-i18n="Patient">Patient</th><th data-i18n="Total Spent">Total Spent</th></tr></thead><tbody id="balanceBody"></tbody></table></div>
   </div>
   <div class="card">
     <div class="card-header"><h2 data-i18n="All Payments">All Payments</h2><input type="text" class="search-input" placeholder="Search by patient..." data-i18n-ph="Search by patient..." oninput="renderFinances(this.value)"></div>
@@ -644,14 +638,14 @@ var T_HI={
   'Paste the group chat export':'ग्रुप चैट एक्सपोर्ट पेस्ट करें',
   'Activity — Camps, Saathis & More':'गतिविधि — शिविर, साथी और अधिक','Patient Overview (Anonymised)':'मरीज़ का विवरण (गुमनाम)',
   'Total Patients':'कुल मरीज़','Active Treatment':'सक्रिय इलाज','In Screening':'जांच में','Actions Due':'लंबित कार्य',
-  'Total Disbursed':'कुल वितरित राशि','Travel':'यात्रा','Treatment':'इलाज','Screening / Medicine / Other':'जांच / दवा / अन्य',
+  'Travel':'यात्रा','Treatment':'इलाज',
   'Patients Supported':'सहायता प्राप्त मरीज़','Currently in Treatment':'वर्तमान में इलाजरत',
   'Under Screening':'जांच के अंतर्गत','Treatment Completed':'इलाज पूर्ण',
   'ID':'आईडी','Name':'नाम','Age/Gender':'उम्र/लिंग','Age':'उम्र','Gender':'लिंग','Diagnosis':'निदान','Status':'स्थिति',
   'Last Visit':'पिछली विज़िट','Visit #':'विज़िट संख्या','Next Due':'अगली देय तारीख','Date':'तारीख','Type':'प्रकार',
   'Title / Description':'शीर्षक / विवरण','Participants':'प्रतिभागी','Actions':'कार्रवाई','Village':'गांव','Block':'ब्लॉक',
   'Admitted':'भर्ती','Next Visit':'अगली विज़िट','Due Test':'देय जांच','Due Medicine':'देय दवा','Patient':'मरीज़',
-  'Payments by Patient':'मरीज़ के अनुसार भुगतान','Advance Given':'अग्रिम दी गई','Amount':'राशि',
+  'Payments by Patient':'मरीज़ के अनुसार भुगतान','Total Spent':'कुल खर्च','Amount':'राशि',
   'Purpose':'उद्देश्य','Notes':'टिप्पणी','Recorded By':'दर्ज किया गया','Visits':'विज़िट',
   'View':'देखें','Edit':'संपादित करें','Update':'अपडेट करें','Delete':'हटाएं','Close Case':'केस बंद करें',
   'Screening':'जांच','Under Investigation':'जांच के अंतर्गत','On Medication':'दवा पर','Follow-up':'फॉलो-अप',
@@ -1180,15 +1174,6 @@ async function renderPublic(){
 function renderFinances(q){
   var list=transactions;
   if(q){var f=q.toLowerCase();list=list.filter(function(t){return patientName(t.patient_id).toLowerCase().indexOf(f)>=0||patientCode(t.patient_id).toLowerCase().indexOf(f)>=0;});}
-  var sum=function(arr){return arr.reduce(function(s,t){return s+Number(t.amount);},0);};
-  var total=sum(transactions);
-  var travel=sum(transactions.filter(function(t){return t.purpose==='Travel';}));
-  var treatment=sum(transactions.filter(function(t){return t.purpose==='Treatment';}));
-  var other=total-travel-treatment;
-  document.getElementById('f-total').textContent='₹'+total.toLocaleString('en-IN');
-  document.getElementById('f-travel').textContent='₹'+travel.toLocaleString('en-IN');
-  document.getElementById('f-treatment').textContent='₹'+treatment.toLocaleString('en-IN');
-  document.getElementById('f-other').textContent='₹'+other.toLocaleString('en-IN');
   renderPatientBalances();
 
   var tbody=document.getElementById('txnBody');
