@@ -204,6 +204,7 @@
   <ul class="sidebar-nav" id="sidebarNav">
     <li><a href="#" class="active" data-page="dashboard" onclick="navTo('dashboard',this)">📊 Active Cases</a></li>
     <li><a href="#" data-page="patients" onclick="navTo('patients',this)">👥 All Patients</a></li>
+    <li><a href="#" data-page="sathis" onclick="navTo('sathis',this)" id="nav-sathis">🤝 Cancer Sathis</a></li>
     <li><a href="#" data-page="finances" onclick="navTo('finances',this)" id="nav-finances">💰 Finances</a></li>
     <li><a href="#" data-page="quickupdate" onclick="navTo('quickupdate',this)" id="nav-quickupdate">📝 Quick Update</a></li>
     <li><a href="#" data-page="whatsapp" onclick="navTo('whatsapp',this)" id="nav-whatsapp">💬 WhatsApp Import</a></li>
@@ -263,6 +264,22 @@
     <div style="overflow-x:auto"><table><thead><tr>
       <th data-i18n="ID">ID</th><th data-i18n="Name">Name</th><th data-i18n="Age">Age</th><th data-i18n="Gender">Gender</th><th data-i18n="Village">Village</th><th data-i18n="Block">Block</th><th data-i18n="Diagnosis">Diagnosis</th><th data-i18n="Status">Status</th><th data-i18n="Admitted">Admitted</th><th data-i18n="Last Visit">Last Visit</th><th data-i18n="Visit #">Visit #</th><th data-i18n="Next Visit">Next Visit</th><th data-i18n="Due Test">Due Test</th><th data-i18n="Due Medicine">Due Medicine</th><th data-i18n="Actions">Actions</th>
     </tr></thead><tbody id="allBody"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ═══ CANCER SATHIS ═══ -->
+<div class="page" id="page-sathis">
+  <div class="topbar">
+    <h1 data-i18n="Cancer Sathis">Cancer Sathis</h1>
+    <div class="topbar-actions" id="sathiActions">
+      <button class="btn btn-primary" id="sathiAddBtn" onclick="openAddSathi()" data-i18n="+ Add Sathi">+ Add Sathi</button>
+      <button class="btn btn-secondary btn-sm story-last-updated" onclick="goToLastUpdate()">🕐 …</button>
+      <div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h2 data-i18n="Cancer Sathi Roster">Cancer Sathi Roster</h2><input type="text" class="search-input" placeholder="Search..." data-i18n-ph="Search..." oninput="renderSathis(this.value)"></div>
+    <div style="overflow-x:auto"><table><thead><tr><th data-i18n="Name">Name</th><th data-i18n="Contact Number">Contact Number</th><th data-i18n="Area">Area</th><th data-i18n="District">District</th><th data-i18n="Actions">Actions</th></tr></thead><tbody id="sathiBody"></tbody></table></div>
   </div>
 </div>
 
@@ -472,6 +489,21 @@
 </div>
 </div>
 
+<!-- ═══ CANCER SATHI MODAL ═══ -->
+<div class="modal-overlay" id="sathiModal">
+<div class="modal" style="max-width:520px">
+  <div class="modal-head"><h2 id="sathiModalTitle" data-i18n="Add Cancer Sathi">Add Cancer Sathi</h2><button class="modal-close" onclick="closeSathi()">&times;</button></div>
+  <div class="modal-body">
+    <input type="hidden" id="sathiId">
+    <div class="fg"><label data-i18n="Name *">Name *</label><input type="text" id="sathiName"></div>
+    <div class="fg"><label data-i18n="Contact Number">Contact Number</label><input type="tel" id="sathiPhone"></div>
+    <div class="form-row"><div class="fg"><label data-i18n="Area Responsible For">Area Responsible For</label><input type="text" id="sathiArea" placeholder="e.g. Motipur block, 8 panchayats"></div><div class="fg"><label data-i18n="District">District</label><input type="text" id="sathiDistrict" value="Muzaffarpur"></div></div>
+    <div class="fg"><label data-i18n="Notes">Notes</label><textarea id="sathiNotes"></textarea></div>
+  </div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeSathi()" data-i18n="Cancel">Cancel</button><button class="btn btn-primary" onclick="saveSathi()" data-i18n="Save Sathi">Save Sathi</button></div>
+</div>
+</div>
+
 <!-- ═══ LOG ENTRY MODAL (was activity — now the universal log) ═══ -->
 <div class="modal-overlay" id="activityModal">
 <div class="modal" style="max-width:520px">
@@ -619,6 +651,9 @@ var ROLE='public', UNAME='Public View', UUSER='';
 var T_HI={
   'Active Cases':'सक्रिय मामले','All Patients':'सभी मरीज़','All Patients — Detailed View':'सभी मरीज़ — विस्तृत दृश्य',
   'Finances':'वित्त','Quick Update':'त्वरित अपडेट','WhatsApp Import':'व्हाट्सएप इम्पोर्ट','Our Story':'हमारी कहानी',
+  'Cancer Sathis':'कैंसर साथी','+ Add Sathi':'+ साथी जोड़ें','Cancer Sathi Roster':'कैंसर साथी सूची','Contact Number':'संपर्क नंबर',
+  'Area':'क्षेत्र','Add Cancer Sathi':'कैंसर साथी जोड़ें','Edit Cancer Sathi':'कैंसर साथी संपादित करें',
+  'Area Responsible For':'ज़िम्मेदार क्षेत्र','Save Sathi':'साथी सहेजें','No cancer sathis added yet.':'अभी तक कोई कैंसर साथी नहीं जोड़ा गया।',
   'Public View':'सार्वजनिक दृश्य','Public Dashboard':'सार्वजनिक डैशबोर्ड','Logout':'लॉगआउट','Staff Login':'स्टाफ लॉगिन','Menu':'मेन्यू',
   'Public site':'सार्वजनिक साइट','Show on sacci.net/story.html':'sacci.net/story.html पर दिखाएँ','Shown as':'इस रूप में दिखाएँ',
   'Event on the timeline':'टाइमलाइन पर घटना','Panel under “How support works”':'“सहायता कैसे काम करती है” के नीचे पैनल',
@@ -766,6 +801,7 @@ async function translateBatch(texts){
 function dtr(text){return(text&&storyLang==='hi'&&hiCache[text])?hiCache[text]:text;}
 var patients=[];
 var transactions=[];
+var cancerSathis=[];
 var logs=[];
 var logTypes=[];
 var tempFiles=[];
@@ -886,11 +922,12 @@ async function init(){
   if(ROLE==='advisor'){
     document.getElementById('dashActions').style.display='none';
     document.getElementById('patActions').innerHTML='<button class="btn btn-secondary" onclick="exportCSV()">Export CSV</button>';
+    document.getElementById('sathiAddBtn').style.display='none';
   }
 
   await loadPatients();
   if(ROLE==='staff')await loadTransactions();
-  if(ROLE==='staff'||ROLE==='advisor'){await loadLogTypes();await loadLogs();await loadStory();}
+  if(ROLE==='staff'||ROLE==='advisor'){await loadCancerSathis();await loadLogTypes();await loadLogs();await loadStory();}
   if(ROLE==='public'){navTo('public',document.querySelector('[data-page="public"]'));}
   else{renderDash();}
 
@@ -905,6 +942,9 @@ async function init(){
       .subscribe();
   }
   if(ROLE==='staff'||ROLE==='advisor'){
+    sb.channel('sathis-changes')
+      .on('postgres_changes',{event:'*',schema:'public',table:'cancer_sathis'},function(){loadCancerSathis().then(refreshActivePage);})
+      .subscribe();
     sb.channel('logs-changes')
       .on('postgres_changes',{event:'*',schema:'public',table:'logs'},function(){loadLogs().then(refreshActivePage);})
       .on('postgres_changes',{event:'*',schema:'public',table:'log_types'},function(){loadLogTypes().then(refreshActivePage);})
@@ -1045,6 +1085,7 @@ function refreshActivePage(){
   var name=active.id.replace('page-','');
   if(name==='dashboard')renderDash();
   if(name==='patients')renderAll();
+  if(name==='sathis')renderSathis();
   if(name==='finances')renderFinances();
   if(name==='public')renderPublic();
   if(name==='quickupdate')renderBulkCards();
@@ -1067,6 +1108,7 @@ function navTo(name,el){
   else if(name==='story-detail')document.getElementById('nav-story').classList.add('active');
   if(name==='dashboard')renderDash();
   if(name==='patients')renderAll();
+  if(name==='sathis')renderSathis();
   if(name==='finances')renderFinances();
   if(name==='public')renderPublic();
   if(name==='quickupdate')renderBulkCards();
@@ -1257,6 +1299,69 @@ async function deleteTxn(id){
   if(resp.error){alert('Could not delete: '+resp.error.message);return;}
   await loadTransactions();
   renderFinances();
+}
+
+// CANCER SATHIS — roster of field volunteers, one per area/district.
+async function loadCancerSathis(){
+  var resp=await sb.from('cancer_sathis').select('*').order('name');
+  cancerSathis=resp.data||[];
+  if(resp.error)console.error(resp.error);
+}
+function renderSathis(q){
+  var tbody=document.getElementById('sathiBody');if(!tbody)return;
+  var list=cancerSathis;
+  if(q){var f=q.toLowerCase();list=list.filter(function(s){return(s.name||'').toLowerCase().indexOf(f)>=0||(s.area||'').toLowerCase().indexOf(f)>=0||(s.district||'').toLowerCase().indexOf(f)>=0;});}
+  if(!list.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No cancer sathis added yet.')+'</td></tr>';return;}
+  var h='';list.forEach(function(s){
+    h+='<tr><td><strong>'+esc(s.name)+'</strong></td><td>'+esc(s.phone||'—')+'</td><td>'+esc(s.area||'—')+'</td><td>'+esc(s.district||'—')+'</td><td>';
+    if(ROLE==='staff')h+='<span class="link" onclick="editSathi(\''+s.id+'\')">'+tr('Edit')+'</span> · <span class="link" onclick="deleteSathi(\''+s.id+'\')">'+tr('Delete')+'</span>';
+    else h+='—';
+    h+='</td></tr>';
+  });
+  tbody.innerHTML=h;
+}
+function openAddSathi(){
+  document.getElementById('sathiModalTitle').textContent=tr('Add Cancer Sathi');
+  document.getElementById('sathiId').value='';
+  document.getElementById('sathiName').value='';
+  document.getElementById('sathiPhone').value='';
+  document.getElementById('sathiArea').value='';
+  document.getElementById('sathiDistrict').value='Muzaffarpur';
+  document.getElementById('sathiNotes').value='';
+  document.getElementById('sathiModal').classList.add('show');
+}
+function editSathi(id){
+  var s=cancerSathis.find(function(x){return x.id===id;});if(!s)return;
+  openAddSathi();
+  document.getElementById('sathiModalTitle').textContent=tr('Edit Cancer Sathi');
+  document.getElementById('sathiId').value=id;
+  document.getElementById('sathiName').value=s.name||'';
+  document.getElementById('sathiPhone').value=s.phone||'';
+  document.getElementById('sathiArea').value=s.area||'';
+  document.getElementById('sathiDistrict').value=s.district||'Muzaffarpur';
+  document.getElementById('sathiNotes').value=s.notes||'';
+}
+function closeSathi(){document.getElementById('sathiModal').classList.remove('show');}
+async function saveSathi(){
+  var name=document.getElementById('sathiName').value.trim();
+  if(!name){alert('Name is required');return;}
+  var id=document.getElementById('sathiId').value;
+  var row={name:name,phone:document.getElementById('sathiPhone').value.trim()||null,
+    area:document.getElementById('sathiArea').value.trim()||null,
+    district:document.getElementById('sathiDistrict').value.trim()||null,
+    notes:document.getElementById('sathiNotes').value.trim()||null,updated_by:UNAME};
+  var resp=id?await sb.from('cancer_sathis').update(row).eq('id',id):await sb.from('cancer_sathis').insert(row);
+  if(resp.error){alert('Could not save: '+resp.error.message);return;}
+  await loadCancerSathis();
+  closeSathi();
+  renderSathis();
+}
+async function deleteSathi(id){
+  if(!confirm('Remove this cancer sathi from the roster?'))return;
+  var resp=await sb.from('cancer_sathis').delete().eq('id',id);
+  if(resp.error){alert('Could not delete: '+resp.error.message);return;}
+  await loadCancerSathis();
+  renderSathis();
 }
 
 // THE LOG — universal stream (logs table), replacing the old activities

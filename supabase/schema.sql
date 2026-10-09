@@ -737,3 +737,48 @@ create or replace view log_tiles_public with (security_invoker = false) as
   group by t.id;
 update logs set quantity = 1
   where log_type_id in (select id from log_types where name = 'Health Camp') and quantity <> 1;
+
+-- ─── CANCER SATHIS (community field volunteers) ───────────────
+-- A roster, not a log — "Cancer Saathi Joined" log entries record the
+-- one-time event of someone joining; this table tracks who's currently
+-- active and which area they cover. Same read/write split as patients:
+-- staff and advisors can see the roster, only staff can edit it.
+create table if not exists cancer_sathis (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  phone text,
+  area text,
+  district text default 'Muzaffarpur',
+  notes text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  updated_by text
+);
+
+alter table cancer_sathis enable row level security;
+
+drop policy if exists "staff and advisors read cancer_sathis" on cancer_sathis;
+create policy "staff and advisors read cancer_sathis" on cancer_sathis for select
+  using (has_profile());
+
+drop policy if exists "staff insert cancer_sathis" on cancer_sathis;
+create policy "staff insert cancer_sathis" on cancer_sathis for insert
+  with check (is_staff());
+
+drop policy if exists "staff update cancer_sathis" on cancer_sathis;
+create policy "staff update cancer_sathis" on cancer_sathis for update
+  using (is_staff());
+
+drop policy if exists "staff delete cancer_sathis" on cancer_sathis;
+create policy "staff delete cancer_sathis" on cancer_sathis for delete
+  using (is_staff());
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and tablename = 'cancer_sathis'
+  ) then
+    alter publication supabase_realtime add table cancer_sathis;
+  end if;
+end $$;
