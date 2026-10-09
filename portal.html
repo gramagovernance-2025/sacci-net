@@ -682,7 +682,7 @@ var T_HI={
   'Admitted':'भर्ती','Next Visit':'अगली विज़िट','Due Test':'देय जांच','Due Medicine':'देय दवा','Patient':'मरीज़',
   'Payments by Patient':'मरीज़ के अनुसार भुगतान','Total Spent':'कुल खर्च','Amount':'राशि',
   'Purpose':'उद्देश्य','Notes':'टिप्पणी','Recorded By':'दर्ज किया गया','Visits':'विज़िट',
-  'View':'देखें','Edit':'संपादित करें','Update':'अपडेट करें','Delete':'हटाएं','Close Case':'केस बंद करें',
+  'View':'देखें','Edit':'संपादित करें','Update':'अपडेट करें','Delete':'हटाएं','Close Case':'केस बंद करें','Reopen Case':'केस फिर से खोलें',
   'Screening':'जांच','Under Investigation':'जांच के अंतर्गत','On Medication':'दवा पर','Follow-up':'फॉलो-अप',
   'Completed':'पूर्ण','Case Closed':'केस बंद',
   'Add New Patient':'नया मरीज़ जोड़ें','Edit Patient':'मरीज़ संपादित करें','Add Visit Update':'विज़िट अपडेट जोड़ें',
@@ -1151,7 +1151,7 @@ function renderAll(q){
   var h='';list.forEach(function(p){
     var nd=dueStatus(p.nextVisit),td=dueStatus(p.testDate),md=dueStatus(p.medDate);
     var acts='<span class="link" onclick="viewPatient(\''+p.id+'\')">'+tr('View')+'</span>';
-    if(ROLE==='staff')acts+=' · <span class="link" onclick="editPatient(\''+p.id+'\')">'+tr('Edit')+'</span> · <span class="link" onclick="openUpdate(\''+p.id+'\')">'+tr('Update')+'</span>'+(p.status!=='Case Closed'?' · <span class="link" onclick="openCloseCase(\''+p.id+'\')">'+tr('Close Case')+'</span>':'');
+    if(ROLE==='staff')acts+=' · <span class="link" onclick="editPatient(\''+p.id+'\')">'+tr('Edit')+'</span> · <span class="link" onclick="openUpdate(\''+p.id+'\')">'+tr('Update')+'</span>'+(p.status!=='Case Closed'?' · <span class="link" onclick="openCloseCase(\''+p.id+'\')">'+tr('Close Case')+'</span>':' · <span class="link" onclick="reopenCase(\''+p.id+'\')">'+tr('Reopen Case')+'</span>');
     h+='<tr><td>'+esc(p.code||'—')+'</td><td><strong>'+esc(p.name)+'</strong></td><td>'+(p.age||'—')+'</td><td>'+(p.gender||'—')+'</td><td>'+esc(p.village||'—')+'</td><td>'+esc(p.block||'—')+'</td><td>'+esc(p.diagnosis||'—')+'</td><td><span class="badge '+statusCls(p.status)+'">'+tr(p.status)+'</span></td><td>'+tr(p.admitted||'No')+'</td><td>'+lastVisit(p)+'</td><td>'+(p.visitNum||'—')+'</td><td>'+(nd.c?'<span class="due '+nd.c+'">'+nd.t+'</span>':nd.t)+'</td><td>'+(td.c?'<span class="due '+td.c+'">'+td.t+'</span>':td.t)+'</td><td>'+(md.c?'<span class="due '+md.c+'">'+md.t+'</span>':md.t)+'</td><td>'+acts+'</td></tr>';
   });tbody.innerHTML=h;
 }
@@ -1935,6 +1935,18 @@ async function confirmCloseCase(){
   if(resp.error){alert('Could not close case: '+resp.error.message);return;}
   await loadPatients();
   closeCloseCaseModal();
+  closeView();
+  refreshActivePage();
+}
+async function reopenCase(id){
+  var p=patients.find(function(x){return x.id===id;});if(!p)return;
+  if(!confirm('Reopen this case? It will return to active tracking as Follow-up.'))return;
+  var history=(p.history||[]).slice();
+  history.push({date:new Date().toISOString(),user:UNAME,note:'Case reopened'});
+  var updates={status:'Follow-up',closure_reason:null,closure_notes:null,closed_at:null,history:history,updated_by:UNAME};
+  var resp=await sb.from('patients').update(updates).eq('id',id);
+  if(resp.error){alert('Could not reopen case: '+resp.error.message);return;}
+  await loadPatients();
   closeView();
   refreshActivePage();
 }
@@ -2923,6 +2935,7 @@ async function viewPatient(id){
   if(ROLE==='staff'){
     foot+='<button class="btn btn-primary" onclick="closeView();editPatient(\''+id+'\')">'+tr('Edit')+'</button><button class="btn btn-warn" onclick="closeView();openUpdate(\''+id+'\')">'+tr('Add Visit Update')+'</button>';
     if(p.status!=='Case Closed')foot+='<button class="btn btn-warn" onclick="openCloseCase(\''+id+'\')">'+tr('Close Case')+'</button>';
+    else foot+='<button class="btn btn-warn" onclick="reopenCase(\''+id+'\')">'+tr('Reopen Case')+'</button>';
   }
   document.getElementById('viewFoot').innerHTML=foot;
   // Show the modal right away with whatever's already cached rather than
