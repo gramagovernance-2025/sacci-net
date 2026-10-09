@@ -283,8 +283,8 @@
     <div class="stat-box"><div class="stat-box-number" id="f-other">₹0</div><div class="stat-box-label" data-i18n="Screening / Medicine / Other">Screening / Medicine / Other</div></div>
   </div>
   <div class="card">
-    <div class="card-header"><h2 data-i18n="Patient Balances">Patient Balances</h2></div>
-    <div style="overflow-x:auto"><table><thead><tr><th data-i18n="ID">ID</th><th data-i18n="Patient">Patient</th><th data-i18n="Committed Amount">Committed Amount</th><th data-i18n="Advance Given">Advance Given</th><th data-i18n="Pending / Balance Left">Pending / Balance Left</th></tr></thead><tbody id="balanceBody"></tbody></table></div>
+    <div class="card-header"><h2 data-i18n="Payments by Patient">Payments by Patient</h2></div>
+    <div style="overflow-x:auto"><table><thead><tr><th data-i18n="ID">ID</th><th data-i18n="Patient">Patient</th><th data-i18n="Advance Given">Advance Given</th></tr></thead><tbody id="balanceBody"></tbody></table></div>
   </div>
   <div class="card">
     <div class="card-header"><h2 data-i18n="All Payments">All Payments</h2><input type="text" class="search-input" placeholder="Search by patient..." data-i18n-ph="Search by patient..." oninput="renderFinances(this.value)"></div>
@@ -407,9 +407,6 @@
     <div class="form-row"><div class="fg"><label data-i18n="Next Visit Date">Next Visit Date</label><input type="date" id="pNextVisit"></div><div class="fg"><label data-i18n="Next Medical Test">Next Medical Test</label><input type="text" id="pNextTest"></div></div>
     <div class="form-row"><div class="fg"><label data-i18n="Test Due Date">Test Due Date</label><input type="date" id="pTestDate"></div><div class="fg"><label data-i18n="Medicine Refill Due">Medicine Refill Due</label><input type="date" id="pMedDate"></div></div>
 
-    <div class="form-title" data-i18n="Finance">Finance</div>
-    <div class="fg"><label data-i18n="Committed Amount (₹) — total estimated/committed cost of care">Committed Amount (₹) — total estimated/committed cost of care</label><input type="number" id="pCommitted" min="0" step="0.01"></div>
-
     <div class="form-title" data-i18n="Notes">Notes</div>
     <div class="fg"><label data-i18n="Latest Notes">Latest Notes</label><textarea id="pNotes" placeholder="Observations, doctor remarks..."></textarea></div>
 
@@ -452,7 +449,6 @@
     <div class="fg"><label data-i18n="Current Medication (leave blank for no change)">Current Medication (leave blank for no change)</label><textarea id="uMedication" placeholder="Medicines and dosages..."></textarea></div>
     <div class="form-row"><div class="fg"><label data-i18n="Next Medical Test">Next Medical Test</label><input type="text" id="uNextTest"></div><div class="fg"><label data-i18n="Test Due Date">Test Due Date</label><input type="date" id="uTestDate"></div></div>
     <div class="fg"><label data-i18n="Medicine Refill Due">Medicine Refill Due</label><input type="date" id="uMedDate"></div>
-    <div class="fg"><label data-i18n="Committed Amount (₹, leave blank for no change)">Committed Amount (₹, leave blank for no change)</label><input type="number" id="uCommitted" min="0" step="0.01"></div>
     <div class="fg">
       <label data-i18n="Attach Photos (optional)">Attach Photos (optional)</label>
       <div class="form-row"><div class="fg"><label style="font-weight:400;font-size:0.75rem;" data-i18n="Category">Category</label><select id="uFileCategory"><option value="Latest Report" data-i18n="Latest Report">Latest Report</option><option value="History" data-i18n="History">History</option><option value="Prescription" data-i18n="Prescription">Prescription</option><option value="Other" data-i18n="Other">Other</option></select></div></div>
@@ -655,7 +651,7 @@ var T_HI={
   'Last Visit':'पिछली विज़िट','Visit #':'विज़िट संख्या','Next Due':'अगली देय तारीख','Date':'तारीख','Type':'प्रकार',
   'Title / Description':'शीर्षक / विवरण','Participants':'प्रतिभागी','Actions':'कार्रवाई','Village':'गांव','Block':'ब्लॉक',
   'Admitted':'भर्ती','Next Visit':'अगली विज़िट','Due Test':'देय जांच','Due Medicine':'देय दवा','Patient':'मरीज़',
-  'Committed Amount':'प्रतिबद्ध राशि','Advance Given':'अग्रिम दी गई','Pending / Balance Left':'शेष बकाया','Amount':'राशि',
+  'Payments by Patient':'मरीज़ के अनुसार भुगतान','Advance Given':'अग्रिम दी गई','Amount':'राशि',
   'Purpose':'उद्देश्य','Notes':'टिप्पणी','Recorded By':'दर्ज किया गया','Visits':'विज़िट',
   'View':'देखें','Edit':'संपादित करें','Update':'अपडेट करें','Delete':'हटाएं','Close Case':'केस बंद करें',
   'Screening':'जांच','Under Investigation':'जांच के अंतर्गत','On Medication':'दवा पर','Follow-up':'फॉलो-अप',
@@ -672,7 +668,6 @@ var T_HI={
   'Is Patient Admitted?':'क्या मरीज़ भर्ती है?','Visit Number':'विज़िट संख्या','Current Treatment':'वर्तमान इलाज',
   'Current Medication':'वर्तमान दवा','Upcoming Schedule':'आगामी शेड्यूल','Next Visit Date':'अगली विज़िट तारीख',
   'Next Medical Test':'अगली मेडिकल जांच','Test Due Date':'जांच की देय तारीख','Medicine Refill Due':'दवा रिफिल देय',
-  'Committed Amount (₹) — total estimated/committed cost of care':'प्रतिबद्ध राशि (₹) — देखभाल की कुल अनुमानित/प्रतिबद्ध लागत',
   'Latest Notes':'नवीनतम टिप्पणी','Upload Reports / Images':'रिपोर्ट / छवियां अपलोड करें','Category':'श्रेणी',
   'Select':'चुनें','No':'नहीं','Yes':'हां',
   'Quick Update (plain English, optional)':'त्वरित अपडेट (सामान्य भाषा में, वैकल्पिक)','Visit Date':'विज़िट तारीख',
@@ -680,12 +675,10 @@ var T_HI={
   'Diagnosis / Cancer Type (leave blank for no change)':'निदान / कैंसर का प्रकार (बदलाव न करने के लिए खाली छोड़ें)',
   'Current Treatment (leave blank for no change)':'वर्तमान इलाज (बदलाव न करने के लिए खाली छोड़ें)',
   'Current Medication (leave blank for no change)':'वर्तमान दवा (बदलाव न करने के लिए खाली छोड़ें)',
-  'Committed Amount (₹, leave blank for no change)':'प्रतिबद्ध राशि (₹, बदलाव न करने के लिए खाली छोड़ें)',
   'Attach Photos (optional)':'फोटो जोड़ें (वैकल्पिक)',
   'No active cases.':'कोई सक्रिय मामला नहीं।','No patients.':'कोई मरीज़ नहीं।',
   'Nothing published yet — camps, cancer saathi joinings, and milestones will appear here.':'अभी तक कुछ प्रकाशित नहीं हुआ है, कैंप, कैंसर साथी की जॉइनिंग और मील के पत्थर यहां दिखाई देंगे।',
   'No data yet.':'अभी तक कोई डेटा नहीं।','No payments logged yet.':'अभी तक कोई भुगतान दर्ज नहीं हुआ।',
-  'No committed amounts or payments logged yet.':'अभी तक कोई प्रतिबद्ध राशि या भुगतान दर्ज नहीं हुआ।',
   'No log entries yet.':'अभी तक कोई लॉग एंट्री नहीं।',
   'Case Summary':'केस सारांश','Age / Gender':'उम्र / लिंग','Aadhar':'आधार','Bank':'बैंक','Account':'खाता',
   'Registered':'पंजीकृत','Medication':'दवा','Schedule':'शेड्यूल','Next Test':'अगली जांच',
@@ -735,7 +728,6 @@ var T_HI={
   'Diagnosis (blank = no change)':'निदान (खाली = कोई बदलाव नहीं)',
   'Treatment (blank = no change)':'इलाज (खाली = कोई बदलाव नहीं)',
   'Medication (blank = no change)':'दवा (खाली = कोई बदलाव नहीं)',
-  'Committed Amount (₹, blank = no change)':'प्रतिबद्ध राशि (₹, खाली = कोई बदलाव नहीं)',
   'Show on public dashboard (patient entries stay private unless you tick this)':'सार्वजनिक डैशबोर्ड पर दिखाएं (टिक न करने पर मरीज़ एंट्री निजी रहेगी)',
   'Accept All Remaining':'सभी शेष स्वीकार करें','entry':'एंट्री','From these messages':'इन संदेशों से',
   'photo(s) from these messages will be attached on save.':'इन संदेशों की फोटो सहेजते समय जोड़ी जाएंगी।',
@@ -743,7 +735,7 @@ var T_HI={
   'photos from this visit':'इस विज़िट की फोटो',
   'Re-analyze':'फिर से जांचें','Analyze':'जांचें','AI Read':'AI द्वारा पढ़ा गया','confidence':'विश्वास स्तर',
   'Type:':'प्रकार:','Date:':'तारीख़:','Doctor:':'डॉक्टर:','Diagnosis:':'निदान:','Medicines:':'दवाइयां:',
-  'Findings:':'निष्कर्ष:','🤖 Fill Form From Text':'🤖 टेक्स्ट से फॉर्म भरें','Finance':'वित्त',
+  'Findings:':'निष्कर्ष:','🤖 Fill Form From Text':'🤖 टेक्स्ट से फॉर्म भरें',
   'Last updated':'आखिरी बार अपडेट किया गया','No updates yet':'अभी तक कोई अपडेट नहीं',
   'This is an anonymised view of the Sita Anandam Cancer Care Initiative\'s impact. Patient identities and personal details are not shown.':'यह Sita Anandam Cancer Care Initiative के काम का गुमनाम दृश्य है। मरीज़ों की पहचान और निजी जानकारी नहीं दिखाई जाती।'
 };
@@ -812,7 +804,7 @@ function fromDb(r){
     aadhar:r.aadhar,bank:r.bank,account:r.account,ifsc:r.ifsc,diagnosis:r.diagnosis,status:r.status,admitted:r.admitted,
     visitNum:r.visit_num,treatment:r.treatment,medication:r.medication,nextVisit:r.next_visit,nextTest:r.next_test,
     testDate:r.test_date,medDate:r.med_date,notes:r.notes,history:r.history||[],
-    aiSummary:r.ai_summary,aiSummaryAt:r.ai_summary_generated_at,committedAmount:r.committed_amount,
+    aiSummary:r.ai_summary,aiSummaryAt:r.ai_summary_generated_at,
     closureReason:r.closure_reason,closureNotes:r.closure_notes,closedAt:r.closed_at,
     createdAt:r.created_at,updatedAt:r.updated_at,updatedBy:r.updated_by};
 }
@@ -821,7 +813,7 @@ function toDb(p){
     district:p.district||null,aadhar:p.aadhar||null,bank:p.bank||null,account:p.account||null,ifsc:p.ifsc||null,
     diagnosis:p.diagnosis||null,status:p.status||'Screening',admitted:p.admitted||'No',visit_num:parseInt(p.visitNum)||1,
     treatment:p.treatment||null,medication:p.medication||null,next_visit:p.nextVisit||null,next_test:p.nextTest||null,
-    test_date:p.testDate||null,med_date:p.medDate||null,notes:p.notes||null,committed_amount:p.committedAmount||null,updated_by:UNAME};
+    test_date:p.testDate||null,med_date:p.medDate||null,notes:p.notes||null,updated_by:UNAME};
 }
 
 // Looking up the caller's role has THREE outcomes, not two: a real row, a
@@ -1219,20 +1211,16 @@ function patientName(id){var p=patients.find(function(x){return x.id===id;});ret
 function patientCode(id){var p=patients.find(function(x){return x.id===id;});return p&&p.code?p.code:'—';}
 function patientTotal(id){return transactions.filter(function(t){return t.patient_id===id;}).reduce(function(s,t){return s+Number(t.amount);},0);}
 
-// Committed Amount − Advance Given, treated as one outstanding-balance
-// figure (not split into "SACCI owes" vs. "family owes") — see the plan
-// doc for why. Only lists patients with a committed amount or a payment on
-// file, so patients nobody's tracking financially don't clutter the table.
+// Only lists patients with a payment on file, so patients nobody's paying
+// anything for yet don't clutter the table.
 function renderPatientBalances(){
   var tbody=document.getElementById('balanceBody');if(!tbody)return;
-  var rows=patients.filter(function(p){return p.committedAmount||patientTotal(p.id)>0;})
+  var rows=patients.filter(function(p){return patientTotal(p.id)>0;})
     .sort(function(a,b){return a.name.localeCompare(b.name);});
-  if(!rows.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No committed amounts or payments logged yet.')+'</td></tr>';return;}
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="3" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No payments logged yet.')+'</td></tr>';return;}
   var h='';rows.forEach(function(p){
     var given=patientTotal(p.id);
-    var committed=Number(p.committedAmount)||0;
-    var pending=p.committedAmount?Math.max(committed-given,0):null;
-    h+='<tr><td>'+esc(p.code||'—')+'</td><td><strong>'+esc(p.name)+'</strong></td><td>'+(p.committedAmount?'₹'+committed.toLocaleString('en-IN'):'—')+'</td><td>₹'+given.toLocaleString('en-IN')+'</td><td>'+(pending===null?'—':'₹'+pending.toLocaleString('en-IN'))+'</td></tr>';
+    h+='<tr><td>'+esc(p.code||'—')+'</td><td><strong>'+esc(p.name)+'</strong></td><td>₹'+given.toLocaleString('en-IN')+'</td></tr>';
   });tbody.innerHTML=h;
 }
 
@@ -1902,14 +1890,13 @@ async function editPatient(id){
   document.getElementById('pNextTest').value=p.nextTest||'';
   document.getElementById('pTestDate').value=p.testDate||'';
   document.getElementById('pMedDate').value=p.medDate||'';
-  document.getElementById('pCommitted').value=p.committedAmount||'';
   document.getElementById('pNotes').value=p.notes||'';
   var filesResp=await sb.from('patient_files').select('*').eq('patient_id',id);
   tempFiles=filesResp.data||[];renderFiles();setFileAreaState();
   document.getElementById('patientModal').classList.add('show');
 }
 function closeModal(){document.getElementById('patientModal').classList.remove('show');clearForm();editingId=null;isExistingPatient=false;}
-function clearForm(){['pName','pAge','pPhone','pVillage','pBlock','pAadhar','pBank','pAccount','pIFSC','pDiagnosis','pTreatment','pMedication','pNextVisit','pNextTest','pTestDate','pMedDate','pCommitted','pNotes'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('pGender').value='';document.getElementById('pDistrict').value='Muzaffarpur';document.getElementById('pStatus').value='Screening';document.getElementById('pAdmitted').value='No';document.getElementById('pVisitNum').value=1;}
+function clearForm(){['pName','pAge','pPhone','pVillage','pBlock','pAadhar','pBank','pAccount','pIFSC','pDiagnosis','pTreatment','pMedication','pNextVisit','pNextTest','pTestDate','pMedDate','pNotes'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('pGender').value='';document.getElementById('pDistrict').value='Muzaffarpur';document.getElementById('pStatus').value='Screening';document.getElementById('pAdmitted').value='No';document.getElementById('pVisitNum').value=1;}
 
 async function savePatient(){
   var name=document.getElementById('pName').value.trim();if(!name){alert('Name is required');return;}
@@ -1921,7 +1908,7 @@ async function savePatient(){
     status:document.getElementById('pStatus').value,admitted:document.getElementById('pAdmitted').value,visitNum:document.getElementById('pVisitNum').value,
     treatment:document.getElementById('pTreatment').value,medication:document.getElementById('pMedication').value,nextVisit:document.getElementById('pNextVisit').value,
     nextTest:document.getElementById('pNextTest').value,testDate:document.getElementById('pTestDate').value,medDate:document.getElementById('pMedDate').value,
-    committedAmount:document.getElementById('pCommitted').value,notes:document.getElementById('pNotes').value};
+    notes:document.getElementById('pNotes').value};
   var row=toDb(formVals);
   var existing=patients.find(function(p){return p.id===eid;});
   var resp;
@@ -2002,7 +1989,6 @@ async function openUpdate(id){
   document.getElementById('uNextTest').value='';
   document.getElementById('uTestDate').value='';
   document.getElementById('uMedDate').value='';
-  document.getElementById('uCommitted').value='';
   var filesResp=await sb.from('patient_files').select('*').eq('patient_id',id);
   updateTempFiles=filesResp.data||[];renderUpdateFiles();
   document.getElementById('updateModal').classList.add('show');
@@ -2059,7 +2045,6 @@ async function savePatientUpdate(patientId,fields,opts){
   if(fields.nextTest)updates.next_test=fields.nextTest;
   if(fields.testDate)updates.test_date=fields.testDate;
   if(fields.medDate)updates.med_date=fields.medDate;
-  if(fields.committedAmount)updates.committed_amount=fields.committedAmount;
   var resp=await sb.from('patients').update(updates).eq('id',patientId);
   if(resp.error)return{error:resp.error.message};
   // Dual-write: every visit update is also a row in the universal log, so
@@ -2091,8 +2076,7 @@ async function saveUpdate(){
     medication:document.getElementById('uMedication').value.trim(),
     nextTest:document.getElementById('uNextTest').value.trim(),
     testDate:document.getElementById('uTestDate').value,
-    medDate:document.getElementById('uMedDate').value,
-    committedAmount:document.getElementById('uCommitted').value
+    medDate:document.getElementById('uMedDate').value
   });
   if(result.error){alert('Could not save update: '+result.error);return;}
   closeUpdate();
@@ -2119,7 +2103,6 @@ async function parseUpdateText(){
   if(d.next_test)document.getElementById('uNextTest').value=d.next_test;
   if(d.test_date)document.getElementById('uTestDate').value=d.test_date;
   if(d.med_date)document.getElementById('uMedDate').value=d.med_date;
-  if(d.committed_amount)document.getElementById('uCommitted').value=d.committed_amount;
   var payBox=document.getElementById('uPaymentDetected');
   if(d.payment_amount&&parseFloat(d.payment_amount)>0){
     detectedPayment={amount:d.payment_amount,purpose:d.payment_purpose||'Other',notes:d.payment_notes||''};
@@ -2204,7 +2187,6 @@ function renderBulkCards(){
     document.getElementById('bq-'+i+'-nexttest').value=s.next_test||'';
     document.getElementById('bq-'+i+'-testdate').value=s.test_date||'';
     document.getElementById('bq-'+i+'-meddate').value=s.med_date||'';
-    document.getElementById('bq-'+i+'-committed').value=s.committed_amount||'';
     if(s.payment_amount&&parseFloat(s.payment_amount)>0){
       document.getElementById('bq-'+i+'-payamount').value=s.payment_amount;
       document.getElementById('bq-'+i+'-paypurpose').value=s.payment_purpose||'Other';
@@ -2274,7 +2256,6 @@ function renderPatientCardFields(prefix,i,s,dis){
   h+='<div class="fg"><label>'+tr('Medication (blank = no change)')+'</label><textarea id="'+prefix+'-'+i+'-medication" '+dis+'>'+esc(s.medication||'')+'</textarea></div>';
   h+='<div class="form-row"><div class="fg"><label>'+tr('Next Test')+'</label><input type="text" id="'+prefix+'-'+i+'-nexttest" '+dis+'></div><div class="fg"><label>'+tr('Test Due Date')+'</label><input type="date" id="'+prefix+'-'+i+'-testdate" '+dis+'></div></div>';
   h+='<div class="fg"><label>'+tr('Medicine Refill Due')+'</label><input type="date" id="'+prefix+'-'+i+'-meddate" '+dis+'></div>';
-  h+='<div class="fg"><label>'+tr('Committed Amount (₹, blank = no change)')+'</label><input type="number" id="'+prefix+'-'+i+'-committed" min="0" step="0.01" '+dis+'></div>';
   h+='<div class="chk-line"><input type="checkbox" id="'+prefix+'-'+i+'-public" '+dis+'><label for="'+prefix+'-'+i+'-public">🌐 '+tr('Show on public dashboard (patient entries stay private unless you tick this)')+'</label></div>';
   return h;
 }
@@ -2302,7 +2283,7 @@ function collectPatientFields(prefix,i){
   return{visitDate:v('visitdate'),visitNum:v('visitnum'),notes:v('notes'),status:v('status'),
     nextVisit:v('nextvisit'),diagnosis:v('diagnosis').trim(),treatment:v('treatment').trim(),
     medication:v('medication').trim(),nextTest:v('nexttest').trim(),testDate:v('testdate'),
-    medDate:v('meddate'),committedAmount:v('committed')};
+    medDate:v('meddate')};
 }
 // Pre-fill the register-new-patient box from the parser's new_patient_*
 // suggestions (set via .value, not baked into HTML — same quoting caution
@@ -2666,7 +2647,6 @@ function renderWaCards(){
       document.getElementById('wa-'+i+'-nexttest').value=e.next_test||'';
       document.getElementById('wa-'+i+'-testdate').value=e.test_date||'';
       document.getElementById('wa-'+i+'-meddate').value=e.med_date||'';
-      document.getElementById('wa-'+i+'-committed').value=e.committed_amount||'';
       if(e.payment_amount&&parseFloat(e.payment_amount)>0){
         document.getElementById('wa-'+i+'-payamount').value=e.payment_amount;
         document.getElementById('wa-'+i+'-paypurpose').value=e.payment_purpose||'Other';
@@ -2723,7 +2703,7 @@ async function waUploadFiles(e,logId,patientId,isPub){
 
 function waMarkSaved(i){
   waEntries[i].saved=true;
-  ['patient','visitdate','visitnum','notes','status','nextvisit','diagnosis','treatment','medication','nexttest','testdate','meddate','committed','adate','atype','atitle','adesc','aparticipants','aquantity','public','np-name','np-age','np-gender','np-phone','np-village','np-block','np-diagnosis','np-btn'].forEach(function(sfx){
+  ['patient','visitdate','visitnum','notes','status','nextvisit','diagnosis','treatment','medication','nexttest','testdate','meddate','adate','atype','atitle','adesc','aparticipants','aquantity','public','np-name','np-age','np-gender','np-phone','np-village','np-block','np-diagnosis','np-btn'].forEach(function(sfx){
     var el=document.getElementById('wa-'+i+'-'+sfx);if(el)el.disabled=true;
   });
   var btn=document.getElementById('wa-'+i+'-savebtn');

@@ -58,7 +58,6 @@ function buildSchema(logTypeNames: [string, ...string[]]) {
     test_date: z.string(),
     med_date: z.string(),
     diagnosis: z.string(),
-    committed_amount: z.string(),
     payment_amount: z.string(),
     payment_purpose: z.enum(PURPOSE_VALUES),
     payment_notes: z.string(),
@@ -169,9 +168,8 @@ Deno.serve(async (req) => {
         "clear English retelling of the thread that preserves ALL the concrete detail — who accompanied the " +
         "patient, family hesitations, hospital choices, money worries, and similar social/logistical color " +
         "matter as much as the medical facts; this record feeds the nonprofit's own storytelling later. Extract " +
-        "payment_amount/payment_purpose/payment_notes only when a concrete amount of money is mentioned, and " +
-        "committed_amount only for a total estimated/committed cost of care. Leave title and participants empty " +
-        "for these entries.\n\n" +
+        "payment_amount/payment_purpose/payment_notes only when a concrete amount of money is mentioned. Leave " +
+        "title and participants empty for these entries.\n\n" +
         "For every other log_type: leave all patient fields empty. Fill title (a short label, e.g. \"Health camp " +
         "in Motipur panchayat\"), participants (who was involved, by their real names), and description — same " +
         "keep-every-detail, don't-sanitize principle as visit_notes, in plain English. quantity is how many " +

@@ -30,7 +30,6 @@ const UpdateSchema = z.object({
   test_date: z.string(),
   med_date: z.string(),
   diagnosis: z.string(),
-  committed_amount: z.string(),
   payment_amount: z.string(),
   payment_purpose: z.enum(PURPOSE_VALUES),
   payment_notes: z.string(),
@@ -59,7 +58,7 @@ Deno.serve(async (req) => {
 
     const { data: patient } = await admin
       .from("patients")
-      .select("status, treatment, medication, next_visit, next_test, test_date, med_date, diagnosis, visit_num, committed_amount")
+      .select("status, treatment, medication, next_visit, next_test, test_date, med_date, diagnosis, visit_num")
       .eq("id", patientId)
       .single();
     if (!patient) return jsonResponse({ error: "Patient not found" }, 404);
@@ -74,7 +73,6 @@ Deno.serve(async (req) => {
       `Next test on file: ${patient.next_test ?? "none"}`,
       `Test due date on file: ${patient.test_date ?? "none"}`,
       `Medicine refill due on file: ${patient.med_date ?? "none"}`,
-      `Committed amount on file: ${patient.committed_amount ?? "none set"}`,
     ].join("\n");
 
     const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
@@ -102,9 +100,7 @@ Deno.serve(async (req) => {
         "(e.g. travel fare, a medicine purchase, a hospital deposit), extract payment_amount as a plain number " +
         "string with no currency symbol or commas (e.g. \"2000\"), payment_purpose as the closest matching " +
         "category, and payment_notes with any specifics worth recording. Leave all three payment fields empty if " +
-        "no concrete amount is mentioned — do not estimate or guess an amount. If the text mentions a total " +
-        "estimated/committed cost of care for this patient (distinct from a single payment), extract that into " +
-        "committed_amount as a plain number string, empty if not mentioned.",
+        "no concrete amount is mentioned — do not estimate or guess an amount.",
       messages: [
         {
           role: "user",

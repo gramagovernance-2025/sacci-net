@@ -56,7 +56,6 @@ function buildSchema(activityTypeNames: [string, ...string[]]) {
     test_date: z.string(),
     med_date: z.string(),
     diagnosis: z.string(),
-    committed_amount: z.string(),
     payment_amount: z.string(),
     payment_purpose: z.enum(PURPOSE_VALUES),
     payment_notes: z.string(),
@@ -155,9 +154,8 @@ Deno.serve(async (req) => {
         "patient/family preferences, hesitations, refusals, hospital choices, financial worries, and similar " +
         "social/logistical color matter as much as the medical facts here, this record is used for the " +
         "nonprofit's own storytelling later. Extract payment_amount/payment_purpose/payment_notes only when a " +
-        "concrete amount of money is mentioned for that patient, and committed_amount only when a total " +
-        "estimated/committed cost of care is mentioned (distinct from a single payment) — leave these empty " +
-        "rather than estimating. Leave all activity_* fields empty for these segments.\n\n" +
+        "concrete amount of money is mentioned for that patient — leave these empty rather than estimating. " +
+        "Leave all activity_* fields empty for these segments.\n\n" +
         "For activity segments: leave matched_patient_code/match_confidence/match_notes and all patient_update " +
         "fields empty. Fill activity_date (best guess if not stated, otherwise today), activity_type — one of: " +
         activityNames.join(", ") + " (closest match, \"Other\" if unclear) — activity_title (a short label, " +
