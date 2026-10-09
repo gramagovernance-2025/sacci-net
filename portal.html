@@ -725,7 +725,7 @@ var T_HI={
   'Add Update':'अपडेट जोड़ें',"What's new about this milestone?":'इस मील के पत्थर में क्या नया है?',
   'Write freely — mention patients by name, or describe camps, meetings, and other work. The system splits it into entries and shows you exactly what it found before anything saves.':'खुल कर लिखें, मरीज़ों के नाम बताएं या शिविर, बैठकें और अन्य काम बताएं। सिस्टम इसे अलग-अलग एंट्री में बांट देता है और सहेजने से पहले आपको बिल्कुल दिखाता है कि उसे क्या मिला।',
   'In WhatsApp: open the group → ⋮ → More → Export chat (choose "Include media" to bring the photos along). Then upload the exported .zip below exactly as WhatsApp made it — no unzipping needed. Or paste the chat text here. Messages imported before are skipped automatically, so overlapping exports are always safe.':'व्हाट्सएप में: ग्रुप खोलें → ⋮ → More → Export chat (फोटो साथ लाने के लिए "Include media" चुनें)। फिर नीचे वही .zip फ़ाइल अपलोड करें जैसी व्हाट्सएप ने बनाई है, अनज़िप करने की ज़रूरत नहीं। या यहां चैट टेक्स्ट पेस्ट करें। पहले इम्पोर्ट किए गए मैसेज अपने आप छूट जाते हैं, इसलिए ओवरलैप होने वाले एक्सपोर्ट भी हमेशा सुरक्षित हैं।',
-  'Log This Payment':'यह भुगतान दर्ज करें','Payment Mentioned':'भुगतान का उल्लेख',
+  'Payment Mentioned':'भुगतान का उल्लेख',
   'Log Entry':'लॉग एंट्री','Patient Update':'मरीज़ अपडेट','Saved':'सहेजा गया','Original text':'मूल पाठ',
   'Please confirm the patient':'कृपया मरीज़ की पुष्टि करें',
   'Could not confidently match a patient — please pick one.':'भरोसे के साथ मरीज़ का मिलान नहीं हो सका, कृपया एक चुनें।',
@@ -2180,9 +2180,7 @@ function renderBulkCards(){
     h+='<div class="fg"><label>'+tr('Original text')+'</label><div class="ai-box" style="font-style:italic">'+esc(s.segment_text||'')+'</div></div>';
     h+=isActivity?renderLogCardFields('bq',i,s,dis):renderPatientCardFields('bq',i,s,dis);
     if(!isActivity&&s.payment_amount&&parseFloat(s.payment_amount)>0){
-      h+='<div class="ai-box"><div class="ai-box-title">💰 '+tr('Payment Mentioned')+'</div>₹'+esc(s.payment_amount)+(s.payment_purpose?' — '+tr(s.payment_purpose):'')+(s.payment_notes?' ('+esc(s.payment_notes)+')':'');
-      if(!seg.saved)h+='<button type="button" class="btn btn-secondary btn-sm" style="margin-top:6px" onclick="logBulkPayment('+i+')">'+tr('Log This Payment')+'</button>';
-      h+='</div>';
+      h+='<div class="ai-box"><div class="ai-box-title">💰 '+tr('Payment Mentioned')+' — '+tr('logged to Finances when you save this update')+'</div>'+paymentFieldsHtml('bq',i,dis)+'</div>';
     }
     if(!seg.saved)h+='<button class="btn btn-primary" style="margin-top:12px" id="bq-'+i+'-savebtn" onclick="'+(isActivity?'saveBulkActivity(':'saveBulkCard(')+i+')">'+(isActivity?tr('Save This Entry'):tr('Save This Update'))+'</button>';
     h+='</div></div>';
@@ -2207,8 +2205,43 @@ function renderBulkCards(){
     document.getElementById('bq-'+i+'-testdate').value=s.test_date||'';
     document.getElementById('bq-'+i+'-meddate').value=s.med_date||'';
     document.getElementById('bq-'+i+'-committed').value=s.committed_amount||'';
+    if(s.payment_amount&&parseFloat(s.payment_amount)>0){
+      document.getElementById('bq-'+i+'-payamount').value=s.payment_amount;
+      document.getElementById('bq-'+i+'-paypurpose').value=s.payment_purpose||'Other';
+      document.getElementById('bq-'+i+'-paynotes').value=s.payment_notes||'';
+    }
     setNpValues('bq',i,s);
   });
+}
+// Editable amount/purpose/notes for a detected payment — reviewed inline on
+// the card itself (rather than handed off to a separate modal) and read back
+// by saveBulkCard()/saveWaCard() so the transaction is logged in the same
+// click that saves the card. Plain text + a click-through used to be the
+// only path here, and it was too easy to save the update and never notice
+// the second step, so payments mentioned in bulk imports quietly never
+// reached the Finances page.
+var PAYMENT_PURPOSE_OPTIONS=['Travel','Screening','Treatment','Medicine','Hospital Stay','Other'];
+function paymentFieldsHtml(prefix,i,dis){
+  var h='<div class="form-row"><div class="fg"><label data-i18n="Amount (₹)">'+tr('Amount (₹)')+'</label><input type="number" id="'+prefix+'-'+i+'-payamount" min="0" step="0.01" '+dis+'></div>';
+  h+='<div class="fg"><label data-i18n="Purpose">'+tr('Purpose')+'</label><select id="'+prefix+'-'+i+'-paypurpose" '+dis+'>'+PAYMENT_PURPOSE_OPTIONS.map(function(p){return'<option data-i18n="'+p+'">'+tr(p)+'</option>';}).join('')+'</select></div></div>';
+  h+='<div class="fg"><label data-i18n="Notes">'+tr('Notes')+'</label><input type="text" id="'+prefix+'-'+i+'-paynotes" '+dis+'></div>';
+  return h;
+}
+// Reads the payment fields above and, if an amount is present, inserts the
+// transaction — called from saveBulkCard()/saveWaCard() right after the
+// patient update itself saves successfully.
+async function logCardPayment(prefix,i,pid,fallbackDate){
+  var amtEl=document.getElementById(prefix+'-'+i+'-payamount');
+  if(!amtEl)return;
+  var amount=parseFloat(amtEl.value);
+  if(!amount||amount<=0)return;
+  var row={patient_id:pid,amount:amount,
+    purpose:document.getElementById(prefix+'-'+i+'-paypurpose').value||'Other',
+    txn_date:fallbackDate||new Date().toISOString().slice(0,10),
+    notes:document.getElementById(prefix+'-'+i+'-paynotes').value||'',recorded_by:UNAME};
+  var resp=await sb.from('transactions').insert(row);
+  if(resp.error){alert('Patient update saved, but the payment could not be logged: '+resp.error.message);return;}
+  await loadTransactions();
 }
 // Card field renderers shared by Quick Update ('bq') and WhatsApp Import
 // ('wa') — prefix keeps their element ids apart. The `s` object uses the
@@ -2307,7 +2340,8 @@ async function saveBulkCard(i){
   var btn=document.getElementById('bq-'+i+'-savebtn');
   btn.disabled=true;btn.textContent=tr('Saving…');
   var s=bulkSegments[i].data;
-  var result=await savePatientUpdate(pid,collectPatientFields('bq',i),
+  var fields=collectPatientFields('bq',i);
+  var result=await savePatientUpdate(pid,fields,
     {source:'quick-update',sourceText:s.segment_text||null,
      isPublic:document.getElementById('bq-'+i+'-public').checked});
   if(result.error){
@@ -2315,6 +2349,7 @@ async function saveBulkCard(i){
     alert('Could not save update: '+result.error);
     return;
   }
+  await logCardPayment('bq',i,pid,fields.visitDate);
   bulkSegments[i].saved=true;
   refreshActivePage();
 }
@@ -2343,18 +2378,6 @@ async function saveBulkActivity(i){
   bulkSegments[i].saved=true;
   refreshActivePage();
 }
-function logBulkPayment(i){
-  var s=bulkSegments[i].data;
-  var pid=document.getElementById('bq-'+i+'-patient').value;
-  if(!pid){alert('Please select a patient for this update first');return;}
-  openAddTxn();
-  document.getElementById('txnPatient').value=pid;
-  document.getElementById('txnAmount').value=s.payment_amount;
-  document.getElementById('txnPurpose').value=s.payment_purpose||'Other';
-  document.getElementById('txnDate').value=document.getElementById('bq-'+i+'-visitdate').value||new Date().toISOString().slice(0,10);
-  document.getElementById('txnNotes').value=s.payment_notes||'';
-}
-
 // ═══ WHATSAPP IMPORT ═════════════════════════════════════════════
 // Paste (or upload) a WhatsApp chat export; photos from an export-with-media
 // folder can come along. Flow: parse the export format locally → hash every
@@ -2626,9 +2649,7 @@ function renderWaCards(){
     if(nfiles)h+='<div class="ai-box" style="margin-bottom:10px">📎 '+nfiles+' '+tr('photo(s) from these messages will be attached on save.')+'</div>';
     h+=isPatient?renderPatientCardFields('wa',i,e,dis):renderLogCardFields('wa',i,e,dis);
     if(isPatient&&e.payment_amount&&parseFloat(e.payment_amount)>0){
-      h+='<div class="ai-box"><div class="ai-box-title">💰 '+tr('Payment Mentioned')+'</div>₹'+esc(e.payment_amount)+(e.payment_purpose?' — '+tr(e.payment_purpose):'')+(e.payment_notes?' ('+esc(e.payment_notes)+')':'');
-      if(!en.saved)h+='<button type="button" class="btn btn-secondary btn-sm" style="margin-top:6px" onclick="waLogPayment('+i+')">'+tr('Log This Payment')+'</button>';
-      h+='</div>';
+      h+='<div class="ai-box"><div class="ai-box-title">💰 '+tr('Payment Mentioned')+' — '+tr('logged to Finances when you save this entry')+'</div>'+paymentFieldsHtml('wa',i,dis)+'</div>';
     }
     if(!en.saved)h+='<button class="btn btn-primary" style="margin-top:12px" id="wa-'+i+'-savebtn" onclick="saveWaCard('+i+')">'+tr('Save This Entry')+'</button>';
     h+='</div></div>';
@@ -2646,6 +2667,11 @@ function renderWaCards(){
       document.getElementById('wa-'+i+'-testdate').value=e.test_date||'';
       document.getElementById('wa-'+i+'-meddate').value=e.med_date||'';
       document.getElementById('wa-'+i+'-committed').value=e.committed_amount||'';
+      if(e.payment_amount&&parseFloat(e.payment_amount)>0){
+        document.getElementById('wa-'+i+'-payamount').value=e.payment_amount;
+        document.getElementById('wa-'+i+'-paypurpose').value=e.payment_purpose||'Other';
+        document.getElementById('wa-'+i+'-paynotes').value=e.payment_notes||'';
+      }
       setNpValues('wa',i,e);
     } else {
       document.getElementById('wa-'+i+'-adate').value=e.occurred_on||new Date().toISOString().slice(0,10);
@@ -2655,18 +2681,6 @@ function renderWaCards(){
       document.getElementById('wa-'+i+'-aquantity').value=parseInt(e.quantity)||1;
     }
   });
-}
-
-function waLogPayment(i){
-  var e=waEntries[i].data;
-  var pid=document.getElementById('wa-'+i+'-patient').value;
-  if(!pid){alert('Please select the patient for this entry first');return;}
-  openAddTxn();
-  document.getElementById('txnPatient').value=pid;
-  document.getElementById('txnAmount').value=e.payment_amount;
-  document.getElementById('txnPurpose').value=e.payment_purpose||'Other';
-  document.getElementById('txnDate').value=document.getElementById('wa-'+i+'-visitdate').value||new Date().toISOString().slice(0,10);
-  document.getElementById('txnNotes').value=e.payment_notes||'';
 }
 
 // The ledger records every NEW message from this import (entries or not) the
@@ -2731,8 +2745,10 @@ async function saveWaCard(i){
     if(!pid)return fail('Pick the patient for entry '+(i+1)+' first — or register them from the Dashboard, then re-select here.');
     var opts={source:'whatsapp',sourceText:waSourceText(e),
       isPublic:document.getElementById('wa-'+i+'-public').checked};
-    var result=await savePatientUpdate(pid,collectPatientFields('wa',i),opts);
+    var fields=collectPatientFields('wa',i);
+    var result=await savePatientUpdate(pid,fields,opts);
     if(result.error)return fail('Could not save: '+result.error);
+    await logCardPayment('wa',i,pid,fields.visitDate);
     await waUploadFiles(e,opts.logId,pid,false);
   } else {
     var isPub=document.getElementById('wa-'+i+'-public').checked;
