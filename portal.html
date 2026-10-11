@@ -306,8 +306,9 @@
     <div style="overflow-x:auto"><table><thead><tr><th data-i18n="ID">ID</th><th data-i18n="Patient">Patient</th><th data-i18n="Total Spent">Total Spent</th></tr></thead><tbody id="balanceBody"></tbody></table></div>
   </div>
   <div class="card">
-    <div class="card-header"><h2 data-i18n="All Payments">All Payments</h2><input type="text" class="search-input" placeholder="Search by patient..." data-i18n-ph="Search by patient..." oninput="renderFinances(this.value)"></div>
+    <div class="card-header"><h2 data-i18n="Patient Care">Patient Care</h2><input type="text" id="txnSearchInput" class="search-input" placeholder="Search by patient..." data-i18n-ph="Search by patient..." oninput="txnShowCount=10;renderFinances(this.value)"></div>
     <div style="overflow-x:auto"><table><thead><tr><th data-i18n="ID">ID</th><th data-i18n="Patient">Patient</th><th data-i18n="Amount">Amount</th><th data-i18n="Purpose">Purpose</th><th data-i18n="Date">Date</th><th data-i18n="Notes">Notes</th><th data-i18n="Recorded By">Recorded By</th><th data-i18n="Actions">Actions</th></tr></thead><tbody id="txnBody"></tbody></table></div>
+    <div id="txnShowMoreWrap" style="text-align:center;padding:14px 0;display:none"><span class="link" onclick="txnShowMore()" id="txnShowMoreLink"></span></div>
   </div>
   <div class="card" style="margin-top:28px">
     <div class="card-header"><h2 data-i18n="Field Team Remuneration — by Person">Field Team Remuneration — by Person</h2></div>
@@ -716,7 +717,7 @@ var T_HI={
   'Log Camp Expense':'कैंप खर्च दर्ज करें','Edit Camp Expense':'कैंप खर्च संपादित करें','Save Expense':'खर्च सहेजें',
   'Coordinator Payment':'समन्वयक भुगतान','Refreshments':'जलपान','Transport':'परिवहन','Venue':'स्थल',
   'No camp expenses logged yet.':'अभी तक कोई कैंप खर्च दर्ज नहीं हुआ।',
-  'Total Expenses':'कुल खर्च','Patient Care':'मरीज़ देखभाल','Sathi Remuneration':'साथी पारिश्रमिक','Health Camps':'स्वास्थ्य कैंप',
+  'Total Expenses':'कुल खर्च','Patient Care':'मरीज़ देखभाल','Health Camps':'स्वास्थ्य कैंप',
   'Public View':'सार्वजनिक दृश्य','Public Dashboard':'सार्वजनिक डैशबोर्ड','Logout':'लॉगआउट','Staff Login':'स्टाफ लॉगिन','Menu':'मेन्यू',
   'Public site':'सार्वजनिक साइट','Show on sacci.net/story.html':'sacci.net/story.html पर दिखाएँ','Shown as':'इस रूप में दिखाएँ',
   'Event on the timeline':'टाइमलाइन पर घटना','Panel under “How support works”':'“सहायता कैसे काम करती है” के नीचे पैनल',
@@ -771,6 +772,7 @@ var T_HI={
   'No active cases.':'कोई सक्रिय मामला नहीं।','No patients.':'कोई मरीज़ नहीं।',
   'Nothing published yet — camps, cancer saathi joinings, and milestones will appear here.':'अभी तक कुछ प्रकाशित नहीं हुआ है, कैंप, कैंसर साथी की जॉइनिंग और मील के पत्थर यहां दिखाई देंगे।',
   'No data yet.':'अभी तक कोई डेटा नहीं।','No payments logged yet.':'अभी तक कोई भुगतान दर्ज नहीं हुआ।',
+  'Show More':'और दिखाएं','more':'और',
   'No log entries yet.':'अभी तक कोई लॉग एंट्री नहीं।',
   'Case Summary':'केस सारांश','Age / Gender':'उम्र / लिंग','Aadhar':'आधार','Bank':'बैंक','Account':'खाता',
   'Registered':'पंजीकृत','Medication':'दवा','Schedule':'शेड्यूल','Next Test':'अगली जांच',
@@ -867,6 +869,7 @@ var transactions=[];
 var cancerSathis=[];
 var sathiPayments=[];
 var campExpenses=[];
+var txnShowCount=10;
 var logs=[];
 var logTypes=[];
 var tempFiles=[];
@@ -1299,21 +1302,30 @@ function renderFinances(q){
   document.getElementById('f-total-camp').textContent='₹'+campTotalAll.toLocaleString('en-IN');
 
   var tbody=document.getElementById('txnBody');
-  if(!list.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No payments logged yet.')+'</td></tr>';return;}
+  var moreWrap=document.getElementById('txnShowMoreWrap');
+  if(!list.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No payments logged yet.')+'</td></tr>';if(moreWrap)moreWrap.style.display='none';return;}
   var sorted=list.slice().sort(function(a,b){return new Date(b.txn_date)-new Date(a.txn_date);});
+  var shown=sorted.slice(0,txnShowCount);
   function build(){
-    var h='';sorted.forEach(function(t){
+    var h='';shown.forEach(function(t){
       h+='<tr><td>'+esc(patientCode(t.patient_id))+'</td><td><strong>'+esc(patientName(t.patient_id))+'</strong></td><td>₹'+Number(t.amount).toLocaleString('en-IN')+'</td><td>'+tr(t.purpose)+'</td><td>'+fmtDate(t.txn_date)+'</td><td>'+esc(dtr(t.notes)||'—')+'</td><td>'+esc(t.recorded_by||'—')+'</td><td><span class="link" onclick="editTxn(\''+t.id+'\')">'+tr('Edit')+'</span> · <span class="link" onclick="deleteTxn(\''+t.id+'\')">'+tr('Delete')+'</span></td></tr>';
     });
     return h;
   }
   tbody.innerHTML=build();
+  if(moreWrap){
+    if(sorted.length>shown.length){
+      moreWrap.style.display='';
+      document.getElementById('txnShowMoreLink').textContent=tr('Show More')+' ('+(sorted.length-shown.length)+' '+tr('more')+')';
+    } else moreWrap.style.display='none';
+  }
   if(storyLang==='hi'){
-    translateBatch(sorted.map(function(t){return t.notes;})).then(function(){
+    translateBatch(shown.map(function(t){return t.notes;})).then(function(){
       if(storyLang==='hi')tbody.innerHTML=build();
     });
   }
 }
+function txnShowMore(){txnShowCount+=10;renderFinances(document.getElementById('txnSearchInput').value);}
 function patientName(id){var p=patients.find(function(x){return x.id===id;});return p?p.name:'(unknown patient)';}
 function patientCode(id){var p=patients.find(function(x){return x.id===id;});return p&&p.code?p.code:'—';}
 function patientTotal(id){return transactions.filter(function(t){return t.patient_id===id;}).reduce(function(s,t){return s+Number(t.amount);},0);}
