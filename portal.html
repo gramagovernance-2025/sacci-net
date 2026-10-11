@@ -2947,13 +2947,18 @@ function resizeImageForVision(file){
 // by its index WITHIN the slice (not the global waNew index) so the edge
 // function can line each photo up with the right message text. Capped so
 // one unusually photo-heavy chunk can't blow up the request.
+// Messages whose photo didn't make the per-chunk cap get flagged right on
+// the message object (slice entries are the actual waNew objects, not
+// copies) — waEnsureLedger() checks this flag and leaves such messages out
+// of the import ledger, so a later re-import of the same export treats them
+// as new again instead of silently dropping their unread photo forever.
 async function buildImagePayload(slice){
-  var jobs=[];
+  var jobs=[],skipped=0;
   slice.forEach(function(m,j){
     (m.media||[]).forEach(function(fn){
       var f=waFiles[fn];
       if(!f||f.type.indexOf('image/')!==0)return;
-      if(jobs.length>=20)return;
+      if(jobs.length>=20){m._photoSkipped=true;skipped++;return;}
       jobs.push({message_index:j,filename:fn,file:f});
     });
   });
@@ -2964,6 +2969,7 @@ async function buildImagePayload(slice){
       out.push({message_index:jobs[i].message_index,filename:jobs[i].filename,media_type:enc.media_type,data:enc.data});
     }catch(e){console.error('Skipping unreadable image '+jobs[i].filename,e);}
   }
+  out.skippedCount=skipped;
   return out;
 }
 
@@ -3059,11 +3065,13 @@ async function waImport(){
       cs=ce;
     }
     waEntries=[];
+    var totalSkippedPhotos=0;
     for(var ci=0;ci<chunks.length;ci++){
       var ch=chunks[ci];
       document.getElementById('waSummary').innerHTML='<div class="ai-box" style="margin-top:16px">'+esc(sum)+' Reading '+waNew.length+' new message(s)'+(chunks.length>1?' — part '+(ci+1)+' of '+chunks.length+'…':'…')+'</div>';
       var slice=waNew.slice(ch.start,ch.end);
       var imgPayload=await buildImagePayload(slice);
+      totalSkippedPhotos+=imgPayload.skippedCount||0;
       if(imgPayload.length)document.getElementById('waSummary').innerHTML='<div class="ai-box" style="margin-top:16px">'+esc(sum)+' Reading '+waNew.length+' new message(s) and '+imgPayload.length+' photo(s)'+(chunks.length>1?' — part '+(ci+1)+' of '+chunks.length+'…':'…')+'</div>';
       var fnResp=await sb.functions.invoke('parse-whatsapp',{body:{messages:slice.map(function(m){return{sent_at:m.sent_at,sender:m.sender,body:m.body,media:m.media};}),images:imgPayload}});
       if(fnResp.error||!fnResp.data||fnResp.data.error){
@@ -3076,7 +3084,8 @@ async function waImport(){
         waEntries.push({data:e,saved:false});
       });
     }
-    document.getElementById('waSummary').innerHTML='<div class="ai-box" style="margin-top:16px">'+esc(sum)+' '+waNew.length+' new message(s) read → '+waEntries.length+' proposed entr'+(waEntries.length===1?'y':'ies')+' below. Review each one — nothing saves until you say so.</div>';
+    var skipNote=totalSkippedPhotos?' ⚠️ '+totalSkippedPhotos+' photo(s) in this batch weren\'t read (per-import limit) — they\'ll be picked up automatically if you re-import this same export later.':'';
+    document.getElementById('waSummary').innerHTML='<div class="ai-box" style="margin-top:16px">'+esc(sum)+' '+waNew.length+' new message(s) read → '+waEntries.length+' proposed entr'+(waEntries.length===1?'y':'ies')+' below. Review each one — nothing saves until you say so.'+skipNote+'</div>';
     renderWaCards();
   } finally {
     btn.disabled=false;btn.textContent='🤖 Read & Propose Entries';
@@ -3168,7 +3177,12 @@ function renderWaCards(){
 // finds the hashes and skips them.
 async function waEnsureLedger(){
   if(waLedgerDone)return true;
-  var rows=waNew.map(function(m){return{msg_hash:m.msg_hash,content_key:m.content_key,sender:m.sender,sent_at:m.sent_at,body:m.body,imported_by:UNAME};});
+  // Messages whose photo got skipped for this import (buildImagePayload's
+  // per-chunk cap) are left out of the ledger on purpose, so a later
+  // re-import of the same export sees them as new again and gets another
+  // chance to read the photo, instead of marking them done with an unread
+  // attachment forever.
+  var rows=waNew.filter(function(m){return !m._photoSkipped;}).map(function(m){return{msg_hash:m.msg_hash,content_key:m.content_key,sender:m.sender,sent_at:m.sent_at,body:m.body,imported_by:UNAME};});
   for(var c=0;c<rows.length;c+=200){
     var resp=await sb.from('whatsapp_messages').upsert(rows.slice(c,c+200),{onConflict:'msg_hash',ignoreDuplicates:true});
     if(resp.error){alert('Could not record the import ledger: '+resp.error.message);return false;}
