@@ -204,7 +204,7 @@
   <ul class="sidebar-nav" id="sidebarNav">
     <li><a href="#" class="active" data-page="dashboard" onclick="navTo('dashboard',this)">📊 Active Cases</a></li>
     <li><a href="#" data-page="patients" onclick="navTo('patients',this)">👥 All Patients</a></li>
-    <li><a href="#" data-page="sathis" onclick="navTo('sathis',this)" id="nav-sathis">🤝 Cancer Sathis</a></li>
+    <li><a href="#" data-page="sathis" onclick="navTo('sathis',this)" id="nav-sathis">🤝 Field Team</a></li>
     <li><a href="#" data-page="finances" onclick="navTo('finances',this)" id="nav-finances">💰 Finances</a></li>
     <li><a href="#" data-page="quickupdate" onclick="navTo('quickupdate',this)" id="nav-quickupdate">📝 Quick Update</a></li>
     <li><a href="#" data-page="whatsapp" onclick="navTo('whatsapp',this)" id="nav-whatsapp">💬 WhatsApp Import</a></li>
@@ -267,19 +267,19 @@
   </div>
 </div>
 
-<!-- ═══ CANCER SATHIS ═══ -->
+<!-- ═══ FIELD TEAM (cancer sathis + coordinators) ═══ -->
 <div class="page" id="page-sathis">
   <div class="topbar">
-    <h1 data-i18n="Cancer Sathis">Cancer Sathis</h1>
+    <h1 data-i18n="Field Team">Field Team</h1>
     <div class="topbar-actions" id="sathiActions">
-      <button class="btn btn-primary" id="sathiAddBtn" onclick="openAddSathi()" data-i18n="+ Add Sathi">+ Add Sathi</button>
+      <button class="btn btn-primary" id="sathiAddBtn" onclick="openAddSathi()" data-i18n="+ Add Team Member">+ Add Team Member</button>
       <button class="btn btn-secondary btn-sm story-last-updated" onclick="goToLastUpdate()">🕐 …</button>
       <div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div>
     </div>
   </div>
   <div class="card">
-    <div class="card-header"><h2 data-i18n="Cancer Sathi Roster">Cancer Sathi Roster</h2><input type="text" class="search-input" placeholder="Search..." data-i18n-ph="Search..." oninput="renderSathis(this.value)"></div>
-    <div style="overflow-x:auto"><table><thead><tr><th data-i18n="Name">Name</th><th data-i18n="Contact Number">Contact Number</th><th data-i18n="Area">Area</th><th data-i18n="District">District</th><th data-i18n="Actions">Actions</th></tr></thead><tbody id="sathiBody"></tbody></table></div>
+    <div class="card-header"><h2 data-i18n="Field Team Roster">Field Team Roster</h2><input type="text" class="search-input" placeholder="Search..." data-i18n-ph="Search..." oninput="renderSathis(this.value)"></div>
+    <div style="overflow-x:auto"><table><thead><tr><th data-i18n="Name">Name</th><th data-i18n="Role">Role</th><th data-i18n="Contact Number">Contact Number</th><th data-i18n="Area">Area</th><th data-i18n="District">District</th><th data-i18n="Actions">Actions</th></tr></thead><tbody id="sathiBody"></tbody></table></div>
   </div>
 </div>
 
@@ -289,11 +289,17 @@
     <h1 data-i18n="Finances">Finances</h1>
     <div class="topbar-actions">
       <button class="btn btn-primary" onclick="openAddTxn()" data-i18n="+ Log Payment">+ Log Payment</button>
-      <button class="btn btn-secondary" onclick="openAddSathiPay()" data-i18n="+ Log Sathi Payment">+ Log Sathi Payment</button>
+      <button class="btn btn-secondary" onclick="openAddSathiPay()" data-i18n="+ Log Team Payment">+ Log Team Payment</button>
       <button class="btn btn-secondary" onclick="openAddCampExp()" data-i18n="+ Log Camp Expense">+ Log Camp Expense</button>
       <button class="btn btn-secondary btn-sm story-last-updated" onclick="goToLastUpdate()">🕐 …</button>
       <div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div>
     </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-box-number" id="f-total-all">₹0</div><div class="stat-box-label" data-i18n="Total Expenses">Total Expenses</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="f-total-patient">₹0</div><div class="stat-box-label" data-i18n="Patient Care">Patient Care</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="f-total-sathi">₹0</div><div class="stat-box-label" data-i18n="Field Team Remuneration">Field Team Remuneration</div></div>
+    <div class="stat-box"><div class="stat-box-number" id="f-total-camp">₹0</div><div class="stat-box-label" data-i18n="Health Camps">Health Camps</div></div>
   </div>
   <div class="card">
     <div class="card-header"><h2 data-i18n="Payments by Patient">Payments by Patient</h2></div>
@@ -304,12 +310,12 @@
     <div style="overflow-x:auto"><table><thead><tr><th data-i18n="ID">ID</th><th data-i18n="Patient">Patient</th><th data-i18n="Amount">Amount</th><th data-i18n="Purpose">Purpose</th><th data-i18n="Date">Date</th><th data-i18n="Notes">Notes</th><th data-i18n="Recorded By">Recorded By</th><th data-i18n="Actions">Actions</th></tr></thead><tbody id="txnBody"></tbody></table></div>
   </div>
   <div class="card" style="margin-top:28px">
-    <div class="card-header"><h2 data-i18n="Cancer Sathi Remuneration — by Sathi">Cancer Sathi Remuneration — by Sathi</h2></div>
-    <div style="overflow-x:auto"><table><thead><tr><th data-i18n="Sathi">Sathi</th><th data-i18n="Total Paid">Total Paid</th></tr></thead><tbody id="sathiPayBalanceBody"></tbody></table></div>
+    <div class="card-header"><h2 data-i18n="Field Team Remuneration — by Person">Field Team Remuneration — by Person</h2></div>
+    <div style="overflow-x:auto"><table><thead><tr><th data-i18n="Name">Name</th><th data-i18n="Total Paid">Total Paid</th></tr></thead><tbody id="sathiPayBalanceBody"></tbody></table></div>
   </div>
   <div class="card">
-    <div class="card-header"><h2 data-i18n="Cancer Sathi Payments">Cancer Sathi Payments</h2><input type="text" class="search-input" placeholder="Search by sathi..." data-i18n-ph="Search by sathi..." oninput="renderSathiPayments(this.value)"></div>
-    <div style="overflow-x:auto"><table><thead><tr><th data-i18n="Sathi">Sathi</th><th data-i18n="Amount">Amount</th><th data-i18n="Month">Month</th><th data-i18n="Notes">Notes</th><th data-i18n="Recorded By">Recorded By</th><th data-i18n="Actions">Actions</th></tr></thead><tbody id="sathiPayBody"></tbody></table></div>
+    <div class="card-header"><h2 data-i18n="Field Team Payments">Field Team Payments</h2><input type="text" class="search-input" placeholder="Search by name..." data-i18n-ph="Search by name..." oninput="renderSathiPayments(this.value)"></div>
+    <div style="overflow-x:auto"><table><thead><tr><th data-i18n="Name">Name</th><th data-i18n="Amount">Amount</th><th data-i18n="Month">Month</th><th data-i18n="Notes">Notes</th><th data-i18n="Recorded By">Recorded By</th><th data-i18n="Actions">Actions</th></tr></thead><tbody id="sathiPayBody"></tbody></table></div>
   </div>
   <div class="card" style="margin-top:28px">
     <div class="card-header"><h2 data-i18n="Health Camp Expenses — by Camp">Health Camp Expenses — by Camp</h2></div>
@@ -510,25 +516,25 @@
 <!-- ═══ CANCER SATHI MODAL ═══ -->
 <div class="modal-overlay" id="sathiModal">
 <div class="modal" style="max-width:520px">
-  <div class="modal-head"><h2 id="sathiModalTitle" data-i18n="Add Cancer Sathi">Add Cancer Sathi</h2><button class="modal-close" onclick="closeSathi()">&times;</button></div>
+  <div class="modal-head"><h2 id="sathiModalTitle" data-i18n="Add Team Member">Add Team Member</h2><button class="modal-close" onclick="closeSathi()">&times;</button></div>
   <div class="modal-body">
     <input type="hidden" id="sathiId">
-    <div class="fg"><label data-i18n="Name *">Name *</label><input type="text" id="sathiName"></div>
+    <div class="form-row"><div class="fg"><label data-i18n="Name *">Name *</label><input type="text" id="sathiName"></div><div class="fg"><label data-i18n="Role">Role</label><select id="sathiRole"><option data-i18n="Cancer Sathi">Cancer Sathi</option><option data-i18n="Coordinator">Coordinator</option></select></div></div>
     <div class="fg"><label data-i18n="Contact Number">Contact Number</label><input type="tel" id="sathiPhone"></div>
     <div class="form-row"><div class="fg"><label data-i18n="Area Responsible For">Area Responsible For</label><input type="text" id="sathiArea" placeholder="e.g. Motipur block, 8 panchayats"></div><div class="fg"><label data-i18n="District">District</label><input type="text" id="sathiDistrict" value="Muzaffarpur"></div></div>
     <div class="fg"><label data-i18n="Notes">Notes</label><textarea id="sathiNotes"></textarea></div>
   </div>
-  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeSathi()" data-i18n="Cancel">Cancel</button><button class="btn btn-primary" onclick="saveSathi()" data-i18n="Save Sathi">Save Sathi</button></div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeSathi()" data-i18n="Cancel">Cancel</button><button class="btn btn-primary" onclick="saveSathi()" data-i18n="Save">Save</button></div>
 </div>
 </div>
 
 <!-- ═══ SATHI PAYMENT MODAL ═══ -->
 <div class="modal-overlay" id="sathiPayModal">
 <div class="modal" style="max-width:520px">
-  <div class="modal-head"><h2 id="sathiPayModalTitle" data-i18n="Log Sathi Payment">Log Sathi Payment</h2><button class="modal-close" onclick="closeSathiPay()">&times;</button></div>
+  <div class="modal-head"><h2 id="sathiPayModalTitle" data-i18n="Log Team Payment">Log Team Payment</h2><button class="modal-close" onclick="closeSathiPay()">&times;</button></div>
   <div class="modal-body">
     <input type="hidden" id="sathiPayId">
-    <div class="fg"><label data-i18n="Sathi">Sathi</label><select id="sathiPaySathi"></select></div>
+    <div class="fg"><label data-i18n="Team Member">Team Member</label><select id="sathiPaySathi"></select></div>
     <div class="form-row"><div class="fg"><label data-i18n="Amount (₹)">Amount (₹)</label><input type="number" id="sathiPayAmount" min="0" step="0.01"></div><div class="fg"><label data-i18n="Month">Month</label><input type="month" id="sathiPayMonth"></div></div>
     <div class="fg"><label data-i18n="Notes">Notes</label><textarea id="sathiPayNotes"></textarea></div>
   </div>
@@ -697,18 +703,20 @@ var ROLE='public', UNAME='Public View', UUSER='';
 var T_HI={
   'Active Cases':'सक्रिय मामले','All Patients':'सभी मरीज़','All Patients — Detailed View':'सभी मरीज़ — विस्तृत दृश्य',
   'Finances':'वित्त','Quick Update':'त्वरित अपडेट','WhatsApp Import':'व्हाट्सएप इम्पोर्ट','Our Story':'हमारी कहानी',
-  'Cancer Sathis':'कैंसर साथी','+ Add Sathi':'+ साथी जोड़ें','Cancer Sathi Roster':'कैंसर साथी सूची','Contact Number':'संपर्क नंबर',
-  'Area':'क्षेत्र','Add Cancer Sathi':'कैंसर साथी जोड़ें','Edit Cancer Sathi':'कैंसर साथी संपादित करें',
-  'Area Responsible For':'ज़िम्मेदार क्षेत्र','Save Sathi':'साथी सहेजें','No cancer sathis added yet.':'अभी तक कोई कैंसर साथी नहीं जोड़ा गया।',
-  '+ Log Sathi Payment':'+ साथी भुगतान दर्ज करें','Cancer Sathi Remuneration — by Sathi':'कैंसर साथी पारिश्रमिक — साथी अनुसार',
-  'Sathi':'साथी','Total Paid':'कुल भुगतान','Cancer Sathi Payments':'कैंसर साथी भुगतान','Search by sathi...':'साथी के नाम से खोजें...',
-  'Month':'महीना','Log Sathi Payment':'साथी भुगतान दर्ज करें','Edit Sathi Payment':'साथी भुगतान संपादित करें',
-  'No sathi payments logged yet.':'अभी तक कोई साथी भुगतान दर्ज नहीं हुआ।',
+  'Field Team':'फील्ड टीम','+ Add Team Member':'+ टीम सदस्य जोड़ें','Field Team Roster':'फील्ड टीम सूची','Contact Number':'संपर्क नंबर',
+  'Area':'क्षेत्र','Add Team Member':'टीम सदस्य जोड़ें','Edit Team Member':'टीम सदस्य संपादित करें','Role':'भूमिका',
+  'Cancer Sathi':'कैंसर साथी','Coordinator':'समन्वयक',
+  'Area Responsible For':'ज़िम्मेदार क्षेत्र','No team members added yet.':'अभी तक कोई टीम सदस्य नहीं जोड़ा गया।',
+  '+ Log Team Payment':'+ टीम भुगतान दर्ज करें','Field Team Remuneration — by Person':'फील्ड टीम पारिश्रमिक — व्यक्ति अनुसार',
+  'Team Member':'टीम सदस्य','Total Paid':'कुल भुगतान','Field Team Payments':'फील्ड टीम भुगतान','Search by name...':'नाम से खोजें...',
+  'Month':'महीना','Log Team Payment':'टीम भुगतान दर्ज करें','Edit Team Payment':'टीम भुगतान संपादित करें',
+  'No team payments logged yet.':'अभी तक कोई टीम भुगतान दर्ज नहीं हुआ।','Field Team Remuneration':'फील्ड टीम पारिश्रमिक',
   '+ Log Camp Expense':'+ कैंप खर्च दर्ज करें','Health Camp Expenses — by Camp':'स्वास्थ्य कैंप खर्च — कैंप अनुसार','Camp':'कैंप',
   'Health Camp Expenses':'स्वास्थ्य कैंप खर्च','Search by camp...':'कैंप के नाम से खोजें...','Camp / Location':'कैंप / स्थान',
   'Log Camp Expense':'कैंप खर्च दर्ज करें','Edit Camp Expense':'कैंप खर्च संपादित करें','Save Expense':'खर्च सहेजें',
   'Coordinator Payment':'समन्वयक भुगतान','Refreshments':'जलपान','Transport':'परिवहन','Venue':'स्थल',
   'No camp expenses logged yet.':'अभी तक कोई कैंप खर्च दर्ज नहीं हुआ।',
+  'Total Expenses':'कुल खर्च','Patient Care':'मरीज़ देखभाल','Sathi Remuneration':'साथी पारिश्रमिक','Health Camps':'स्वास्थ्य कैंप',
   'Public View':'सार्वजनिक दृश्य','Public Dashboard':'सार्वजनिक डैशबोर्ड','Logout':'लॉगआउट','Staff Login':'स्टाफ लॉगिन','Menu':'मेन्यू',
   'Public site':'सार्वजनिक साइट','Show on sacci.net/story.html':'sacci.net/story.html पर दिखाएँ','Shown as':'इस रूप में दिखाएँ',
   'Event on the timeline':'टाइमलाइन पर घटना','Panel under “How support works”':'“सहायता कैसे काम करती है” के नीचे पैनल',
@@ -1283,6 +1291,13 @@ function renderFinances(q){
   renderSathiPayments();
   renderCampExpenses();
 
+  var sum=function(arr,key){return arr.reduce(function(s,x){return s+Number(x[key]);},0);};
+  var patientTotalAll=sum(transactions,'amount'),sathiTotalAll=sum(sathiPayments,'amount'),campTotalAll=sum(campExpenses,'amount');
+  document.getElementById('f-total-all').textContent='₹'+(patientTotalAll+sathiTotalAll+campTotalAll).toLocaleString('en-IN');
+  document.getElementById('f-total-patient').textContent='₹'+patientTotalAll.toLocaleString('en-IN');
+  document.getElementById('f-total-sathi').textContent='₹'+sathiTotalAll.toLocaleString('en-IN');
+  document.getElementById('f-total-camp').textContent='₹'+campTotalAll.toLocaleString('en-IN');
+
   var tbody=document.getElementById('txnBody');
   if(!list.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No payments logged yet.')+'</td></tr>';return;}
   var sorted=list.slice().sort(function(a,b){return new Date(b.txn_date)-new Date(a.txn_date);});
@@ -1376,9 +1391,9 @@ function renderSathis(q){
   var tbody=document.getElementById('sathiBody');if(!tbody)return;
   var list=cancerSathis;
   if(q){var f=q.toLowerCase();list=list.filter(function(s){return(s.name||'').toLowerCase().indexOf(f)>=0||(s.area||'').toLowerCase().indexOf(f)>=0||(s.district||'').toLowerCase().indexOf(f)>=0;});}
-  if(!list.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No cancer sathis added yet.')+'</td></tr>';return;}
+  if(!list.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No team members added yet.')+'</td></tr>';return;}
   var h='';list.forEach(function(s){
-    h+='<tr><td><strong>'+esc(s.name)+'</strong></td><td>'+esc(s.phone||'—')+'</td><td>'+esc(s.area||'—')+'</td><td>'+esc(s.district||'—')+'</td><td>';
+    h+='<tr><td><strong>'+esc(s.name)+'</strong></td><td>'+tr(s.role||'Cancer Sathi')+'</td><td>'+esc(s.phone||'—')+'</td><td>'+esc(s.area||'—')+'</td><td>'+esc(s.district||'—')+'</td><td>';
     if(ROLE==='staff')h+='<span class="link" onclick="editSathi(\''+s.id+'\')">'+tr('Edit')+'</span> · <span class="link" onclick="deleteSathi(\''+s.id+'\')">'+tr('Delete')+'</span>';
     else h+='—';
     h+='</td></tr>';
@@ -1386,9 +1401,10 @@ function renderSathis(q){
   tbody.innerHTML=h;
 }
 function openAddSathi(){
-  document.getElementById('sathiModalTitle').textContent=tr('Add Cancer Sathi');
+  document.getElementById('sathiModalTitle').textContent=tr('Add Team Member');
   document.getElementById('sathiId').value='';
   document.getElementById('sathiName').value='';
+  document.getElementById('sathiRole').value='Cancer Sathi';
   document.getElementById('sathiPhone').value='';
   document.getElementById('sathiArea').value='';
   document.getElementById('sathiDistrict').value='Muzaffarpur';
@@ -1398,9 +1414,10 @@ function openAddSathi(){
 function editSathi(id){
   var s=cancerSathis.find(function(x){return x.id===id;});if(!s)return;
   openAddSathi();
-  document.getElementById('sathiModalTitle').textContent=tr('Edit Cancer Sathi');
+  document.getElementById('sathiModalTitle').textContent=tr('Edit Team Member');
   document.getElementById('sathiId').value=id;
   document.getElementById('sathiName').value=s.name||'';
+  document.getElementById('sathiRole').value=s.role||'Cancer Sathi';
   document.getElementById('sathiPhone').value=s.phone||'';
   document.getElementById('sathiArea').value=s.area||'';
   document.getElementById('sathiDistrict').value=s.district||'Muzaffarpur';
@@ -1411,7 +1428,7 @@ async function saveSathi(){
   var name=document.getElementById('sathiName').value.trim();
   if(!name){alert('Name is required');return;}
   var id=document.getElementById('sathiId').value;
-  var row={name:name,phone:document.getElementById('sathiPhone').value.trim()||null,
+  var row={name:name,role:document.getElementById('sathiRole').value,phone:document.getElementById('sathiPhone').value.trim()||null,
     area:document.getElementById('sathiArea').value.trim()||null,
     district:document.getElementById('sathiDistrict').value.trim()||null,
     notes:document.getElementById('sathiNotes').value.trim()||null,updated_by:UNAME};
@@ -1422,7 +1439,7 @@ async function saveSathi(){
   renderSathis();
 }
 async function deleteSathi(id){
-  if(!confirm('Remove this cancer sathi from the roster?'))return;
+  if(!confirm('Remove this team member from the roster?'))return;
   var resp=await sb.from('cancer_sathis').delete().eq('id',id);
   if(resp.error){alert('Could not delete: '+resp.error.message);return;}
   await loadCancerSathis();
@@ -1449,7 +1466,7 @@ function renderSathiPayments(q){
   if(balBody){
     var rows=cancerSathis.filter(function(s){return sathiPayTotal(s.id)>0;})
       .sort(function(a,b){return a.name.localeCompare(b.name);});
-    if(!rows.length){balBody.innerHTML='<tr><td colspan="2" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No sathi payments logged yet.')+'</td></tr>';}
+    if(!rows.length){balBody.innerHTML='<tr><td colspan="2" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No team payments logged yet.')+'</td></tr>';}
     else{
       var bh='';rows.forEach(function(s){bh+='<tr><td><strong>'+esc(s.name)+'</strong></td><td>₹'+sathiPayTotal(s.id).toLocaleString('en-IN')+'</td></tr>';});
       balBody.innerHTML=bh;
@@ -1458,7 +1475,7 @@ function renderSathiPayments(q){
   var tbody=document.getElementById('sathiPayBody');if(!tbody)return;
   var list=sathiPayments;
   if(q){var f=q.toLowerCase();list=list.filter(function(p){return sathiName(p.sathi_id).toLowerCase().indexOf(f)>=0;});}
-  if(!list.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No sathi payments logged yet.')+'</td></tr>';return;}
+  if(!list.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No team payments logged yet.')+'</td></tr>';return;}
   var sorted=list.slice().sort(function(a,b){return new Date(b.pay_month)-new Date(a.pay_month);});
   var h='';sorted.forEach(function(p){
     h+='<tr><td><strong>'+esc(sathiName(p.sathi_id))+'</strong></td><td>₹'+Number(p.amount).toLocaleString('en-IN')+'</td><td>'+fmtMonth(p.pay_month)+'</td><td>'+esc(p.notes||'—')+'</td><td>'+esc(p.recorded_by||'—')+'</td><td><span class="link" onclick="editSathiPay(\''+p.id+'\')">'+tr('Edit')+'</span> · <span class="link" onclick="deleteSathiPay(\''+p.id+'\')">'+tr('Delete')+'</span></td></tr>';
@@ -1466,11 +1483,11 @@ function renderSathiPayments(q){
   tbody.innerHTML=h;
 }
 function openAddSathiPay(){
-  document.getElementById('sathiPayModalTitle').textContent=tr('Log Sathi Payment');
+  document.getElementById('sathiPayModalTitle').textContent=tr('Log Team Payment');
   document.getElementById('sathiPayId').value='';
   var sel=document.getElementById('sathiPaySathi');
   sel.innerHTML=cancerSathis.slice().sort(function(a,b){return a.name.localeCompare(b.name);})
-    .map(function(s){return'<option value="'+s.id+'">'+esc(s.name)+'</option>';}).join('');
+    .map(function(s){return'<option value="'+s.id+'">'+esc(s.name)+' — '+tr(s.role||'Cancer Sathi')+'</option>';}).join('');
   document.getElementById('sathiPayAmount').value='';
   document.getElementById('sathiPayMonth').value=new Date().toISOString().slice(0,7);
   document.getElementById('sathiPayNotes').value='';
@@ -1479,7 +1496,7 @@ function openAddSathiPay(){
 function editSathiPay(id){
   var p=sathiPayments.find(function(x){return x.id===id;});if(!p)return;
   openAddSathiPay();
-  document.getElementById('sathiPayModalTitle').textContent=tr('Edit Sathi Payment');
+  document.getElementById('sathiPayModalTitle').textContent=tr('Edit Team Payment');
   document.getElementById('sathiPayId').value=id;
   document.getElementById('sathiPaySathi').value=p.sathi_id;
   document.getElementById('sathiPayAmount').value=p.amount;

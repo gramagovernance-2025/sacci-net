@@ -869,3 +869,12 @@ begin
     alter publication supabase_realtime add table camp_expenses;
   end if;
 end $$;
+
+-- ─── FIELD TEAM ROLE (2026-10-11) ───────────────────────────────
+-- cancer_sathis also holds coordinators now — not everyone on this
+-- roster is literally a Cancer Saathi. role distinguishes them on an
+-- otherwise-unchanged table (same roster, same payments table).
+alter table cancer_sathis add column if not exists role text not null default 'Cancer Sathi'
+  check (role in ('Cancer Sathi','Coordinator'));
+
+notify pgrst, 'reload schema';
