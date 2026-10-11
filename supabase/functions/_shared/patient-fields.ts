@@ -9,3 +9,8 @@ export const STATUS_VALUES = [
 export const PURPOSE_VALUES = [
   "", "Travel", "Screening", "Treatment", "Medicine", "Hospital Stay", "Other",
 ] as const;
+
+// Matches camp_expenses.purpose's check constraint in schema.sql.
+export const CAMP_PURPOSE_VALUES = [
+  "", "Coordinator Payment", "Refreshments", "Transport", "Venue", "Other",
+] as const;

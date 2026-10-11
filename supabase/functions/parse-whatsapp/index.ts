@@ -11,7 +11,7 @@ import { z } from "npm:zod@4.4.3";
 import { zodOutputFormat } from "npm:@anthropic-ai/sdk@0.112.1/helpers/zod";
 import { createClient } from "npm:@supabase/supabase-js@2.110.7";
 import { CORS_HEADERS, jsonResponse } from "../_shared/cors.ts";
-import { PURPOSE_VALUES, STATUS_VALUES } from "../_shared/patient-fields.ts";
+import { CAMP_PURPOSE_VALUES, PURPOSE_VALUES, STATUS_VALUES } from "../_shared/patient-fields.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -61,8 +61,29 @@ function buildSchema(logTypeNames: [string, ...string[]]) {
     payment_amount: z.string(),
     payment_purpose: z.enum(PURPOSE_VALUES),
     payment_notes: z.string(),
+    // Independent of log_type — any entry can mention money paid to a
+    // sathi/coordinator, or spent running a camp, alongside (or instead of)
+    // a patient payment. occurred_on doubles as the pay-month/camp-date.
+    team_payment_amount: z.string(),
+    team_payment_member_name: z.string(),
+    team_payment_notes: z.string(),
+    camp_expense_amount: z.string(),
+    camp_expense_purpose: z.enum(CAMP_PURPOSE_VALUES),
+    camp_expense_name: z.string(),
+    camp_expense_notes: z.string(),
   });
   return z.object({ entries: z.array(EntrySchema) });
+}
+
+// One attached image, base64-encoded client-side, keyed to the index of the
+// message it came from (messages[] below) so it can be inlined right after
+// that message's text in the prompt — proximity is how the model learns
+// which photo belongs to which message, there's no other link between them.
+interface InboundImage {
+  message_index: number;
+  filename: string;
+  media_type: string;
+  data: string;
 }
 
 Deno.serve(async (req) => {
@@ -82,15 +103,20 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "Not authorized" }, 403);
     }
 
-    const { messages } = await req.json();
+    const { messages, images } = await req.json();
     if (!Array.isArray(messages) || messages.length === 0) {
       return jsonResponse({ error: "messages is required" }, 400);
     }
+    const imageList: InboundImage[] = Array.isArray(images) ? images : [];
 
     const { data: roster } = await admin
       .from("patients")
       .select("patient_code, name, village, block, status");
     if (!roster) return jsonResponse({ error: "Could not load the patient roster" }, 500);
+
+    const { data: sathis } = await admin
+      .from("cancer_sathis")
+      .select("name, role");
 
     const { data: logTypes } = await admin
       .from("log_types")
@@ -106,17 +132,33 @@ Deno.serve(async (req) => {
       .map((p: any) => `${p.patient_code} | ${p.name} | ${p.village ?? "—"}, ${p.block ?? "—"} | ${p.status ?? "—"}`)
       .join("\n");
 
-    // Each message rendered with its own index and timestamp — the timestamps
-    // are what let the model resolve "kal"/"aaj"/"mangalwar" per message
-    // rather than against a single today's-date.
-    const messagesText = messages
-      .map((m: any, i: number) => {
-        const attached = Array.isArray(m.media) && m.media.length
-          ? ` [attached: ${m.media.join(", ")}]`
-          : "";
-        return `[${i}] ${m.sent_at} — ${m.sender}: ${m.body}${attached}`;
-      })
-      .join("\n");
+    const sathiRosterText = (sathis ?? [])
+      .map((s: any) => `${s.name} (${s.role})`)
+      .join(", ") || "none on file";
+
+    // Each message becomes a text block, immediately followed by any image
+    // blocks attached to it — interleaving (not a separate images-at-the-end
+    // list) is what lets the model tell which photo goes with which message,
+    // the same way a human scrolling the chat would.
+    // deno-lint-ignore no-explicit-any
+    const content: any[] = [
+      { type: "text", text: "WhatsApp messages:" },
+    ];
+    messages.forEach((m: any, i: number) => {
+      const attached = Array.isArray(m.media) && m.media.length
+        ? ` [attached: ${m.media.join(", ")}]`
+        : "";
+      content.push({ type: "text", text: `[${i}] ${m.sent_at} — ${m.sender}: ${m.body}${attached}` });
+      imageList
+        .filter((img) => img.message_index === i)
+        .forEach((img) => {
+          content.push({ type: "text", text: `(image attached to [${i}]: ${img.filename})` });
+          content.push({
+            type: "image",
+            source: { type: "base64", media_type: img.media_type as any, data: img.data },
+          });
+        });
+    });
 
     const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
     const response = await anthropic.messages.parse({
@@ -139,7 +181,29 @@ Deno.serve(async (req) => {
         "Each message is given as: [index] timestamp — sender: body, with attached filenames noted. Export " +
         "quirks to expect: a reply often begins with an echoed copy of the earlier message it quotes — ignore " +
         "the echoed part and read only the new text. Placeholders like \"12 photos\" or \"<Media omitted>\" " +
-        "mean media was sent without loggable text.\n\n" +
+        "mean media was sent without loggable text — but check first: some of those attachments are included " +
+        "below as actual images, right after the message that sent them. Read every attached image's content " +
+        "directly rather than relying on the caption alone — captions are often minimal (\"sending reports\", " +
+        "\"yeh raha\") while the real information is in the photo. Three kinds of images show up: (1) medical " +
+        "reports and prescriptions — pull diagnosis/treatment/medication/test findings/dates into the matching " +
+        "patient fields exactly as you would from text; (2) handwritten expense vouchers or receipts, often in " +
+        "Hindi, sometimes photographed at an angle or partly illegible — read the name, amount, and what it was " +
+        "for, and do your best with unclear handwriting rather than skipping it; (3) photos with no loggable " +
+        "content (people, locations, unrelated images) — ignore these.\n\n" +
+        "Field team roster (cancer sathis and coordinators on file): " + sathiRosterText + ". A voucher/receipt " +
+        "naming one of these people — or anyone else clearly acting as a sathi or coordinator (travel/petrol " +
+        "reimbursement, a \"pocket expense\" for field work, payment for running a camp) — is a team payment, " +
+        "not a patient payment. Extract team_payment_amount as a plain number (no symbols/commas), " +
+        "team_payment_member_name as the name written on the voucher (match the roster's spelling if it's " +
+        "clearly the same person, otherwise use the name as written), and team_payment_notes for what it was " +
+        "for. A voucher for camp running costs not tied to one specific person's pay — refreshments/nashta, " +
+        "venue, transport for the group, or similar — is a camp expense instead: extract camp_expense_amount, " +
+        "camp_expense_purpose (closest match, \"Other\" if unclear), camp_expense_name (the camp/panchayat/" +
+        "location named on the slip), and camp_expense_notes. A single voucher is usually either a team payment " +
+        "OR a camp expense, not both — judge by what the voucher is actually paying for. Leave all of these " +
+        "fields empty when no voucher or receipt is present. These fields are independent of log_type and of " +
+        "payment_amount — an entry can carry a patient payment, a team payment, and a camp expense " +
+        "simultaneously if the messages genuinely mention all three.\n\n" +
         "Your job: group these messages into distinct loggable entries. A back-and-forth conversation about one " +
         "thing (e.g. arranging one patient's hospital visit across several messages and days) is ONE entry, not " +
         "several. Messages that are pure chatter or logistics supporting no entry produce nothing. For each " +
@@ -178,11 +242,12 @@ Deno.serve(async (req) => {
         "attending: a Health Camp, Meeting or Training is one event, so leave quantity empty and put the " +
         "attendance in the description. Leave quantity empty on Patient Update entries.",
       messages: [
-        { role: "user", content: `WhatsApp messages:\n${messagesText}` },
+        { role: "user", content },
       ],
       // medium effort: extraction doesn't need deep reasoning, and the edge
       // runtime enforces a wall-clock limit — the portal additionally chunks
-      // large exports (~45 messages per call) to stay under it.
+      // large exports (~45 messages per call, capped at 20 images per call)
+      // to stay under it.
       output_config: { effort: "medium", format: zodOutputFormat(buildSchema(typeNames)) },
     });
 

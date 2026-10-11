@@ -812,7 +812,8 @@ var T_HI={
   'Add Update':'अपडेट जोड़ें',"What's new about this milestone?":'इस मील के पत्थर में क्या नया है?',
   'Write freely — mention patients by name, or describe camps, meetings, and other work. The system splits it into entries and shows you exactly what it found before anything saves.':'खुल कर लिखें, मरीज़ों के नाम बताएं या शिविर, बैठकें और अन्य काम बताएं। सिस्टम इसे अलग-अलग एंट्री में बांट देता है और सहेजने से पहले आपको बिल्कुल दिखाता है कि उसे क्या मिला।',
   'In WhatsApp: open the group → ⋮ → More → Export chat (choose "Include media" to bring the photos along). Then upload the exported .zip below exactly as WhatsApp made it — no unzipping needed. Or paste the chat text here. Messages imported before are skipped automatically, so overlapping exports are always safe.':'व्हाट्सएप में: ग्रुप खोलें → ⋮ → More → Export chat (फोटो साथ लाने के लिए "Include media" चुनें)। फिर नीचे वही .zip फ़ाइल अपलोड करें जैसी व्हाट्सएप ने बनाई है, अनज़िप करने की ज़रूरत नहीं। या यहां चैट टेक्स्ट पेस्ट करें। पहले इम्पोर्ट किए गए मैसेज अपने आप छूट जाते हैं, इसलिए ओवरलैप होने वाले एक्सपोर्ट भी हमेशा सुरक्षित हैं।',
-  'Payment Mentioned':'भुगतान का उल्लेख',
+  'Payment Mentioned':'भुगतान का उल्लेख','Team Payment Mentioned':'टीम भुगतान का उल्लेख','Camp Expense Mentioned':'कैंप खर्च का उल्लेख',
+  'logged to Finances when you save this':'इसे सहेजने पर वित्त में दर्ज होगा',
   'Log Entry':'लॉग एंट्री','Patient Update':'मरीज़ अपडेट','Saved':'सहेजा गया','Original text':'मूल पाठ',
   'Please confirm the patient':'कृपया मरीज़ की पुष्टि करें',
   'Could not confidently match a patient — please pick one.':'भरोसे के साथ मरीज़ का मिलान नहीं हो सका, कृपया एक चुनें।',
@@ -2515,6 +2516,12 @@ function renderBulkCards(){
     if(!isActivity&&s.payment_amount&&parseFloat(s.payment_amount)>0){
       h+='<div class="ai-box"><div class="ai-box-title">💰 '+tr('Payment Mentioned')+' — '+tr('logged to Finances when you save this update')+'</div>'+paymentFieldsHtml('bq',i,dis)+'</div>';
     }
+    if(s.team_payment_amount&&parseFloat(s.team_payment_amount)>0){
+      h+='<div class="ai-box"><div class="ai-box-title">🤝 '+tr('Team Payment Mentioned')+' — '+tr('logged to Finances when you save this')+'</div>'+teamPaymentFieldsHtml('bq',i,dis)+'</div>';
+    }
+    if(s.camp_expense_amount&&parseFloat(s.camp_expense_amount)>0){
+      h+='<div class="ai-box"><div class="ai-box-title">⛺ '+tr('Camp Expense Mentioned')+' — '+tr('logged to Finances when you save this')+'</div>'+campExpenseFieldsHtml('bq',i,dis)+'</div>';
+    }
     if(!seg.saved)h+='<button class="btn btn-primary" style="margin-top:12px" id="bq-'+i+'-savebtn" onclick="'+(isActivity?'saveBulkActivity(':'saveBulkCard(')+i+')">'+(isActivity?tr('Save This Entry'):tr('Save This Update'))+'</button>';
     h+='</div></div>';
   });
@@ -2524,6 +2531,17 @@ function renderBulkCards(){
   // otherwise break out of a value="..." attribute.
   bulkSegments.forEach(function(seg,i){
     var s=seg.data;
+    if(s.team_payment_amount&&parseFloat(s.team_payment_amount)>0){
+      document.getElementById('bq-'+i+'-teampay-member').value=bestSathiMatch(s.team_payment_member_name);
+      document.getElementById('bq-'+i+'-teampay-amount').value=s.team_payment_amount;
+      document.getElementById('bq-'+i+'-teampay-notes').value=s.team_payment_notes||'';
+    }
+    if(s.camp_expense_amount&&parseFloat(s.camp_expense_amount)>0){
+      document.getElementById('bq-'+i+'-campexp-name').value=s.camp_expense_name||'';
+      document.getElementById('bq-'+i+'-campexp-purpose').value=s.camp_expense_purpose||'Other';
+      document.getElementById('bq-'+i+'-campexp-amount').value=s.camp_expense_amount;
+      document.getElementById('bq-'+i+'-campexp-notes').value=s.camp_expense_notes||'';
+    }
     if(s.segment_kind==='activity'){
       document.getElementById('bq-'+i+'-adate').value=s.activity_date||new Date().toISOString().slice(0,10);
       document.getElementById('bq-'+i+'-atitle').value=s.activity_title||'';
@@ -2574,6 +2592,57 @@ async function logCardPayment(prefix,i,pid,fallbackDate){
   var resp=await sb.from('transactions').insert(row);
   if(resp.error){alert('Patient update saved, but the payment could not be logged: '+resp.error.message);return;}
   await loadTransactions();
+}
+// Same pattern as paymentFieldsHtml/logCardPayment, for the two payment
+// types a parsed entry can also carry regardless of its log_type: money
+// paid to a field team member, or a camp running cost. The AI's name guess
+// pre-selects a roster match where it can find one; staff can always pick a
+// different person before saving.
+function bestSathiMatch(nameGuess){
+  if(!nameGuess)return'';
+  var f=nameGuess.trim().toLowerCase();if(!f)return'';
+  var hit=cancerSathis.find(function(s){return s.name.toLowerCase()===f;})
+    ||cancerSathis.find(function(s){return s.name.toLowerCase().indexOf(f)>=0||f.indexOf(s.name.toLowerCase())>=0;});
+  return hit?hit.id:'';
+}
+function teamPaymentFieldsHtml(prefix,i,dis){
+  var h='<div class="fg"><label data-i18n="Team Member">'+tr('Team Member')+'</label><select id="'+prefix+'-'+i+'-teampay-member" '+dis+'>'+cancerSathis.slice().sort(function(a,b){return a.name.localeCompare(b.name);}).map(function(s){return'<option value="'+s.id+'">'+esc(s.name)+' — '+tr(s.role||'Cancer Sathi')+'</option>';}).join('')+'</select></div>';
+  h+='<div class="form-row"><div class="fg"><label data-i18n="Amount (₹)">'+tr('Amount (₹)')+'</label><input type="number" id="'+prefix+'-'+i+'-teampay-amount" min="0" step="0.01" '+dis+'></div><div class="fg"><label data-i18n="Notes">'+tr('Notes')+'</label><input type="text" id="'+prefix+'-'+i+'-teampay-notes" '+dis+'></div></div>';
+  return h;
+}
+async function logCardTeamPayment(prefix,i,fallbackDate){
+  var amtEl=document.getElementById(prefix+'-'+i+'-teampay-amount');
+  if(!amtEl)return;
+  var amount=parseFloat(amtEl.value);
+  if(!amount||amount<=0)return;
+  var sathiId=document.getElementById(prefix+'-'+i+'-teampay-member').value;
+  if(!sathiId)return;
+  var month=(fallbackDate||new Date().toISOString().slice(0,10)).slice(0,7)+'-01';
+  var row={sathi_id:sathiId,amount:amount,pay_month:month,
+    notes:document.getElementById(prefix+'-'+i+'-teampay-notes').value||null,recorded_by:UNAME};
+  var resp=await sb.from('sathi_payments').insert(row);
+  if(resp.error){alert('Saved, but the team payment could not be logged: '+resp.error.message);return;}
+  await loadSathiPayments();
+}
+var CAMP_PURPOSE_OPTIONS=['Coordinator Payment','Refreshments','Transport','Venue','Other'];
+function campExpenseFieldsHtml(prefix,i,dis){
+  var h='<div class="form-row"><div class="fg"><label data-i18n="Camp / Location">'+tr('Camp / Location')+'</label><input type="text" id="'+prefix+'-'+i+'-campexp-name" '+dis+'></div><div class="fg"><label data-i18n="Purpose">'+tr('Purpose')+'</label><select id="'+prefix+'-'+i+'-campexp-purpose" '+dis+'>'+CAMP_PURPOSE_OPTIONS.map(function(p){return'<option data-i18n="'+p+'">'+tr(p)+'</option>';}).join('')+'</select></div></div>';
+  h+='<div class="form-row"><div class="fg"><label data-i18n="Amount (₹)">'+tr('Amount (₹)')+'</label><input type="number" id="'+prefix+'-'+i+'-campexp-amount" min="0" step="0.01" '+dis+'></div><div class="fg"><label data-i18n="Notes">'+tr('Notes')+'</label><input type="text" id="'+prefix+'-'+i+'-campexp-notes" '+dis+'></div></div>';
+  return h;
+}
+async function logCardCampExpense(prefix,i,fallbackDate){
+  var amtEl=document.getElementById(prefix+'-'+i+'-campexp-amount');
+  if(!amtEl)return;
+  var amount=parseFloat(amtEl.value);
+  if(!amount||amount<=0)return;
+  var name=document.getElementById(prefix+'-'+i+'-campexp-name').value.trim();
+  if(!name)return;
+  var row={camp_name:name,camp_date:fallbackDate||new Date().toISOString().slice(0,10),
+    purpose:document.getElementById(prefix+'-'+i+'-campexp-purpose').value||'Other',amount:amount,
+    notes:document.getElementById(prefix+'-'+i+'-campexp-notes').value||null,recorded_by:UNAME};
+  var resp=await sb.from('camp_expenses').insert(row);
+  if(resp.error){alert('Saved, but the camp expense could not be logged: '+resp.error.message);return;}
+  await loadCampExpenses();
 }
 // Card field renderers shared by Quick Update ('bq') and WhatsApp Import
 // ('wa') — prefix keeps their element ids apart. The `s` object uses the
@@ -2681,6 +2750,8 @@ async function saveBulkCard(i){
     return;
   }
   await logCardPayment('bq',i,pid,fields.visitDate);
+  await logCardTeamPayment('bq',i,fields.visitDate);
+  await logCardCampExpense('bq',i,fields.visitDate);
   bulkSegments[i].saved=true;
   refreshActivePage();
 }
@@ -2690,7 +2761,8 @@ async function saveBulkActivity(i){
   var btn=document.getElementById('bq-'+i+'-savebtn');
   btn.disabled=true;btn.textContent=tr('Saving…');
   var s=bulkSegments[i].data;
-  var row={occurred_on:document.getElementById('bq-'+i+'-adate').value||new Date().toISOString().slice(0,10),
+  var adate=document.getElementById('bq-'+i+'-adate').value||new Date().toISOString().slice(0,10);
+  var row={occurred_on:adate,
     log_type_id:document.getElementById('bq-'+i+'-atype').value,
     title:document.getElementById('bq-'+i+'-atitle').value.trim()||null,
     description:desc,
@@ -2705,6 +2777,8 @@ async function saveBulkActivity(i){
     alert('Could not save entry: '+resp.error.message);
     return;
   }
+  await logCardTeamPayment('bq',i,adate);
+  await logCardCampExpense('bq',i,adate);
   await loadLogs();
   bulkSegments[i].saved=true;
   refreshActivePage();
@@ -2836,6 +2910,63 @@ async function sha256hex(s){
   return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
 }
 
+// Downscales + re-encodes an image before sending it to the AI reader —
+// phone-camera photos can be several MB each, and a chunk of ~45 messages
+// can carry a few dozen of them; keeping each one to ~1600px/JPEG keeps the
+// edge function payload (and the vision cost) sane without hurting OCR of
+// handwritten slips or report photos, which don't need full resolution.
+function resizeImageForVision(file){
+  return new Promise(function(resolve,reject){
+    var img=new Image();
+    var url=URL.createObjectURL(file);
+    img.onload=function(){
+      URL.revokeObjectURL(url);
+      var maxDim=1400,w=img.naturalWidth,h=img.naturalHeight;
+      if(w>maxDim||h>maxDim){
+        if(w>h){h=Math.round(h*maxDim/w);w=maxDim;} else {w=Math.round(w*maxDim/h);h=maxDim;}
+      }
+      var canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      canvas.toBlob(function(blob){
+        if(!blob){reject(new Error('Could not process image'));return;}
+        var reader=new FileReader();
+        reader.onload=function(){
+          resolve({media_type:'image/jpeg',data:reader.result.slice(reader.result.indexOf(',')+1)});
+        };
+        reader.onerror=function(){reject(new Error('Could not read resized image'));};
+        reader.readAsDataURL(blob);
+      },'image/jpeg',0.65);
+    };
+    img.onerror=function(){URL.revokeObjectURL(url);reject(new Error('Could not load image'));};
+    img.src=url;
+  });
+}
+// Builds the images[] payload for one chunk of messages: every image
+// attachment on a message in this slice, resized and base64-encoded, keyed
+// by its index WITHIN the slice (not the global waNew index) so the edge
+// function can line each photo up with the right message text. Capped so
+// one unusually photo-heavy chunk can't blow up the request.
+async function buildImagePayload(slice){
+  var jobs=[];
+  slice.forEach(function(m,j){
+    (m.media||[]).forEach(function(fn){
+      var f=waFiles[fn];
+      if(!f||f.type.indexOf('image/')!==0)return;
+      if(jobs.length>=20)return;
+      jobs.push({message_index:j,filename:fn,file:f});
+    });
+  });
+  var out=[];
+  for(var i=0;i<jobs.length;i++){
+    try{
+      var enc=await resizeImageForVision(jobs[i].file);
+      out.push({message_index:jobs[i].message_index,filename:jobs[i].filename,media_type:enc.media_type,data:enc.data});
+    }catch(e){console.error('Skipping unreadable image '+jobs[i].filename,e);}
+  }
+  return out;
+}
+
 async function waImport(){
   var text=document.getElementById('waText').value;
   if(waTxtFile)text=await waTxtFile.text();
@@ -2932,7 +3063,9 @@ async function waImport(){
       var ch=chunks[ci];
       document.getElementById('waSummary').innerHTML='<div class="ai-box" style="margin-top:16px">'+esc(sum)+' Reading '+waNew.length+' new message(s)'+(chunks.length>1?' — part '+(ci+1)+' of '+chunks.length+'…':'…')+'</div>';
       var slice=waNew.slice(ch.start,ch.end);
-      var fnResp=await sb.functions.invoke('parse-whatsapp',{body:{messages:slice.map(function(m){return{sent_at:m.sent_at,sender:m.sender,body:m.body,media:m.media};})}});
+      var imgPayload=await buildImagePayload(slice);
+      if(imgPayload.length)document.getElementById('waSummary').innerHTML='<div class="ai-box" style="margin-top:16px">'+esc(sum)+' Reading '+waNew.length+' new message(s) and '+imgPayload.length+' photo(s)'+(chunks.length>1?' — part '+(ci+1)+' of '+chunks.length+'…':'…')+'</div>';
+      var fnResp=await sb.functions.invoke('parse-whatsapp',{body:{messages:slice.map(function(m){return{sent_at:m.sent_at,sender:m.sender,body:m.body,media:m.media};}),images:imgPayload}});
       if(fnResp.error||!fnResp.data||fnResp.data.error){
         alert('Could not read part '+(ci+1)+' of the messages: '+await edgeErrorMessage(fnResp));
         document.getElementById('waSummary').innerHTML='';
@@ -2982,6 +3115,12 @@ function renderWaCards(){
     if(isPatient&&e.payment_amount&&parseFloat(e.payment_amount)>0){
       h+='<div class="ai-box"><div class="ai-box-title">💰 '+tr('Payment Mentioned')+' — '+tr('logged to Finances when you save this entry')+'</div>'+paymentFieldsHtml('wa',i,dis)+'</div>';
     }
+    if(e.team_payment_amount&&parseFloat(e.team_payment_amount)>0){
+      h+='<div class="ai-box"><div class="ai-box-title">🤝 '+tr('Team Payment Mentioned')+' — '+tr('logged to Finances when you save this entry')+'</div>'+teamPaymentFieldsHtml('wa',i,dis)+'</div>';
+    }
+    if(e.camp_expense_amount&&parseFloat(e.camp_expense_amount)>0){
+      h+='<div class="ai-box"><div class="ai-box-title">⛺ '+tr('Camp Expense Mentioned')+' — '+tr('logged to Finances when you save this entry')+'</div>'+campExpenseFieldsHtml('wa',i,dis)+'</div>';
+    }
     if(!en.saved)h+='<button class="btn btn-primary" style="margin-top:12px" id="wa-'+i+'-savebtn" onclick="saveWaCard('+i+')">'+tr('Save This Entry')+'</button>';
     h+='</div></div>';
   });
@@ -3009,6 +3148,17 @@ function renderWaCards(){
       document.getElementById('wa-'+i+'-adesc').value=e.description||'';
       document.getElementById('wa-'+i+'-aparticipants').value=e.participants||'';
       document.getElementById('wa-'+i+'-aquantity').value=parseInt(e.quantity)||1;
+    }
+    if(e.team_payment_amount&&parseFloat(e.team_payment_amount)>0){
+      document.getElementById('wa-'+i+'-teampay-member').value=bestSathiMatch(e.team_payment_member_name);
+      document.getElementById('wa-'+i+'-teampay-amount').value=e.team_payment_amount;
+      document.getElementById('wa-'+i+'-teampay-notes').value=e.team_payment_notes||'';
+    }
+    if(e.camp_expense_amount&&parseFloat(e.camp_expense_amount)>0){
+      document.getElementById('wa-'+i+'-campexp-name').value=e.camp_expense_name||'';
+      document.getElementById('wa-'+i+'-campexp-purpose').value=e.camp_expense_purpose||'Other';
+      document.getElementById('wa-'+i+'-campexp-amount').value=e.camp_expense_amount;
+      document.getElementById('wa-'+i+'-campexp-notes').value=e.camp_expense_notes||'';
     }
   });
 }
@@ -3053,7 +3203,7 @@ async function waUploadFiles(e,logId,patientId,isPub){
 
 function waMarkSaved(i){
   waEntries[i].saved=true;
-  ['patient','visitdate','visitnum','notes','status','nextvisit','diagnosis','treatment','medication','nexttest','testdate','meddate','adate','atype','atitle','adesc','aparticipants','aquantity','public','np-name','np-age','np-gender','np-phone','np-village','np-block','np-diagnosis','np-btn'].forEach(function(sfx){
+  ['patient','visitdate','visitnum','notes','status','nextvisit','diagnosis','treatment','medication','nexttest','testdate','meddate','adate','atype','atitle','adesc','aparticipants','aquantity','public','np-name','np-age','np-gender','np-phone','np-village','np-block','np-diagnosis','np-btn','payamount','paypurpose','paynotes','teampay-member','teampay-amount','teampay-notes','campexp-name','campexp-purpose','campexp-amount','campexp-notes'].forEach(function(sfx){
     var el=document.getElementById('wa-'+i+'-'+sfx);if(el)el.disabled=true;
   });
   var btn=document.getElementById('wa-'+i+'-savebtn');
@@ -3079,10 +3229,13 @@ async function saveWaCard(i){
     var result=await savePatientUpdate(pid,fields,opts);
     if(result.error)return fail('Could not save: '+result.error);
     await logCardPayment('wa',i,pid,fields.visitDate);
+    await logCardTeamPayment('wa',i,fields.visitDate);
+    await logCardCampExpense('wa',i,fields.visitDate);
     await waUploadFiles(e,opts.logId,pid,false);
   } else {
     var isPub=document.getElementById('wa-'+i+'-public').checked;
-    var row={occurred_on:document.getElementById('wa-'+i+'-adate').value||new Date().toISOString().slice(0,10),
+    var adate=document.getElementById('wa-'+i+'-adate').value||new Date().toISOString().slice(0,10);
+    var row={occurred_on:adate,
       log_type_id:document.getElementById('wa-'+i+'-atype').value,
       title:document.getElementById('wa-'+i+'-atitle').value.trim()||null,
       description:document.getElementById('wa-'+i+'-adesc').value.trim()||waSourceText(e),
@@ -3091,6 +3244,8 @@ async function saveWaCard(i){
       is_public:isPub,source:'whatsapp',source_text:waSourceText(e),created_by:UNAME};
     var resp=await sb.from('logs').insert(row).select().single();
     if(resp.error)return fail('Could not save: '+resp.error.message);
+    await logCardTeamPayment('wa',i,adate);
+    await logCardCampExpense('wa',i,adate);
     await waUploadFiles(e,resp.data.id,null,isPub);
     await loadLogs();
   }

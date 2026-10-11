@@ -8,7 +8,7 @@ import { z } from "npm:zod@4.4.3";
 import { zodOutputFormat } from "npm:@anthropic-ai/sdk@0.112.1/helpers/zod";
 import { createClient } from "npm:@supabase/supabase-js@2.110.7";
 import { CORS_HEADERS, jsonResponse } from "../_shared/cors.ts";
-import { PURPOSE_VALUES, STATUS_VALUES } from "../_shared/patient-fields.ts";
+import { CAMP_PURPOSE_VALUES, PURPOSE_VALUES, STATUS_VALUES } from "../_shared/patient-fields.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -59,6 +59,15 @@ function buildSchema(activityTypeNames: [string, ...string[]]) {
     payment_amount: z.string(),
     payment_purpose: z.enum(PURPOSE_VALUES),
     payment_notes: z.string(),
+    // Independent of segment_kind — either kind of segment can also mention
+    // money paid to a sathi/coordinator or spent running a camp.
+    team_payment_amount: z.string(),
+    team_payment_member_name: z.string(),
+    team_payment_notes: z.string(),
+    camp_expense_amount: z.string(),
+    camp_expense_purpose: z.enum(CAMP_PURPOSE_VALUES),
+    camp_expense_name: z.string(),
+    camp_expense_notes: z.string(),
     activity_date: z.string(),
     activity_type: z.enum(activityTypeNames),
     activity_title: z.string(),
@@ -98,6 +107,13 @@ Deno.serve(async (req) => {
       .map((p: any) => `${p.patient_code} | ${p.name} | ${p.village ?? "—"}, ${p.block ?? "—"} | ${p.status ?? "—"}`)
       .join("\n");
 
+    const { data: sathis } = await admin
+      .from("cancer_sathis")
+      .select("name, role");
+    const sathiRosterText = (sathis ?? [])
+      .map((s: any) => `${s.name} (${s.role})`)
+      .join(", ") || "none on file";
+
     // Live categories for activity segments — 'Patient Update' is excluded
     // because patient care goes through segment_kind, not activity_type.
     const { data: logTypes } = await admin
@@ -136,6 +152,16 @@ Deno.serve(async (req) => {
         `activity not tied to a specific patient. Today's date is ${todayIso} — resolve relative phrasing ` +
         "(\"next visit in 3 weeks\", \"on the 29th\") into absolute YYYY-MM-DD dates.\n\n" +
         "Roster (patient_code | name | village, block | status on file):\n" + rosterText + "\n\n" +
+        "Field team roster (cancer sathis and coordinators on file): " + sathiRosterText + ". Regardless of " +
+        "segment_kind, a segment can also mention money paid to one of these people (or anyone else clearly " +
+        "acting as a sathi or coordinator — travel/petrol reimbursement, a \"pocket expense\" for field work, " +
+        "payment for running a camp): extract team_payment_amount as a plain number, team_payment_member_name " +
+        "(match the roster's spelling if it's clearly the same person, otherwise as written), and " +
+        "team_payment_notes for what it was for. A cost of running a camp not tied to one person's pay — " +
+        "refreshments/nashta, venue, group transport — is a camp expense instead: extract camp_expense_amount, " +
+        "camp_expense_purpose (closest match, \"Other\" if unclear), camp_expense_name (the camp/panchayat/" +
+        "location), and camp_expense_notes. Leave these fields empty when no such payment is mentioned; they're " +
+        "independent of payment_amount and can appear on either segment_kind.\n\n" +
         "segment_text must always be the verbatim substring of the original note that this segment came from — " +
         "do not paraphrase it, staff needs to cross-check your split against the source.\n\n" +
         "For patient_update segments: matched_patient_code must be a code from the roster above, or \"\" if you " +
