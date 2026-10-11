@@ -289,6 +289,7 @@
     <h1 data-i18n="Finances">Finances</h1>
     <div class="topbar-actions">
       <button class="btn btn-primary" onclick="openAddTxn()" data-i18n="+ Log Payment">+ Log Payment</button>
+      <button class="btn btn-secondary" onclick="openAddSathiPay()" data-i18n="+ Log Sathi Payment">+ Log Sathi Payment</button>
       <button class="btn btn-secondary btn-sm story-last-updated" onclick="goToLastUpdate()">🕐 …</button>
       <div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div>
     </div>
@@ -300,6 +301,14 @@
   <div class="card">
     <div class="card-header"><h2 data-i18n="All Payments">All Payments</h2><input type="text" class="search-input" placeholder="Search by patient..." data-i18n-ph="Search by patient..." oninput="renderFinances(this.value)"></div>
     <div style="overflow-x:auto"><table><thead><tr><th data-i18n="ID">ID</th><th data-i18n="Patient">Patient</th><th data-i18n="Amount">Amount</th><th data-i18n="Purpose">Purpose</th><th data-i18n="Date">Date</th><th data-i18n="Notes">Notes</th><th data-i18n="Recorded By">Recorded By</th><th data-i18n="Actions">Actions</th></tr></thead><tbody id="txnBody"></tbody></table></div>
+  </div>
+  <div class="card" style="margin-top:28px">
+    <div class="card-header"><h2 data-i18n="Cancer Sathi Remuneration — by Sathi">Cancer Sathi Remuneration — by Sathi</h2></div>
+    <div style="overflow-x:auto"><table><thead><tr><th data-i18n="Sathi">Sathi</th><th data-i18n="Total Paid">Total Paid</th></tr></thead><tbody id="sathiPayBalanceBody"></tbody></table></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h2 data-i18n="Cancer Sathi Payments">Cancer Sathi Payments</h2><input type="text" class="search-input" placeholder="Search by sathi..." data-i18n-ph="Search by sathi..." oninput="renderSathiPayments(this.value)"></div>
+    <div style="overflow-x:auto"><table><thead><tr><th data-i18n="Sathi">Sathi</th><th data-i18n="Amount">Amount</th><th data-i18n="Month">Month</th><th data-i18n="Notes">Notes</th><th data-i18n="Recorded By">Recorded By</th><th data-i18n="Actions">Actions</th></tr></thead><tbody id="sathiPayBody"></tbody></table></div>
   </div>
 </div>
 
@@ -504,6 +513,20 @@
 </div>
 </div>
 
+<!-- ═══ SATHI PAYMENT MODAL ═══ -->
+<div class="modal-overlay" id="sathiPayModal">
+<div class="modal" style="max-width:520px">
+  <div class="modal-head"><h2 id="sathiPayModalTitle" data-i18n="Log Sathi Payment">Log Sathi Payment</h2><button class="modal-close" onclick="closeSathiPay()">&times;</button></div>
+  <div class="modal-body">
+    <input type="hidden" id="sathiPayId">
+    <div class="fg"><label data-i18n="Sathi">Sathi</label><select id="sathiPaySathi"></select></div>
+    <div class="form-row"><div class="fg"><label data-i18n="Amount (₹)">Amount (₹)</label><input type="number" id="sathiPayAmount" min="0" step="0.01"></div><div class="fg"><label data-i18n="Month">Month</label><input type="month" id="sathiPayMonth"></div></div>
+    <div class="fg"><label data-i18n="Notes">Notes</label><textarea id="sathiPayNotes"></textarea></div>
+  </div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeSathiPay()" data-i18n="Cancel">Cancel</button><button class="btn btn-primary" onclick="saveSathiPay()" data-i18n="Save Payment">Save Payment</button></div>
+</div>
+</div>
+
 <!-- ═══ LOG ENTRY MODAL (was activity — now the universal log) ═══ -->
 <div class="modal-overlay" id="activityModal">
 <div class="modal" style="max-width:520px">
@@ -654,6 +677,10 @@ var T_HI={
   'Cancer Sathis':'कैंसर साथी','+ Add Sathi':'+ साथी जोड़ें','Cancer Sathi Roster':'कैंसर साथी सूची','Contact Number':'संपर्क नंबर',
   'Area':'क्षेत्र','Add Cancer Sathi':'कैंसर साथी जोड़ें','Edit Cancer Sathi':'कैंसर साथी संपादित करें',
   'Area Responsible For':'ज़िम्मेदार क्षेत्र','Save Sathi':'साथी सहेजें','No cancer sathis added yet.':'अभी तक कोई कैंसर साथी नहीं जोड़ा गया।',
+  '+ Log Sathi Payment':'+ साथी भुगतान दर्ज करें','Cancer Sathi Remuneration — by Sathi':'कैंसर साथी पारिश्रमिक — साथी अनुसार',
+  'Sathi':'साथी','Total Paid':'कुल भुगतान','Cancer Sathi Payments':'कैंसर साथी भुगतान','Search by sathi...':'साथी के नाम से खोजें...',
+  'Month':'महीना','Log Sathi Payment':'साथी भुगतान दर्ज करें','Edit Sathi Payment':'साथी भुगतान संपादित करें',
+  'No sathi payments logged yet.':'अभी तक कोई साथी भुगतान दर्ज नहीं हुआ।',
   'Public View':'सार्वजनिक दृश्य','Public Dashboard':'सार्वजनिक डैशबोर्ड','Logout':'लॉगआउट','Staff Login':'स्टाफ लॉगिन','Menu':'मेन्यू',
   'Public site':'सार्वजनिक साइट','Show on sacci.net/story.html':'sacci.net/story.html पर दिखाएँ','Shown as':'इस रूप में दिखाएँ',
   'Event on the timeline':'टाइमलाइन पर घटना','Panel under “How support works”':'“सहायता कैसे काम करती है” के नीचे पैनल',
@@ -802,6 +829,7 @@ function dtr(text){return(text&&storyLang==='hi'&&hiCache[text])?hiCache[text]:t
 var patients=[];
 var transactions=[];
 var cancerSathis=[];
+var sathiPayments=[];
 var logs=[];
 var logTypes=[];
 var tempFiles=[];
@@ -926,7 +954,7 @@ async function init(){
   }
 
   await loadPatients();
-  if(ROLE==='staff')await loadTransactions();
+  if(ROLE==='staff'){await loadTransactions();await loadSathiPayments();}
   if(ROLE==='staff'||ROLE==='advisor'){await loadCancerSathis();await loadLogTypes();await loadLogs();await loadStory();}
   if(ROLE==='public'){navTo('public',document.querySelector('[data-page="public"]'));}
   else{renderDash();}
@@ -939,6 +967,9 @@ async function init(){
   if(ROLE==='staff'){
     sb.channel('transactions-changes')
       .on('postgres_changes',{event:'*',schema:'public',table:'transactions'},function(){loadTransactions().then(refreshActivePage);})
+      .subscribe();
+    sb.channel('sathi-payments-changes')
+      .on('postgres_changes',{event:'*',schema:'public',table:'sathi_payments'},function(){loadSathiPayments().then(refreshActivePage);})
       .subscribe();
   }
   if(ROLE==='staff'||ROLE==='advisor'){
@@ -1217,6 +1248,7 @@ function renderFinances(q){
   var list=transactions;
   if(q){var f=q.toLowerCase();list=list.filter(function(t){return patientName(t.patient_id).toLowerCase().indexOf(f)>=0||patientCode(t.patient_id).toLowerCase().indexOf(f)>=0;});}
   renderPatientBalances();
+  renderSathiPayments();
 
   var tbody=document.getElementById('txnBody');
   if(!list.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No payments logged yet.')+'</td></tr>';return;}
@@ -1362,6 +1394,86 @@ async function deleteSathi(id){
   if(resp.error){alert('Could not delete: '+resp.error.message);return;}
   await loadCancerSathis();
   renderSathis();
+}
+
+// SATHI PAYMENTS — monthly remuneration, same shape as patient transactions
+// (log of individual payments) but against cancer_sathis, staff-only.
+function sathiName(id){var s=cancerSathis.find(function(x){return x.id===id;});return s?s.name:'(unknown sathi)';}
+function sathiPayTotal(id){return sathiPayments.filter(function(p){return p.sathi_id===id;}).reduce(function(s,p){return s+Number(p.amount);},0);}
+function fmtMonth(d){
+  if(!d)return'—';
+  var m=/^(\d{4})-(\d{2})/.exec(d);
+  if(!m)return'—';
+  return new Date(+m[1],+m[2]-1,1).toLocaleDateString('en-IN',{month:'short',year:'numeric'});
+}
+async function loadSathiPayments(){
+  var resp=await sb.from('sathi_payments').select('*');
+  sathiPayments=resp.data||[];
+  if(resp.error)console.error(resp.error);
+}
+function renderSathiPayments(q){
+  var balBody=document.getElementById('sathiPayBalanceBody');
+  if(balBody){
+    var rows=cancerSathis.filter(function(s){return sathiPayTotal(s.id)>0;})
+      .sort(function(a,b){return a.name.localeCompare(b.name);});
+    if(!rows.length){balBody.innerHTML='<tr><td colspan="2" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No sathi payments logged yet.')+'</td></tr>';}
+    else{
+      var bh='';rows.forEach(function(s){bh+='<tr><td><strong>'+esc(s.name)+'</strong></td><td>₹'+sathiPayTotal(s.id).toLocaleString('en-IN')+'</td></tr>';});
+      balBody.innerHTML=bh;
+    }
+  }
+  var tbody=document.getElementById('sathiPayBody');if(!tbody)return;
+  var list=sathiPayments;
+  if(q){var f=q.toLowerCase();list=list.filter(function(p){return sathiName(p.sathi_id).toLowerCase().indexOf(f)>=0;});}
+  if(!list.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No sathi payments logged yet.')+'</td></tr>';return;}
+  var sorted=list.slice().sort(function(a,b){return new Date(b.pay_month)-new Date(a.pay_month);});
+  var h='';sorted.forEach(function(p){
+    h+='<tr><td><strong>'+esc(sathiName(p.sathi_id))+'</strong></td><td>₹'+Number(p.amount).toLocaleString('en-IN')+'</td><td>'+fmtMonth(p.pay_month)+'</td><td>'+esc(p.notes||'—')+'</td><td>'+esc(p.recorded_by||'—')+'</td><td><span class="link" onclick="editSathiPay(\''+p.id+'\')">'+tr('Edit')+'</span> · <span class="link" onclick="deleteSathiPay(\''+p.id+'\')">'+tr('Delete')+'</span></td></tr>';
+  });
+  tbody.innerHTML=h;
+}
+function openAddSathiPay(){
+  document.getElementById('sathiPayModalTitle').textContent=tr('Log Sathi Payment');
+  document.getElementById('sathiPayId').value='';
+  var sel=document.getElementById('sathiPaySathi');
+  sel.innerHTML=cancerSathis.slice().sort(function(a,b){return a.name.localeCompare(b.name);})
+    .map(function(s){return'<option value="'+s.id+'">'+esc(s.name)+'</option>';}).join('');
+  document.getElementById('sathiPayAmount').value='';
+  document.getElementById('sathiPayMonth').value=new Date().toISOString().slice(0,7);
+  document.getElementById('sathiPayNotes').value='';
+  document.getElementById('sathiPayModal').classList.add('show');
+}
+function editSathiPay(id){
+  var p=sathiPayments.find(function(x){return x.id===id;});if(!p)return;
+  openAddSathiPay();
+  document.getElementById('sathiPayModalTitle').textContent=tr('Edit Sathi Payment');
+  document.getElementById('sathiPayId').value=id;
+  document.getElementById('sathiPaySathi').value=p.sathi_id;
+  document.getElementById('sathiPayAmount').value=p.amount;
+  document.getElementById('sathiPayMonth').value=(p.pay_month||'').slice(0,7);
+  document.getElementById('sathiPayNotes').value=p.notes||'';
+}
+function closeSathiPay(){document.getElementById('sathiPayModal').classList.remove('show');}
+async function saveSathiPay(){
+  var amount=parseFloat(document.getElementById('sathiPayAmount').value);
+  if(!amount||amount<=0){alert('Enter a valid amount');return;}
+  var month=document.getElementById('sathiPayMonth').value;
+  if(!month){alert('Pick a month');return;}
+  var id=document.getElementById('sathiPayId').value;
+  var row={sathi_id:document.getElementById('sathiPaySathi').value,amount:amount,
+    pay_month:month+'-01',notes:document.getElementById('sathiPayNotes').value||null,recorded_by:UNAME};
+  var resp=id?await sb.from('sathi_payments').update(row).eq('id',id):await sb.from('sathi_payments').insert(row);
+  if(resp.error){alert('Could not save: '+resp.error.message);return;}
+  await loadSathiPayments();
+  closeSathiPay();
+  renderSathiPayments();
+}
+async function deleteSathiPay(id){
+  if(!confirm('Delete this payment record?'))return;
+  var resp=await sb.from('sathi_payments').delete().eq('id',id);
+  if(resp.error){alert('Could not delete: '+resp.error.message);return;}
+  await loadSathiPayments();
+  renderSathiPayments();
 }
 
 // THE LOG — universal stream (logs table), replacing the old activities

@@ -782,3 +782,45 @@ begin
     alter publication supabase_realtime add table cancer_sathis;
   end if;
 end $$;
+
+-- ─── SATHI PAYMENTS (monthly remuneration) ─────────────────────
+-- Same shape as transactions (patient payments), but against
+-- cancer_sathis instead of patients, and staff-only in both directions
+-- like transactions — this is money, not roster info.
+create table if not exists sathi_payments (
+  id uuid primary key default gen_random_uuid(),
+  sathi_id uuid references cancer_sathis(id) on delete cascade,
+  amount numeric(10,2) not null check (amount > 0),
+  pay_month date not null default date_trunc('month', current_date)::date,
+  notes text,
+  recorded_by text,
+  created_at timestamptz default now()
+);
+
+alter table sathi_payments enable row level security;
+
+drop policy if exists "staff only read sathi_payments" on sathi_payments;
+create policy "staff only read sathi_payments" on sathi_payments for select
+  using (is_staff());
+
+drop policy if exists "staff insert sathi_payments" on sathi_payments;
+create policy "staff insert sathi_payments" on sathi_payments for insert
+  with check (is_staff());
+
+drop policy if exists "staff update sathi_payments" on sathi_payments;
+create policy "staff update sathi_payments" on sathi_payments for update
+  using (is_staff());
+
+drop policy if exists "staff delete sathi_payments" on sathi_payments;
+create policy "staff delete sathi_payments" on sathi_payments for delete
+  using (is_staff());
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and tablename = 'sathi_payments'
+  ) then
+    alter publication supabase_realtime add table sathi_payments;
+  end if;
+end $$;
