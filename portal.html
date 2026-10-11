@@ -290,6 +290,7 @@
     <div class="topbar-actions">
       <button class="btn btn-primary" onclick="openAddTxn()" data-i18n="+ Log Payment">+ Log Payment</button>
       <button class="btn btn-secondary" onclick="openAddSathiPay()" data-i18n="+ Log Sathi Payment">+ Log Sathi Payment</button>
+      <button class="btn btn-secondary" onclick="openAddCampExp()" data-i18n="+ Log Camp Expense">+ Log Camp Expense</button>
       <button class="btn btn-secondary btn-sm story-last-updated" onclick="goToLastUpdate()">🕐 …</button>
       <div class="lang-toggle"><button class="lang-btn" data-lang="en" onclick="setStoryLang('en')">English</button><button class="lang-btn" data-lang="hi" onclick="setStoryLang('hi')">हिंदी</button></div>
     </div>
@@ -309,6 +310,14 @@
   <div class="card">
     <div class="card-header"><h2 data-i18n="Cancer Sathi Payments">Cancer Sathi Payments</h2><input type="text" class="search-input" placeholder="Search by sathi..." data-i18n-ph="Search by sathi..." oninput="renderSathiPayments(this.value)"></div>
     <div style="overflow-x:auto"><table><thead><tr><th data-i18n="Sathi">Sathi</th><th data-i18n="Amount">Amount</th><th data-i18n="Month">Month</th><th data-i18n="Notes">Notes</th><th data-i18n="Recorded By">Recorded By</th><th data-i18n="Actions">Actions</th></tr></thead><tbody id="sathiPayBody"></tbody></table></div>
+  </div>
+  <div class="card" style="margin-top:28px">
+    <div class="card-header"><h2 data-i18n="Health Camp Expenses — by Camp">Health Camp Expenses — by Camp</h2></div>
+    <div style="overflow-x:auto"><table><thead><tr><th data-i18n="Camp">Camp</th><th data-i18n="Total Spent">Total Spent</th></tr></thead><tbody id="campExpBalanceBody"></tbody></table></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h2 data-i18n="Health Camp Expenses">Health Camp Expenses</h2><input type="text" class="search-input" placeholder="Search by camp..." data-i18n-ph="Search by camp..." oninput="renderCampExpenses(this.value)"></div>
+    <div style="overflow-x:auto"><table><thead><tr><th data-i18n="Camp">Camp</th><th data-i18n="Date">Date</th><th data-i18n="Purpose">Purpose</th><th data-i18n="Amount">Amount</th><th data-i18n="Notes">Notes</th><th data-i18n="Recorded By">Recorded By</th><th data-i18n="Actions">Actions</th></tr></thead><tbody id="campExpBody"></tbody></table></div>
   </div>
 </div>
 
@@ -527,6 +536,20 @@
 </div>
 </div>
 
+<!-- ═══ CAMP EXPENSE MODAL ═══ -->
+<div class="modal-overlay" id="campExpModal">
+<div class="modal" style="max-width:520px">
+  <div class="modal-head"><h2 id="campExpModalTitle" data-i18n="Log Camp Expense">Log Camp Expense</h2><button class="modal-close" onclick="closeCampExp()">&times;</button></div>
+  <div class="modal-body">
+    <input type="hidden" id="campExpId">
+    <div class="form-row"><div class="fg"><label data-i18n="Camp / Location">Camp / Location</label><input type="text" id="campExpName" placeholder="e.g. Motipur panchayat camp"></div><div class="fg"><label data-i18n="Date">Date</label><input type="date" id="campExpDate"></div></div>
+    <div class="form-row"><div class="fg"><label data-i18n="Amount (₹)">Amount (₹)</label><input type="number" id="campExpAmount" min="0" step="0.01"></div><div class="fg"><label data-i18n="Purpose">Purpose</label><select id="campExpPurpose"><option data-i18n="Coordinator Payment">Coordinator Payment</option><option data-i18n="Refreshments">Refreshments</option><option data-i18n="Transport">Transport</option><option data-i18n="Venue">Venue</option><option data-i18n="Other">Other</option></select></div></div>
+    <div class="fg"><label data-i18n="Notes">Notes</label><textarea id="campExpNotes"></textarea></div>
+  </div>
+  <div class="modal-foot"><button class="btn btn-secondary" onclick="closeCampExp()" data-i18n="Cancel">Cancel</button><button class="btn btn-primary" onclick="saveCampExp()" data-i18n="Save Expense">Save Expense</button></div>
+</div>
+</div>
+
 <!-- ═══ LOG ENTRY MODAL (was activity — now the universal log) ═══ -->
 <div class="modal-overlay" id="activityModal">
 <div class="modal" style="max-width:520px">
@@ -681,6 +704,11 @@ var T_HI={
   'Sathi':'साथी','Total Paid':'कुल भुगतान','Cancer Sathi Payments':'कैंसर साथी भुगतान','Search by sathi...':'साथी के नाम से खोजें...',
   'Month':'महीना','Log Sathi Payment':'साथी भुगतान दर्ज करें','Edit Sathi Payment':'साथी भुगतान संपादित करें',
   'No sathi payments logged yet.':'अभी तक कोई साथी भुगतान दर्ज नहीं हुआ।',
+  '+ Log Camp Expense':'+ कैंप खर्च दर्ज करें','Health Camp Expenses — by Camp':'स्वास्थ्य कैंप खर्च — कैंप अनुसार','Camp':'कैंप',
+  'Health Camp Expenses':'स्वास्थ्य कैंप खर्च','Search by camp...':'कैंप के नाम से खोजें...','Camp / Location':'कैंप / स्थान',
+  'Log Camp Expense':'कैंप खर्च दर्ज करें','Edit Camp Expense':'कैंप खर्च संपादित करें','Save Expense':'खर्च सहेजें',
+  'Coordinator Payment':'समन्वयक भुगतान','Refreshments':'जलपान','Transport':'परिवहन','Venue':'स्थल',
+  'No camp expenses logged yet.':'अभी तक कोई कैंप खर्च दर्ज नहीं हुआ।',
   'Public View':'सार्वजनिक दृश्य','Public Dashboard':'सार्वजनिक डैशबोर्ड','Logout':'लॉगआउट','Staff Login':'स्टाफ लॉगिन','Menu':'मेन्यू',
   'Public site':'सार्वजनिक साइट','Show on sacci.net/story.html':'sacci.net/story.html पर दिखाएँ','Shown as':'इस रूप में दिखाएँ',
   'Event on the timeline':'टाइमलाइन पर घटना','Panel under “How support works”':'“सहायता कैसे काम करती है” के नीचे पैनल',
@@ -830,6 +858,7 @@ var patients=[];
 var transactions=[];
 var cancerSathis=[];
 var sathiPayments=[];
+var campExpenses=[];
 var logs=[];
 var logTypes=[];
 var tempFiles=[];
@@ -954,7 +983,7 @@ async function init(){
   }
 
   await loadPatients();
-  if(ROLE==='staff'){await loadTransactions();await loadSathiPayments();}
+  if(ROLE==='staff'){await loadTransactions();await loadSathiPayments();await loadCampExpenses();}
   if(ROLE==='staff'||ROLE==='advisor'){await loadCancerSathis();await loadLogTypes();await loadLogs();await loadStory();}
   if(ROLE==='public'){navTo('public',document.querySelector('[data-page="public"]'));}
   else{renderDash();}
@@ -970,6 +999,9 @@ async function init(){
       .subscribe();
     sb.channel('sathi-payments-changes')
       .on('postgres_changes',{event:'*',schema:'public',table:'sathi_payments'},function(){loadSathiPayments().then(refreshActivePage);})
+      .subscribe();
+    sb.channel('camp-expenses-changes')
+      .on('postgres_changes',{event:'*',schema:'public',table:'camp_expenses'},function(){loadCampExpenses().then(refreshActivePage);})
       .subscribe();
   }
   if(ROLE==='staff'||ROLE==='advisor'){
@@ -1249,6 +1281,7 @@ function renderFinances(q){
   if(q){var f=q.toLowerCase();list=list.filter(function(t){return patientName(t.patient_id).toLowerCase().indexOf(f)>=0||patientCode(t.patient_id).toLowerCase().indexOf(f)>=0;});}
   renderPatientBalances();
   renderSathiPayments();
+  renderCampExpenses();
 
   var tbody=document.getElementById('txnBody');
   if(!list.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No payments logged yet.')+'</td></tr>';return;}
@@ -1474,6 +1507,80 @@ async function deleteSathiPay(id){
   if(resp.error){alert('Could not delete: '+resp.error.message);return;}
   await loadSathiPayments();
   renderSathiPayments();
+}
+
+// HEALTH CAMP EXPENSES — coordinator payments, refreshments, transport,
+// venue costs for running a camp. Grouped by camp_name (free text, no
+// camp entity table exists) rather than a foreign key.
+async function loadCampExpenses(){
+  var resp=await sb.from('camp_expenses').select('*');
+  campExpenses=resp.data||[];
+  if(resp.error)console.error(resp.error);
+}
+function renderCampExpenses(q){
+  var balBody=document.getElementById('campExpBalanceBody');
+  if(balBody){
+    var totals={};campExpenses.forEach(function(e){totals[e.camp_name]=(totals[e.camp_name]||0)+Number(e.amount);});
+    var names=Object.keys(totals).sort(function(a,b){return a.localeCompare(b);});
+    if(!names.length){balBody.innerHTML='<tr><td colspan="2" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No camp expenses logged yet.')+'</td></tr>';}
+    else{
+      var bh='';names.forEach(function(n){bh+='<tr><td><strong>'+esc(n)+'</strong></td><td>₹'+totals[n].toLocaleString('en-IN')+'</td></tr>';});
+      balBody.innerHTML=bh;
+    }
+  }
+  var tbody=document.getElementById('campExpBody');if(!tbody)return;
+  var list=campExpenses;
+  if(q){var f=q.toLowerCase();list=list.filter(function(e){return(e.camp_name||'').toLowerCase().indexOf(f)>=0;});}
+  if(!list.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:36px;color:var(--ink-muted)">'+tr('No camp expenses logged yet.')+'</td></tr>';return;}
+  var sorted=list.slice().sort(function(a,b){return new Date(b.camp_date)-new Date(a.camp_date);});
+  var h='';sorted.forEach(function(e){
+    h+='<tr><td><strong>'+esc(e.camp_name)+'</strong></td><td>'+fmtDate(e.camp_date)+'</td><td>'+tr(e.purpose)+'</td><td>₹'+Number(e.amount).toLocaleString('en-IN')+'</td><td>'+esc(e.notes||'—')+'</td><td>'+esc(e.recorded_by||'—')+'</td><td><span class="link" onclick="editCampExp(\''+e.id+'\')">'+tr('Edit')+'</span> · <span class="link" onclick="deleteCampExp(\''+e.id+'\')">'+tr('Delete')+'</span></td></tr>';
+  });
+  tbody.innerHTML=h;
+}
+function openAddCampExp(){
+  document.getElementById('campExpModalTitle').textContent=tr('Log Camp Expense');
+  document.getElementById('campExpId').value='';
+  document.getElementById('campExpName').value='';
+  document.getElementById('campExpDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('campExpAmount').value='';
+  document.getElementById('campExpPurpose').value='Coordinator Payment';
+  document.getElementById('campExpNotes').value='';
+  document.getElementById('campExpModal').classList.add('show');
+}
+function editCampExp(id){
+  var e=campExpenses.find(function(x){return x.id===id;});if(!e)return;
+  openAddCampExp();
+  document.getElementById('campExpModalTitle').textContent=tr('Edit Camp Expense');
+  document.getElementById('campExpId').value=id;
+  document.getElementById('campExpName').value=e.camp_name||'';
+  document.getElementById('campExpDate').value=e.camp_date;
+  document.getElementById('campExpAmount').value=e.amount;
+  document.getElementById('campExpPurpose').value=e.purpose||'Other';
+  document.getElementById('campExpNotes').value=e.notes||'';
+}
+function closeCampExp(){document.getElementById('campExpModal').classList.remove('show');}
+async function saveCampExp(){
+  var name=document.getElementById('campExpName').value.trim();
+  if(!name){alert('Enter the camp name or location');return;}
+  var amount=parseFloat(document.getElementById('campExpAmount').value);
+  if(!amount||amount<=0){alert('Enter a valid amount');return;}
+  var id=document.getElementById('campExpId').value;
+  var row={camp_name:name,camp_date:document.getElementById('campExpDate').value,
+    purpose:document.getElementById('campExpPurpose').value,amount:amount,
+    notes:document.getElementById('campExpNotes').value||null,recorded_by:UNAME};
+  var resp=id?await sb.from('camp_expenses').update(row).eq('id',id):await sb.from('camp_expenses').insert(row);
+  if(resp.error){alert('Could not save: '+resp.error.message);return;}
+  await loadCampExpenses();
+  closeCampExp();
+  renderCampExpenses();
+}
+async function deleteCampExp(id){
+  if(!confirm('Delete this expense record?'))return;
+  var resp=await sb.from('camp_expenses').delete().eq('id',id);
+  if(resp.error){alert('Could not delete: '+resp.error.message);return;}
+  await loadCampExpenses();
+  renderCampExpenses();
 }
 
 // THE LOG — universal stream (logs table), replacing the old activities

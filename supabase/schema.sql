@@ -824,3 +824,48 @@ begin
     alter publication supabase_realtime add table sathi_payments;
   end if;
 end $$;
+
+-- ─── HEALTH CAMP EXPENSES ───────────────────────────────────────
+-- Coordinator payments, refreshments, transport, venue costs for running
+-- a health camp. camp_name is free text, not a foreign key — camps aren't
+-- a normalized entity elsewhere (just "Health Camp" log entries), so this
+-- groups by name/date the same loose way staff already refer to camps.
+-- Staff-only, same as every other money table.
+create table if not exists camp_expenses (
+  id uuid primary key default gen_random_uuid(),
+  camp_name text not null,
+  camp_date date not null default current_date,
+  purpose text not null check (purpose in ('Coordinator Payment','Refreshments','Transport','Venue','Other')),
+  amount numeric(10,2) not null check (amount > 0),
+  notes text,
+  recorded_by text,
+  created_at timestamptz default now()
+);
+
+alter table camp_expenses enable row level security;
+
+drop policy if exists "staff only read camp_expenses" on camp_expenses;
+create policy "staff only read camp_expenses" on camp_expenses for select
+  using (is_staff());
+
+drop policy if exists "staff insert camp_expenses" on camp_expenses;
+create policy "staff insert camp_expenses" on camp_expenses for insert
+  with check (is_staff());
+
+drop policy if exists "staff update camp_expenses" on camp_expenses;
+create policy "staff update camp_expenses" on camp_expenses for update
+  using (is_staff());
+
+drop policy if exists "staff delete camp_expenses" on camp_expenses;
+create policy "staff delete camp_expenses" on camp_expenses for delete
+  using (is_staff());
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and tablename = 'camp_expenses'
+  ) then
+    alter publication supabase_realtime add table camp_expenses;
+  end if;
+end $$;
