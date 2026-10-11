@@ -58,16 +58,14 @@
   .stat-box{background:#fff;border-radius:8px;padding:18px;border:1px solid var(--sand);}
   .stat-box-number{font-size:1.7rem;font-weight:700;color:var(--ink);}
   .stat-box-label{font-size:0.78rem;color:var(--ink-muted);margin-top:2px;}
-  /* Four-step green ramp so a row of totals reads as distinct boxes at a
-     glance, not identical white cards — used on Active Cases + Finances. */
-  .stat-g1{background:#eef9f3;border-color:#d8efe2;}
-  .stat-g2{background:#c9ecd9;border-color:#b3e0c6;}
-  .stat-g3{background:#6fbf96;border-color:#6fbf96;}
-  .stat-g3 .stat-box-number{color:#fff;}
-  .stat-g3 .stat-box-label{color:rgba(255,255,255,0.88);}
-  .stat-g4{background:var(--teal-deep);border-color:var(--teal-deep);}
-  .stat-g4 .stat-box-number{color:#fff;}
-  .stat-g4 .stat-box-label{color:rgba(255,255,255,0.75);}
+  /* The headline total in a row (Total Patients / Total Expenses) stands out
+     in dark teal; every other box in that row shares one light green, so the
+     row reads as "one total + its breakdown" rather than four random cards —
+     used on Active Cases + Finances. */
+  .stat-light{background:#c9ecd9;border-color:#b3e0c6;}
+  .stat-dark{background:var(--teal-deep);border-color:var(--teal-deep);}
+  .stat-dark .stat-box-number{color:#fff;}
+  .stat-dark .stat-box-label{color:rgba(255,255,255,0.75);}
 
   .card{background:#fff;border-radius:8px;border:1px solid var(--sand);overflow:hidden;margin-bottom:20px;}
   .card-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--sand);}
@@ -243,10 +241,10 @@
     </div>
   </div>
   <div class="stats-row">
-    <div class="stat-box stat-g1"><div class="stat-box-number" id="s-total">0</div><div class="stat-box-label" data-i18n="Total Patients">Total Patients</div></div>
-    <div class="stat-box stat-g2"><div class="stat-box-number" id="s-active">0</div><div class="stat-box-label" data-i18n="Active Treatment">Active Treatment</div></div>
-    <div class="stat-box stat-g3"><div class="stat-box-number" id="s-screening">0</div><div class="stat-box-label" data-i18n="In Screening">In Screening</div></div>
-    <div class="stat-box stat-g4"><div class="stat-box-number" id="s-dues">0</div><div class="stat-box-label" data-i18n="Actions Due">Actions Due</div></div>
+    <div class="stat-box stat-dark"><div class="stat-box-number" id="s-total">0</div><div class="stat-box-label" data-i18n="Total Patients">Total Patients</div></div>
+    <div class="stat-box stat-light"><div class="stat-box-number" id="s-active">0</div><div class="stat-box-label" data-i18n="Active Treatment">Active Treatment</div></div>
+    <div class="stat-box stat-light"><div class="stat-box-number" id="s-screening">0</div><div class="stat-box-label" data-i18n="In Screening">In Screening</div></div>
+    <div class="stat-box stat-light"><div class="stat-box-number" id="s-dues">0</div><div class="stat-box-label" data-i18n="Actions Due">Actions Due</div></div>
   </div>
   <div class="card">
     <div class="card-header"><h2 data-i18n="Active Cases">Active Cases</h2><input type="text" class="search-input" placeholder="Search..." data-i18n-ph="Search..." oninput="renderDash(this.value)"></div>
@@ -306,10 +304,10 @@
     </div>
   </div>
   <div class="stats-row">
-    <div class="stat-box stat-g4"><div class="stat-box-number" id="f-total-all">₹0</div><div class="stat-box-label" data-i18n="Total Expenses">Total Expenses</div></div>
-    <div class="stat-box stat-g1"><div class="stat-box-number" id="f-total-patient">₹0</div><div class="stat-box-label" data-i18n="Patient Care">Patient Care</div></div>
-    <div class="stat-box stat-g2"><div class="stat-box-number" id="f-total-sathi">₹0</div><div class="stat-box-label" data-i18n="Field Team Remuneration">Field Team Remuneration</div></div>
-    <div class="stat-box stat-g3"><div class="stat-box-number" id="f-total-camp">₹0</div><div class="stat-box-label" data-i18n="Health Camps">Health Camps</div></div>
+    <div class="stat-box stat-dark"><div class="stat-box-number" id="f-total-all">₹0</div><div class="stat-box-label" data-i18n="Total Expenses">Total Expenses</div></div>
+    <div class="stat-box stat-light"><div class="stat-box-number" id="f-total-patient">₹0</div><div class="stat-box-label" data-i18n="Patient Care">Patient Care</div></div>
+    <div class="stat-box stat-light"><div class="stat-box-number" id="f-total-sathi">₹0</div><div class="stat-box-label" data-i18n="Field Team Remuneration">Field Team Remuneration</div></div>
+    <div class="stat-box stat-light"><div class="stat-box-number" id="f-total-camp">₹0</div><div class="stat-box-label" data-i18n="Health Camps">Health Camps</div></div>
   </div>
   <div class="card">
     <div class="card-header"><h2 data-i18n="Payments by Patient">Payments by Patient</h2></div>
