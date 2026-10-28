@@ -878,3 +878,13 @@ alter table cancer_sathis add column if not exists role text not null default 'C
   check (role in ('Cancer Sathi','Coordinator'));
 
 notify pgrst, 'reload schema';
+
+-- ─── LEDGER: SENDER-INDEPENDENT FINGERPRINT (2026-10-28) ──────
+-- WhatsApp exports carry each sender under the EXPORTING phone's contact
+-- name ("Munish RM" on Sharan's phone, "Munish Sharma" on Munish's), so a
+-- hash that includes the sender never matches across phones: 666 messages
+-- were stored twice and a 593-message export looked 570 "new". body_key
+-- fingerprints the text alone; the import matches on it within ±2 minutes.
+alter table whatsapp_messages add column if not exists body_key text;
+update whatsapp_messages set body_key = encode(digest(body, 'sha256'), 'hex') where body_key is null;
+create index if not exists whatsapp_messages_body_key_idx on whatsapp_messages (body_key);

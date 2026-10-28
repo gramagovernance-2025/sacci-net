@@ -3005,32 +3005,45 @@ async function waImport(){
     // offset against earlier imports using content fingerprints
     // (sender+body, no time) on messages unique in both places, and shift
     // this export onto the ledger's clock when one is found.
+    // Matching must not depend on the sender's name either: WhatsApp writes
+    // each sender under the EXPORTING phone's contact name ("Munish RM" on
+    // one phone, "Munish Sharma" on another), and two phones' minute stamps
+    // can differ by one. So a message is fingerprinted by its text alone
+    // (body_key) and counts as already imported when the ledger has the
+    // same text within ±2 minutes, after the clock alignment. The
+    // sender-inclusive hash is kept only as the ledger's uniqueness key.
+    // (Before this, 666 messages sat in the ledger twice under two names,
+    // and a 593-message export read as 570 "new" — 28 Oct 2026.)
     for(var i=0;i<waParsed.length;i++){
+      waParsed[i].body_key=await sha256hex(waParsed[i].body);
       waParsed[i].content_key=await sha256hex(waParsed[i].sender+'|'+waParsed[i].body);
     }
-    var ckCount={};waParsed.forEach(function(m){ckCount[m.content_key]=(ckCount[m.content_key]||0)+1;});
-    var anchors=waParsed.filter(function(m){return m.body.length>=20&&ckCount[m.content_key]===1;});
-    var ledgerByKey={},ledgerDup={};
-    for(var c=0;c<anchors.length;c+=200){
-      var keys=anchors.slice(c,c+200).map(function(m){return m.content_key;});
-      var kresp=await sb.from('whatsapp_messages').select('content_key,sent_at').in('content_key',keys);
-      if(kresp.error)break;
-      (kresp.data||[]).forEach(function(r){
-        if(ledgerByKey[r.content_key])ledgerDup[r.content_key]=true;
-        else ledgerByKey[r.content_key]=r.sent_at;
-      });
+    var bkCount={};waParsed.forEach(function(m){bkCount[m.body_key]=(bkCount[m.body_key]||0)+1;});
+    var ledgerTimes={};   // body_key -> every sent_at the ledger has for that text
+    var uniqKeys=Object.keys(bkCount);
+    for(var c=0;c<uniqKeys.length;c+=200){
+      var kresp=await sb.from('whatsapp_messages').select('body_key,sent_at').in('body_key',uniqKeys.slice(c,c+200));
+      if(kresp.error){alert('Could not check the import ledger: '+kresp.error.message);return;}
+      (kresp.data||[]).forEach(function(r){(ledgerTimes[r.body_key]=ledgerTimes[r.body_key]||[]).push(r.sent_at);});
     }
     function waMin(s){s=s.slice(0,16).replace('T',' ');return Date.UTC(+s.slice(0,4),s.slice(5,7)-1,+s.slice(8,10),+s.slice(11,13),+s.slice(14,16))/60000;}
+    // Anchors for the clock offset: texts of 20+ characters that occur once
+    // here and once in the ledger. Votes within two minutes of each other
+    // are pooled, so a one-minute skew between phones does not split them.
     var deltaCount={},nAnchors=0;
-    anchors.forEach(function(m){
-      if(ledgerByKey[m.content_key]&&!ledgerDup[m.content_key]){
-        var d=Math.round(waMin(m.sent_at)-waMin(ledgerByKey[m.content_key]));
+    waParsed.forEach(function(m){
+      if(m.body.length>=20&&bkCount[m.body_key]===1&&ledgerTimes[m.body_key]&&ledgerTimes[m.body_key].length===1){
+        var d=Math.round(waMin(m.sent_at)-waMin(ledgerTimes[m.body_key][0]));
         deltaCount[d]=(deltaCount[d]||0)+1;nAnchors++;
       }
     });
     var offsetMin=0,offsetVotes=0;
-    Object.keys(deltaCount).forEach(function(d){if(deltaCount[d]>offsetVotes){offsetVotes=deltaCount[d];offsetMin=parseInt(d,10);}});
-    var aligned=(offsetMin!==0&&nAnchors>=5&&offsetVotes/nAnchors>=0.8);
+    Object.keys(deltaCount).forEach(function(d){
+      var dd=parseInt(d,10),v=0;
+      Object.keys(deltaCount).forEach(function(e){if(Math.abs(parseInt(e,10)-dd)<=2)v+=deltaCount[e];});
+      if(v>offsetVotes){offsetVotes=v;offsetMin=dd;}
+    });
+    var aligned=(Math.abs(offsetMin)>2&&nAnchors>=5&&offsetVotes/nAnchors>=0.8);
     if(aligned){
       waParsed.forEach(function(m){
         var t=new Date((waMin(m.sent_at)-offsetMin)*60000);
@@ -3041,14 +3054,10 @@ async function waImport(){
     for(var i=0;i<waParsed.length;i++){
       waParsed[i].msg_hash=await sha256hex(waParsed[i].sender+'|'+waParsed[i].sent_at+'|'+waParsed[i].body);
     }
-    var known={};
-    for(var c=0;c<waParsed.length;c+=200){
-      var chunk=waParsed.slice(c,c+200).map(function(m){return m.msg_hash;});
-      var resp=await sb.from('whatsapp_messages').select('msg_hash').in('msg_hash',chunk);
-      if(resp.error){alert('Could not check the import ledger: '+resp.error.message);return;}
-      (resp.data||[]).forEach(function(r){known[r.msg_hash]=true;});
-    }
-    waNew=waParsed.filter(function(m){return !known[m.msg_hash];});
+    waNew=waParsed.filter(function(m){
+      var ts=ledgerTimes[m.body_key]||[],t=waMin(m.sent_at);
+      return !ts.some(function(x){return Math.abs(waMin(x)-t)<=2;});
+    });
     waLedgerDone=false;
     var already=waParsed.length-waNew.length;
     var offH=Math.floor(Math.abs(offsetMin)/60),offM=Math.abs(offsetMin)%60;
@@ -3190,7 +3199,7 @@ async function waEnsureLedger(){
   // re-import of the same export sees them as new again and gets another
   // chance to read the photo, instead of marking them done with an unread
   // attachment forever.
-  var rows=waNew.filter(function(m){return !m._photoSkipped;}).map(function(m){return{msg_hash:m.msg_hash,content_key:m.content_key,sender:m.sender,sent_at:m.sent_at,body:m.body,imported_by:UNAME};});
+  var rows=waNew.filter(function(m){return !m._photoSkipped;}).map(function(m){return{msg_hash:m.msg_hash,content_key:m.content_key,body_key:m.body_key,sender:m.sender,sent_at:m.sent_at,body:m.body,imported_by:UNAME};});
   for(var c=0;c<rows.length;c+=200){
     var resp=await sb.from('whatsapp_messages').upsert(rows.slice(c,c+200),{onConflict:'msg_hash',ignoreDuplicates:true});
     if(resp.error){alert('Could not record the import ledger: '+resp.error.message);return false;}
